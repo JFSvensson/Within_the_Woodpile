@@ -1,0 +1,63 @@
+@startuml Within_the_Woodpile_DataFlow
+
+!define LIGHTBLUE #E1F5FE
+!define LIGHTGREEN #E8F5E8
+!define LIGHTYELLOW #FFF9C4
+!define LIGHTPINK #FCE4EC
+
+actor Player
+participant "HTML Canvas" as Canvas
+participant "Game Controller" as Game
+participant "Wood Pile Generator" as Generator
+participant "Game Renderer" as Renderer
+participant "I18n System" as I18n
+database "Local Storage" as Storage
+
+== Initialization ==
+Player -> Game : Start Game
+Game -> I18n : Initialize
+I18n -> Storage : Load saved language
+I18n -> I18n : Load language files
+Game -> Generator : Generate wood pile
+Generator -> Game : Return WoodPiece[]
+Game -> Renderer : Initial render
+Renderer -> Canvas : Draw game scene
+
+== Game Loop ==
+loop Game Running
+    Player -> Canvas : Mouse click/move
+    Canvas -> Game : Mouse event
+    Game -> Game : Handle interaction
+    
+    alt Wood clicked
+        Game -> Generator : Check collapse
+        Generator -> Game : Collapsing pieces
+        Game -> Game : Update score/health
+    end
+    
+    alt Creature encountered
+        Game -> Game : Start reaction timer
+        Player -> Game : Key press
+        Game -> Game : Handle reaction
+    end
+    
+    Game -> Renderer : Update render
+    Renderer -> Canvas : Draw updated scene
+end
+
+== Language Change ==
+Player -> I18n : Change language
+I18n -> Storage : Save preference
+I18n -> I18n : Load new language
+I18n -> Renderer : Update UI
+Renderer -> Canvas : Redraw with new text
+
+== Game Over ==
+Game -> Game : Health <= 0
+Game -> Renderer : Show game over
+Renderer -> Canvas : Draw overlay
+Player -> Game : Click to restart
+Game -> Generator : Regenerate pile
+Game -> Renderer : Reset render
+
+@enduml
