@@ -1,0 +1,20 @@
+{
+  "name": "within-the-woodpile",
+  "version": "0.1.0",
+  "description": "Ett spel skapat för Alla kodares buggiga natt 2025 av Fredrik Svensson",
+  "main": "dist/main.js",
+  "scripts": {
+    "dev": "tsc --watch",
+    "build": "tsc",
+    "serve": "echo 'Öppna dist/index.html i webbläsaren eller använd VS Code Live Server'"
+  },
+  "author": "Fredrik Svensson",
+  "license": "MIT",
+  "devDependencies": {
+    "typescript": "^5.2.2"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/JFSvensson/Within_the_Woodpile.git"
+  }
+}
