@@ -215,16 +215,4 @@ export class WoodPileGenerator {
     
     return collapsingPieces;
   }
-
-  /**
-   * Hjälpmetod för att hitta rad och kolumn från position (för debugging)
-   */
-  private getRowColFromPosition(piece: WoodPiece): { row: number, col: number } {
-    const row = Math.floor((this.config.canvasHeight - 50 - piece.position.y) / this.config.woodHeight);
-    const isEvenRow = row % 2 === 0;
-    const baseX = piece.position.x - 50 - (isEvenRow ? 0 : this.config.woodWidth / 2);
-    const col = Math.floor(baseX / this.config.woodWidth);
-    
-    return { row, col };
-  }
 }
