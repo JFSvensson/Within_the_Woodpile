@@ -3,6 +3,7 @@ Ett spel skapat för **Alla kodares buggiga natt 2025** av Fredrik Svensson.
 
 ## Om spelet
 Du är en person som ska plocka ved ur en vedstapel. Men akta dig - bakom veden kan det finnas farliga djur och läskiga varelser! Vedhögen kan också rasa om du inte är försiktig.
+Spelet har **flerspråksstöd** (för närvarande svenska och engelska).
 
 ## Spelmekanik
 
@@ -10,6 +11,7 @@ Du är en person som ska plocka ved ur en vedstapel. Men akta dig - bakom veden 
 - **Klicka på ved** för att plocka den
 - **Samla poäng** genom att plocka ved och undvika faror
 - **Undvik faror** som kan kosta dig hälsa
+- **Hover-effekter** visar rasrisk med färgkodade ramar
 
 ### Varelser och reaktioner
 När du plockat en vedpinne som gömmer en varelse har du en kort tid på dig att reagera:
@@ -20,28 +22,46 @@ När du plockat en vedpinne som gömmer en varelse har du en kort tid på dig at
 - 👻 **Spöke**: Tryck `L` för att tända lyktan
 - 🎃 **Pumpahuvud**: Tryck `R` för att springa
 
-### Rasrisk
-- När du håller muspekaren över veden ser du om den riskerar att rasa 
-- Ved som riskerar att rasa visas med **gul** eller **röd** ram
-- Om veden rasar blir du av med hälsa
+### Rasrisk och kollaps
+- **Hover-visning**: Vedpinnar visar rasrisk med färgkodade ramar
+  - 🟢 Grön = Ingen risk
+  - 🟡 Gul = Låg risk  
+  - 🟠 Orange = Medel risk
+  - 🔴 Röd = Hög risk
+- **Brick-pattern**: Vedpinnar staplas omväxlande för realism
+- **Kollapsmekanik**: Ta bort fel ved kan få andra att rasa
 
 ## Teknisk info
 
 ### Utvecklat med
 - **TypeScript** för typning och struktur
-- **Vektorgrafik-inspirerade** visuella element
+- **HTML5 Canvas** för 2D-grafik med runda vedpinnar
+- **Internationalisering (i18n)** med JSON-språkfiler
+- **Modern ES modules** och clean code-arkitektur
 
 ### Projektstruktur
 ```
 src/
-├── types.ts           # Typedefinitioner
-├── woodPileGenerator.ts # Genererar vedstapeln
-├── gameRenderer.ts    # Ansvarar för grafik
-├── game.ts           # Huvudspellogik
-└── main.ts           # Startpunkt
+├── types.ts              # Typedefinitioner och konfiguration
+├── woodPileGenerator.ts  # Genererar vedstapel med brick-pattern
+├── gameRenderer.ts       # Canvas-rendering och visuella effekter
+├── game.ts              # Huvudspellogik och state management
+├── i18n.ts              # Internationalisering
+├── main.ts              # Startpunkt och initialisering
+└── i18n/
+    ├── sv.json          # Svenska översättningar
+    └── en.json          # Engelska översättningar
 ```
 
+### Arkitektur
+Projektet följer **clean code-principer** med:
+- **Separation of concerns**: Logik, rendering och i18n separerat
+- **Dependency injection**: Klasser tar emot beroenden via konstruktor
+- **Type safety**: Fullständig TypeScript-typning
+- **Event-driven**: Löst kopplad kommunikation mellan komponenter
+
 ## Kom igång
+
 ### Installation
 ```bash
 npm install
@@ -49,36 +69,62 @@ npm install
 
 ### Utveckling
 ```bash
-npm run dev    # Kompilera TypeScript i watch-mode
-npm run serve  # Starta lokal server
+npm run dev    # Kompilera TypeScript i watch-mode
 ```
 
-### Bygg och kör
+### Bygg projektet
 ```bash
-npm start      # Bygg och starta
+npm run build  # Kompilerar och kopierar filer till dist/
 ```
 
-Öppna sedan `http://localhost:8080` i din webbläsare.
+### Kör spelet
+1. Bygg projektet: `npm run build`
+2. Öppna `dist/index.html` i webbläsaren
+3. Eller använd VS Code Live Server på `dist/index.html`
 
-## Spelmekanik att implementera i framtiden
+## Spelmekanik implementerat ✅
+- [x] Grundläggande vedplockning med musklick
+- [x] Runda vedpinnar i brick-pattern för realistisk stapel
+- [x] Fem olika varelser med unika reaktioner
+- [x] Rasrisk-beräkning och visuell feedback
+- [x] Kollapsmekanik med hälsopåverkan
+- [x] Poäng- och hälsosystem
+- [x] Game over och restart-funktionalitet
+- [x] Flerspråksstöd (svenska/engelska)
+- [x] Responsiv design och tillgänglighet
+
+## Framtida förbättringar
 ### Kortsiktigt
 - [ ] Förbättra vedras-animationer
 - [ ] Lägg till ljudeffekter
 - [ ] Bättre partikeleffekter för reaktioner
-- [ ] High score-system
+- [ ] High score-system med localStorage
+- [ ] Fler visuella effekter (skuggor, ljus)
 
-### Långsiktigt  
+### Långsiktigt  
 - [ ] Flera nivåer med olika svårighetsgrad
 - [ ] Powerups (t.ex. lykta för att se varelser)
-- [ ] Olika typer av vedstaplar
+- [ ] Olika typer av vedstaplar (gran, björk, ek)
 - [ ] Multiplayer-läge
 - [ ] Berättarröst eller bakgrundsmusik
+- [ ] Progressive Web App (PWA) för mobiler
 
 ## Utvecklingsnotiser
-Projektet är strukturerat för att vara lätt att bygga på under en spelsylt. Huvudklasserna är separerade så att du enkelt kan:
-- Lägga till nya varelser i `types.ts` och `gameRenderer.ts`
-- Ändra vedstapel-generering i `woodPileGenerator.ts`  
-- Modifiera spelregler i `game.ts`
+Projektet är strukturerat för att vara lätt att bygga på under en spelsylt:
+
+- **Nya varelser**: Lägg till i [`CreatureType`](src/types.ts), uppdatera [`KEY_BINDINGS`](src/types.ts) och [`gameRenderer.ts`](src/gameRenderer.ts)
+- **Vedstapel-ändringar**: Modifiera [`WoodPileGenerator`](src/woodPileGenerator.ts)
+- **Spelregler**: Justera i [`Game`](src/game.ts) klassen
+- **Översättningar**: Uppdatera JSON-filerna i [`src/i18n/`](src/i18n/)
+- **Visuella effekter**: Utöka [`GameRenderer`](src/gameRenderer.ts)
+
+### Debug-funktioner
+I utvecklarläge finns globala debug-funktioner:
+```javascript
+debugGame.togglePause()     // Pausa/återuppta
+debugGame.getGameState()    // Visa nuvarande state
+debugGame.changeLanguage('en') // Byt språk
+```
 
 ## Licens
 MIT License - Detta är ett hobbyprojekt för en spelsylt!
