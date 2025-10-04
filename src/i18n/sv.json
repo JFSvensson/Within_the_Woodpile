@@ -1,0 +1,15 @@
+{
+  "title": "Within the Woodpile 🌲",
+  "score": "Poäng",
+  "health": "Hälsa",
+  "instructions": "Instruktioner: Klicka på ved för att plocka den, men var försiktig!",
+  "controls": "🕷️ MELLANSLAG | 🐝 ESCAPE | 🦔 S | 👻 L | 🎃 R",
+  "language": "Språk",
+  "spider": "Spindel",
+  "wasp": "Geting",
+  "hedgehog": "Igelkott",
+  "ghost": "Spöke",
+  "pumpkin": "Pumpahuvud",
+  "gameOver": "Spelet är slut!",
+  "wellDone": "Bra jobbat!"
+}
