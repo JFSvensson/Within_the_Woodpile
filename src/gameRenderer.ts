@@ -44,9 +44,6 @@ export class GameRenderer {
     // Rita vedpinnar med påverkanshighlighting
     this.woodPieceRenderer.drawWoodPieces(woodPieces, hoveredPiece, affectedPieces);
     
-    // Rita spelstatus
-    this.uiRenderer.drawGameStatus(gameState);
-    
     // Rita aktiv varelse om det finns någon
     if (gameState.activeCreature) {
       this.uiRenderer.drawActiveCreature(gameState.activeCreature);

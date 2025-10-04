@@ -18,47 +18,6 @@ export class UIRenderer {
   }
 
   /**
-   * Rita spelstatus (poäng, hälsa, etc.)
-   */
-  drawGameStatus(gameState: GameState): void {
-    // Rensa gamla UI-element först
-    this.ctx.save();
-    
-    // Bakgrund för status
-    this.ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
-    this.ctx.fillRect(10, 10, 200, 80);
-    
-    // Poäng
-    this.ctx.font = 'bold 20px Arial';
-    this.ctx.fillStyle = '#FFD700';
-    this.ctx.textAlign = 'left';
-    this.ctx.fillText(
-      `${this.i18n.translate('score')}: ${gameState.score}`,
-      20, 35
-    );
-    
-    // Hälsa
-    this.ctx.fillStyle = gameState.health > 50 ? '#00FF00' : '#FF6600';
-    if (gameState.health <= 25) {
-      this.ctx.fillStyle = '#FF0000';
-    }
-    this.ctx.fillText(
-      `${this.i18n.translate('health')}: ${gameState.health}%`,
-      20, 60
-    );
-    
-    // Fortsättningstext (ta bort accuracy för nu)
-    this.ctx.fillStyle = '#FFFFFF';
-    this.ctx.font = '14px Arial';
-    this.ctx.fillText(
-      this.i18n.translate('clickToRemove'),
-      20, 80
-    );
-    
-    this.ctx.restore();
-  }
-
-  /**
    * Rita aktiv varelse som kräver reaktion
    */
   drawActiveCreature(activeCreature: ActiveCreature): void {
