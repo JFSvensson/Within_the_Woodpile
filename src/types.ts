@@ -17,19 +17,31 @@ export interface WoodPiece {
   collapseRisk: CollapseRisk;
 }
 
+export enum CollapseRisk {
+  NONE = 'none',
+  LOW = 'low',
+  MEDIUM = 'medium', 
+  HIGH = 'high'
+}
+
+export interface AffectedPiece {
+  piece: WoodPiece;
+  prediction: CollapsePrediction;
+}
+
+export enum CollapsePrediction {
+  WILL_COLLAPSE = 'will_collapse',
+  HIGH_RISK = 'high_risk',
+  MEDIUM_RISK = 'medium_risk',
+  LOW_RISK = 'low_risk'
+}
+
 export enum CreatureType {
   SPIDER = 'spider',
   WASP = 'wasp', 
   HEDGEHOG = 'hedgehog',
   GHOST = 'ghost',
   PUMPKIN = 'pumpkin'
-}
-
-export enum CollapseRisk {
-  NONE = 'none',
-  LOW = 'low',
-  MEDIUM = 'medium', 
-  HIGH = 'high'
 }
 
 export interface GameState {
