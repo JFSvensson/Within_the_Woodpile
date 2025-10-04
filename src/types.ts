@@ -72,7 +72,7 @@ export interface GameConfig {
 export const DEFAULT_CONFIG: GameConfig = {
   canvasWidth: 800,
   canvasHeight: 600,
-  woodWidth: 80,
+  woodWidth: 20,
   woodHeight: 20,
   creatureProbability: 0.3,
   reactionTime: 2000, // 2 sekunder

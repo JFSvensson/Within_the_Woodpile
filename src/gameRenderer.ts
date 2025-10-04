@@ -66,17 +66,22 @@ export class GameRenderer {
   
   private drawWoodPiece(piece: WoodPiece, isHovered: boolean): void {
     const { position, size } = piece;
+    const radius = Math.min(size.width, size.height) / 2;
+    const centerX = position.x + size.width / 2;
+    const centerY = position.y + size.height / 2;
     
-    // Grundfärg för ved
+    // Rita rund vedpinne
     this.ctx.fillStyle = '#8b4513';
-    this.ctx.fillRect(position.x, position.y, size.width, size.height);
+    this.ctx.beginPath();
+    this.ctx.arc(centerX, centerY, radius - 1, 0, 2 * Math.PI);
+    this.ctx.fill();
     
-    // Rita vedstruktur
-    this.drawWoodTexture(piece);
+    // Rita vedtextur (radiell)
+    this.drawWoodTextureCircular(centerX, centerY, radius);
     
-    // Rita ram baserat på rasrisk (vid hover)
+    // Rita ram vid hover (runt)
     if (isHovered) {
-      this.drawCollapseRiskBorder(piece);
+      this.drawCollapseRiskBorderCircular(centerX, centerY, radius, piece.collapseRisk);
       
       // Rita varelsehint om det finns någon
       if (piece.creature) {
@@ -107,6 +112,44 @@ export class GameRenderer {
       this.ctx.beginPath();
       this.ctx.moveTo(position.x, y);
       this.ctx.lineTo(position.x + size.width, y);
+      this.ctx.stroke();
+    }
+  }
+  
+  /**
+   * Ritar cirkulär vedtextur
+   */
+  private drawWoodTextureCircular(centerX: number, centerY: number, radius: number): void {
+    // Mörkare kant för 3D-effekt
+    this.ctx.strokeStyle = '#654321';
+    this.ctx.lineWidth = 2;
+    this.ctx.beginPath();
+    this.ctx.arc(centerX, centerY, radius - 1, 0, 2 * Math.PI);
+    this.ctx.stroke();
+    
+    // Trälinjer (koncentriska cirklar)
+    this.ctx.strokeStyle = '#654321';
+    this.ctx.lineWidth = 0.5;
+    
+    for (let i = 1; i < 4; i++) {
+      const ringRadius = (radius / 4) * i;
+      this.ctx.beginPath();
+      this.ctx.arc(centerX, centerY, ringRadius, 0, 2 * Math.PI);
+      this.ctx.stroke();
+    }
+    
+    // Träådringsmönster (radiella linjer)
+    this.ctx.strokeStyle = 'rgba(101, 67, 33, 0.3)';
+    this.ctx.lineWidth = 0.5;
+    
+    for (let i = 0; i < 8; i++) {
+      const angle = (i / 8) * 2 * Math.PI;
+      this.ctx.beginPath();
+      this.ctx.moveTo(centerX, centerY);
+      this.ctx.lineTo(
+        centerX + Math.cos(angle) * (radius - 2),
+        centerY + Math.sin(angle) * (radius - 2)
+      );
       this.ctx.stroke();
     }
   }
@@ -145,6 +188,24 @@ export class GameRenderer {
       piece.size.width + 4, 
       piece.size.height + 4
     );
+  }
+  
+  /**
+   * Ritar cirkulär ram som visar rasrisk
+   */
+  private drawCollapseRiskBorderCircular(centerX: number, centerY: number, radius: number, collapseRisk: CollapseRisk): void {
+    const colors = {
+      [CollapseRisk.NONE]: '#90EE90',
+      [CollapseRisk.LOW]: '#FFFF00',
+      [CollapseRisk.MEDIUM]: '#FFA500', 
+      [CollapseRisk.HIGH]: '#FF0000'
+    };
+    
+    this.ctx.strokeStyle = colors[collapseRisk];
+    this.ctx.lineWidth = 3;
+    this.ctx.beginPath();
+    this.ctx.arc(centerX, centerY, radius + 2, 0, 2 * Math.PI);
+    this.ctx.stroke();
   }
   
   /**

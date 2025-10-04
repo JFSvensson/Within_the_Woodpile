@@ -141,7 +141,7 @@ export class Game {
   }
 
   /**
-   * Hittar vedpinne vid musposition
+   * Hittar vedpinne vid musposition (uppdaterat för runda vedpinnar)
    */
   private getClickedPiece(event: MouseEvent): WoodPiece | undefined {
     const rect = this.canvas.getBoundingClientRect();
@@ -153,10 +153,17 @@ export class Game {
       const piece = this.woodPieces[i];
       if (piece.isRemoved) continue;
       
-      if (x >= piece.position.x && 
-          x <= piece.position.x + piece.size.width &&
-          y >= piece.position.y && 
-          y <= piece.position.y + piece.size.height) {
+      // Beräkna centrum och radie för rund vedpinne
+      const centerX = piece.position.x + piece.size.width / 2;
+      const centerY = piece.position.y + piece.size.height / 2;
+      const radius = Math.min(piece.size.width, piece.size.height) / 2;
+      
+      // Kontrollera om musposition är inom cirkelns radie
+      const distance = Math.sqrt(
+        Math.pow(x - centerX, 2) + Math.pow(y - centerY, 2)
+      );
+      
+      if (distance <= radius) {
         return piece;
       }
     }
