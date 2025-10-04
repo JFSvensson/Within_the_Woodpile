@@ -7,7 +7,6 @@ import { I18n } from './i18n.js';
 export class GameRenderer {
   private ctx: CanvasRenderingContext2D;
   private i18n: I18n;
-  private animationFrame?: number;
   
   constructor(canvas: HTMLCanvasElement, i18n: I18n) {
     const context = canvas.getContext('2d');
@@ -91,32 +90,6 @@ export class GameRenderer {
   }
   
   /**
-   * Ritar vedtextur på pinne
-   */
-  private drawWoodTexture(piece: WoodPiece): void {
-    const { position, size } = piece;
-    
-    // Mörkare kanter för 3D-effekt
-    this.ctx.fillStyle = '#654321';
-    this.ctx.fillRect(position.x, position.y, size.width, 2);
-    this.ctx.fillRect(position.x, position.y + size.height - 2, size.width, 2);
-    this.ctx.fillRect(position.x, position.y, 2, size.height);
-    this.ctx.fillRect(position.x + size.width - 2, position.y, 2, size.height);
-    
-    // Horisontella linjer för trästruktur
-    this.ctx.strokeStyle = '#654321';
-    this.ctx.lineWidth = 1;
-    
-    for (let i = 1; i < 3; i++) {
-      const y = position.y + (size.height / 3) * i;
-      this.ctx.beginPath();
-      this.ctx.moveTo(position.x, y);
-      this.ctx.lineTo(position.x + size.width, y);
-      this.ctx.stroke();
-    }
-  }
-  
-  /**
    * Ritar cirkulär vedtextur
    */
   private drawWoodTextureCircular(centerX: number, centerY: number, radius: number): void {
@@ -170,24 +143,6 @@ export class GameRenderer {
       piece.position.y + piece.size.height / 2 + 5
     );
     this.ctx.textAlign = 'left'; // Reset
-  }
-  
-  private drawCollapseRiskBorder(piece: WoodPiece): void {
-    const colors = {
-      [CollapseRisk.NONE]: '#90EE90',
-      [CollapseRisk.LOW]: '#FFFF00',
-      [CollapseRisk.MEDIUM]: '#FFA500', 
-      [CollapseRisk.HIGH]: '#FF0000'
-    };
-    
-    this.ctx.strokeStyle = colors[piece.collapseRisk];
-    this.ctx.lineWidth = 3;
-    this.ctx.strokeRect(
-      piece.position.x - 2, 
-      piece.position.y - 2, 
-      piece.size.width + 4, 
-      piece.size.height + 4
-    );
   }
   
   /**
