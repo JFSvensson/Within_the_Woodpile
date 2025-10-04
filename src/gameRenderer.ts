@@ -1,9 +1,13 @@
-import { WoodPiece, GameState, CreatureType, CollapseRisk } from './types.js';
+import { WoodPiece, GameState, CreatureType, CollapseRisk, ActiveCreature } from './types.js';
 import { I18n } from './i18n.js';
 
+/**
+ * Ansvarar för all visuell rendering av spelet
+ */
 export class GameRenderer {
   private ctx: CanvasRenderingContext2D;
   private i18n: I18n;
+  private animationFrame?: number;
   
   constructor(canvas: HTMLCanvasElement, i18n: I18n) {
     const context = canvas.getContext('2d');
@@ -19,24 +23,45 @@ export class GameRenderer {
    */
   render(woodPieces: WoodPiece[], gameState: GameState, hoveredPiece?: WoodPiece): void {
     this.clearCanvas();
+    this.drawBackground();
     this.drawWoodPieces(woodPieces, hoveredPiece);
     
     if (gameState.activeCreature) {
       this.drawActiveCreature(gameState.activeCreature);
     }
+    
+    if (gameState.isGameOver) {
+      this.drawGameOverOverlay();
+    }
+  }
+  
+  /**
+   * Ritar bakgrund med trätema
+   */
+  private drawBackground(): void {
+    // Grundbakgrund
+    this.ctx.fillStyle = '#3a2318';
+    this.ctx.fillRect(0, 0, this.ctx.canvas.width, this.ctx.canvas.height);
+    
+    // Rita mark
+    this.ctx.fillStyle = '#2c1810';
+    this.ctx.fillRect(0, this.ctx.canvas.height - 50, this.ctx.canvas.width, 50);
   }
   
   private clearCanvas(): void {
-    this.ctx.fillStyle = '#3a2318';
-    this.ctx.fillRect(0, 0, this.ctx.canvas.width, this.ctx.canvas.height);
+    this.ctx.clearRect(0, 0, this.ctx.canvas.width, this.ctx.canvas.height);
   }
   
   private drawWoodPieces(woodPieces: WoodPiece[], hoveredPiece?: WoodPiece): void {
+    // Rita icke-hover pieces först
     woodPieces
-      .filter(piece => !piece.isRemoved)
-      .forEach(piece => {
-        this.drawWoodPiece(piece, piece === hoveredPiece);
-      });
+      .filter(piece => !piece.isRemoved && piece !== hoveredPiece)
+      .forEach(piece => this.drawWoodPiece(piece, false));
+    
+    // Rita hover piece sist (ovanpå)
+    if (hoveredPiece && !hoveredPiece.isRemoved) {
+      this.drawWoodPiece(hoveredPiece, true);
+    }
   }
   
   private drawWoodPiece(piece: WoodPiece, isHovered: boolean): void {
@@ -46,13 +71,62 @@ export class GameRenderer {
     this.ctx.fillStyle = '#8b4513';
     this.ctx.fillRect(position.x, position.y, size.width, size.height);
     
+    // Rita vedstruktur
+    this.drawWoodTexture(piece);
+    
     // Rita ram baserat på rasrisk (vid hover)
     if (isHovered) {
       this.drawCollapseRiskBorder(piece);
+      
+      // Rita varelsehint om det finns någon
+      if (piece.creature) {
+        this.drawCreatureHint(piece);
+      }
     }
+  }
+  
+  /**
+   * Ritar vedtextur på pinne
+   */
+  private drawWoodTexture(piece: WoodPiece): void {
+    const { position, size } = piece;
     
-    // Rita vedstruktur
-    this.drawWoodTexture(piece);
+    // Mörkare kanter för 3D-effekt
+    this.ctx.fillStyle = '#654321';
+    this.ctx.fillRect(position.x, position.y, size.width, 2);
+    this.ctx.fillRect(position.x, position.y + size.height - 2, size.width, 2);
+    this.ctx.fillRect(position.x, position.y, 2, size.height);
+    this.ctx.fillRect(position.x + size.width - 2, position.y, 2, size.height);
+    
+    // Horisontella linjer för trästruktur
+    this.ctx.strokeStyle = '#654321';
+    this.ctx.lineWidth = 1;
+    
+    for (let i = 1; i < 3; i++) {
+      const y = position.y + (size.height / 3) * i;
+      this.ctx.beginPath();
+      this.ctx.moveTo(position.x, y);
+      this.ctx.lineTo(position.x + size.width, y);
+      this.ctx.stroke();
+    }
+  }
+  
+  /**
+   * Ritar hint om varelse finns bakom ved
+   */
+  private drawCreatureHint(piece: WoodPiece): void {
+    if (!piece.creature) return;
+    
+    // Subtilt skugga-tecken
+    this.ctx.fillStyle = 'rgba(0, 0, 0, 0.4)';
+    this.ctx.font = '14px Arial';
+    this.ctx.textAlign = 'center';
+    this.ctx.fillText(
+      '?',
+      piece.position.x + piece.size.width / 2,
+      piece.position.y + piece.size.height / 2 + 5
+    );
+    this.ctx.textAlign = 'left'; // Reset
   }
   
   private drawCollapseRiskBorder(piece: WoodPiece): void {
@@ -66,45 +140,39 @@ export class GameRenderer {
     this.ctx.strokeStyle = colors[piece.collapseRisk];
     this.ctx.lineWidth = 3;
     this.ctx.strokeRect(
-      piece.position.x - 1, 
-      piece.position.y - 1, 
-      piece.size.width + 2, 
-      piece.size.height + 2
+      piece.position.x - 2, 
+      piece.position.y - 2, 
+      piece.size.width + 4, 
+      piece.size.height + 4
     );
   }
   
-  private drawWoodTexture(piece: WoodPiece): void {
-    // Enkel vedstruktur med linjer
-    this.ctx.strokeStyle = '#654321';
-    this.ctx.lineWidth = 1;
-    
-    // Horisontella linjer
-    for (let i = 1; i < 3; i++) {
-      const y = piece.position.y + (piece.size.height / 3) * i;
-      this.ctx.beginPath();
-      this.ctx.moveTo(piece.position.x, y);
-      this.ctx.lineTo(piece.position.x + piece.size.width, y);
-      this.ctx.stroke();
-    }
-  }
-  
-  private drawActiveCreature(activeCreature: GameState['activeCreature']): void {
-    if (!activeCreature) return;
-    
+  /**
+   * Ritar aktiv varelse som kräver reaktion
+   */
+  private drawActiveCreature(activeCreature: ActiveCreature): void {
     const emoji = this.getCreatureEmoji(activeCreature.type);
-    const timeBar = activeCreature.timeLeft / 2000; // Antag 2 sekunder reaktionstid
+    const timeProgress = activeCreature.timeLeft / activeCreature.maxTime;
     
-    // Rita varelse
-    this.ctx.font = '32px Arial';
-    this.ctx.fillStyle = '#FF0000';
-    this.ctx.fillText(
-      emoji, 
-      activeCreature.position.x, 
-      activeCreature.position.y
+    // Rita varelse med pulsande effekt
+    const scale = 1 + Math.sin(Date.now() / 100) * 0.1;
+    
+    this.ctx.save();
+    this.ctx.translate(
+      activeCreature.position.x + 20,
+      activeCreature.position.y + 20
     );
+    this.ctx.scale(scale, scale);
+    
+    this.ctx.font = '32px Arial';
+    this.ctx.textAlign = 'center';
+    this.ctx.fillStyle = '#FF4444';
+    this.ctx.fillText(emoji, 0, 0);
+    
+    this.ctx.restore();
     
     // Rita tidslinje
-    this.drawReactionTimer(timeBar, activeCreature.position);
+    this.drawReactionTimer(timeProgress, activeCreature.position);
     
     // Rita instruktion
     this.drawCreatureInstruction(activeCreature.type);
@@ -122,18 +190,25 @@ export class GameRenderer {
   }
   
   private drawReactionTimer(progress: number, position: { x: number; y: number }): void {
-    const barWidth = 60;
-    const barHeight = 8;
-    const x = position.x;
-    const y = position.y - 15;
+    const barWidth = 80;
+    const barHeight = 10;
+    const x = position.x - 10;
+    const y = position.y - 20;
     
     // Bakgrund
-    this.ctx.fillStyle = '#333';
+    this.ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
     this.ctx.fillRect(x, y, barWidth, barHeight);
     
     // Progress
-    this.ctx.fillStyle = progress > 0.3 ? '#00FF00' : '#FF0000';
-    this.ctx.fillRect(x, y, barWidth * progress, barHeight);
+    const progressColor = progress > 0.5 ? '#00FF00' : 
+                         progress > 0.25 ? '#FFFF00' : '#FF0000';
+    this.ctx.fillStyle = progressColor;
+    this.ctx.fillRect(x + 2, y + 2, (barWidth - 4) * progress, barHeight - 4);
+    
+    // Ram
+    this.ctx.strokeStyle = '#FFFFFF';
+    this.ctx.lineWidth = 1;
+    this.ctx.strokeRect(x, y, barWidth, barHeight);
   }
   
   private drawCreatureInstruction(type: CreatureType): void {
@@ -145,14 +220,66 @@ export class GameRenderer {
       [CreatureType.PUMPKIN]: 'R'
     };
     
-    this.ctx.font = '24px Arial';
+    const actions = {
+      [CreatureType.SPIDER]: this.i18n.translate('spider'),
+      [CreatureType.WASP]: this.i18n.translate('wasp'),
+      [CreatureType.HEDGEHOG]: this.i18n.translate('hedgehog'),
+      [CreatureType.GHOST]: this.i18n.translate('ghost'),
+      [CreatureType.PUMPKIN]: this.i18n.translate('pumpkin')
+    };
+    
+    // Bakgrund för instruktion
+    this.ctx.fillStyle = 'rgba(0, 0, 0, 0.8)';
+    this.ctx.fillRect(this.ctx.canvas.width / 2 - 150, 20, 300, 60);
+    
+    // Text
+    this.ctx.font = 'bold 24px Arial';
     this.ctx.fillStyle = '#FFFF00';
     this.ctx.textAlign = 'center';
     this.ctx.fillText(
-      `Press ${instructions[type]}!`,
+      `${actions[type]}!`,
       this.ctx.canvas.width / 2,
-      50
+      45
     );
+    
+    this.ctx.font = '18px Arial';
+    this.ctx.fillStyle = '#FFFFFF';
+    this.ctx.fillText(
+      `Press ${instructions[type]}`,
+      this.ctx.canvas.width / 2,
+      65
+    );
+    
+    this.ctx.textAlign = 'left'; // Reset
+  }
+  
+  /**
+   * Ritar game over-skärm
+   */
+  private drawGameOverOverlay(): void {
+    // Halvtransparent overlay
+    this.ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
+    this.ctx.fillRect(0, 0, this.ctx.canvas.width, this.ctx.canvas.height);
+    
+    // Game Over text
+    this.ctx.font = 'bold 48px Arial';
+    this.ctx.fillStyle = '#FF0000';
+    this.ctx.textAlign = 'center';
+    this.ctx.fillText(
+      this.i18n.translate('gameOver'),
+      this.ctx.canvas.width / 2,
+      this.ctx.canvas.height / 2 - 20
+    );
+    
+    // Restart instruction
+    this.ctx.font = '24px Arial';
+    this.ctx.fillStyle = '#FFFFFF';
+    this.ctx.fillText(
+      'Click to restart',
+      this.ctx.canvas.width / 2,
+      this.ctx.canvas.height / 2 + 40
+    );
+    
     this.ctx.textAlign = 'left'; // Reset
   }
 }
