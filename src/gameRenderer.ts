@@ -1,4 +1,12 @@
-import { WoodPiece, GameState, CreatureType, CollapseRisk, ActiveCreature } from './types.js';
+import { 
+  WoodPiece, 
+  GameState, 
+  CreatureType, 
+  CollapseRisk, 
+  AffectedPiece, 
+  CollapsePrediction,
+  ActiveCreature 
+} from './types.js';
 import { I18n } from './i18n.js';
 
 /**
@@ -23,7 +31,12 @@ export class GameRenderer {
   render(woodPieces: WoodPiece[], gameState: GameState, hoveredPiece?: WoodPiece): void {
     this.clearCanvas();
     this.drawBackground();
-    this.drawWoodPieces(woodPieces, hoveredPiece);
+    
+    // Beräkna vilka pinnar som påverkas av hover
+    const affectedPieces = hoveredPiece ? 
+      this.calculateAffectedPieces(hoveredPiece, woodPieces) : [];
+    
+    this.drawWoodPieces(woodPieces, hoveredPiece, affectedPieces);
     
     if (gameState.activeCreature) {
       this.drawActiveCreature(gameState.activeCreature);
@@ -32,6 +45,180 @@ export class GameRenderer {
     if (gameState.isGameOver) {
       this.drawGameOverOverlay();
     }
+  }
+  
+  /**
+   * Beräknar vilka pinnar som påverkas om given pinne tas bort
+   */
+  private calculateAffectedPieces(hoveredPiece: WoodPiece, allPieces: WoodPiece[]): AffectedPiece[] {
+    const affectedPieces: AffectedPiece[] = [];
+    
+    // Simulera borttagning av hovrad pinne
+    const simulatedPieces = allPieces.map(piece => 
+      piece.id === hoveredPiece.id ? { ...piece, isRemoved: true } : piece
+    );
+    
+    // Hitta pinnar som förlorar stöd
+    for (const piece of allPieces) {
+      if (piece.isRemoved || piece.id === hoveredPiece.id) continue;
+      
+      // Beräkna nytt stöd utan den hovrade pinnen
+      const supportingPieces = this.findSupportingPieces(piece, simulatedPieces);
+      const currentSupport = this.findSupportingPieces(piece, allPieces);
+      
+      // Klassificera påverkan
+      let impact: CollapsePrediction;
+      
+      if (supportingPieces.length === 0 && !this.isOnGround(piece)) {
+        impact = CollapsePrediction.WILL_COLLAPSE;
+      } else if (supportingPieces.length < currentSupport.length) {
+        if (supportingPieces.length === 1) {
+          impact = CollapsePrediction.HIGH_RISK;
+        } else if (supportingPieces.length === 2) {
+          impact = CollapsePrediction.MEDIUM_RISK;
+        } else {
+          impact = CollapsePrediction.LOW_RISK;
+        }
+      } else {
+        continue; // Ingen påverkan
+      }
+      
+      affectedPieces.push({
+        piece,
+        prediction: impact
+      });
+    }
+    
+    return affectedPieces;
+  }
+  
+  // Hjälpmetoder från WoodPileGenerator (duplicerat för rendering)
+  private findSupportingPieces(piece: WoodPiece, allPieces: WoodPiece[]): WoodPiece[] {
+    return allPieces.filter(otherPiece =>
+      !otherPiece.isRemoved &&
+      otherPiece.id !== piece.id &&
+      this.isPieceSupporting(piece, otherPiece)
+    );
+  }
+  
+  private isPieceSupporting(piece: WoodPiece, supportPiece: WoodPiece): boolean {
+    const isBelow = supportPiece.position.y > piece.position.y;
+    const pieceCenterX = piece.position.x + piece.size.width / 2;
+    const supportCenterX = supportPiece.position.x + supportPiece.size.width / 2;
+    const radius = Math.min(piece.size.width, piece.size.height) / 2;
+    const supportRadius = Math.min(supportPiece.size.width, supportPiece.size.height) / 2;
+    const horizontalDistance = Math.abs(pieceCenterX - supportCenterX);
+    const minOverlap = (radius + supportRadius) * 0.75;
+    const hasOverlap = horizontalDistance < minOverlap;
+    const verticalDistance = supportPiece.position.y - (piece.position.y + piece.size.height);
+    const isDirectlyBelow = verticalDistance <= piece.size.height * 0.5;
+    
+    return isBelow && hasOverlap && isDirectlyBelow;
+  }
+  
+  private isOnGround(piece: WoodPiece): boolean {
+    // Approximation - behöver config för exakt beräkning
+    const groundLevel = this.ctx.canvas.height - 50 - piece.size.height;
+    return piece.position.y >= groundLevel;
+  }
+  
+  /**
+   * Rita alla vedpinnar med påverkanshighlighting
+   */
+  private drawWoodPieces(woodPieces: WoodPiece[], hoveredPiece?: WoodPiece, affectedPieces: AffectedPiece[] = []): void {
+    // Rita alla icke-påverkade pinnar först
+    woodPieces
+      .filter(piece => !piece.isRemoved)
+      .filter(piece => piece !== hoveredPiece)
+      .filter(piece => !affectedPieces.some(affected => affected.piece.id === piece.id))
+      .forEach(piece => this.drawWoodPiece(piece, false, undefined));
+    
+    // Rita påverkade pinnar med highlighting
+    affectedPieces
+      .filter(affected => !affected.piece.isRemoved)
+      .forEach(affected => this.drawWoodPiece(affected.piece, false, affected.prediction));
+    
+    // Rita hovrad pinne sist (ovanpå allt)
+    if (hoveredPiece && !hoveredPiece.isRemoved) {
+      this.drawWoodPiece(hoveredPiece, true, undefined);
+    }
+  }
+  
+  private drawWoodPiece(piece: WoodPiece, isHovered: boolean, prediction?: CollapsePrediction): void {
+    const { position, size } = piece;
+    const radius = Math.min(size.width, size.height) / 2;
+    const centerX = position.x + size.width / 2;
+    const centerY = position.y + size.height / 2;
+    
+    // Rita rund vedpinne
+    this.ctx.fillStyle = '#8b4513';
+    this.ctx.beginPath();
+    this.ctx.arc(centerX, centerY, radius - 1, 0, 2 * Math.PI);
+    this.ctx.fill();
+    
+    // Rita vedtextur
+    this.drawWoodTextureCircular(centerX, centerY, radius);
+    
+    // Rita ram baserat på status
+    if (isHovered) {
+      // Hover-ram (vit/gul)
+      this.ctx.strokeStyle = '#FFFF00';
+      this.ctx.lineWidth = 3;
+      this.ctx.beginPath();
+      this.ctx.arc(centerX, centerY, radius + 2, 0, 2 * Math.PI);
+      this.ctx.stroke();
+      
+      // Rita varelsehint
+      if (piece.creature) {
+        this.drawCreatureHint(piece);
+      }
+    } else if (prediction) {
+      // Påverkan-ram med färgkodning
+      this.drawPredictionBorder(centerX, centerY, radius, prediction);
+    }
+  }
+  
+  /**
+   * Rita ram som visar förutsägd påverkan
+   */
+  private drawPredictionBorder(centerX: number, centerY: number, radius: number, prediction: CollapsePrediction): void {
+    const styles = {
+      [CollapsePrediction.WILL_COLLAPSE]: { color: '#FF0000', width: 4, style: 'solid' },
+      [CollapsePrediction.HIGH_RISK]: { color: '#FF6600', width: 3, style: 'dashed' },
+      [CollapsePrediction.MEDIUM_RISK]: { color: '#FFAA00', width: 2, style: 'dashed' },
+      [CollapsePrediction.LOW_RISK]: { color: '#FFDD00', width: 2, style: 'dotted' }
+    };
+    
+    const style = styles[prediction];
+    
+    this.ctx.strokeStyle = style.color;
+    this.ctx.lineWidth = style.width;
+    
+    if (style.style === 'dashed') {
+      this.ctx.setLineDash([5, 5]);
+    } else if (style.style === 'dotted') {
+      this.ctx.setLineDash([2, 3]);
+    } else {
+      this.ctx.setLineDash([]);
+    }
+    
+    // Rita cirkulär ram
+    this.ctx.beginPath();
+    this.ctx.arc(centerX, centerY, radius + 3, 0, 2 * Math.PI);
+    this.ctx.stroke();
+    
+    // Rita extra effekt för WILL_COLLAPSE
+    if (prediction === CollapsePrediction.WILL_COLLAPSE) {
+      // Pulsande effekt
+      const pulseAlpha = 0.3 + 0.3 * Math.sin(Date.now() / 200);
+      this.ctx.fillStyle = `rgba(255, 0, 0, ${pulseAlpha})`;
+      this.ctx.beginPath();
+      this.ctx.arc(centerX, centerY, radius + 6, 0, 2 * Math.PI);
+      this.ctx.fill();
+    }
+    
+    // Reset dash pattern
+    this.ctx.setLineDash([]);
   }
   
   /**
@@ -49,44 +236,6 @@ export class GameRenderer {
   
   private clearCanvas(): void {
     this.ctx.clearRect(0, 0, this.ctx.canvas.width, this.ctx.canvas.height);
-  }
-  
-  private drawWoodPieces(woodPieces: WoodPiece[], hoveredPiece?: WoodPiece): void {
-    // Rita icke-hover pieces först
-    woodPieces
-      .filter(piece => !piece.isRemoved && piece !== hoveredPiece)
-      .forEach(piece => this.drawWoodPiece(piece, false));
-    
-    // Rita hover piece sist (ovanpå)
-    if (hoveredPiece && !hoveredPiece.isRemoved) {
-      this.drawWoodPiece(hoveredPiece, true);
-    }
-  }
-  
-  private drawWoodPiece(piece: WoodPiece, isHovered: boolean): void {
-    const { position, size } = piece;
-    const radius = Math.min(size.width, size.height) / 2;
-    const centerX = position.x + size.width / 2;
-    const centerY = position.y + size.height / 2;
-    
-    // Rita rund vedpinne
-    this.ctx.fillStyle = '#8b4513';
-    this.ctx.beginPath();
-    this.ctx.arc(centerX, centerY, radius - 1, 0, 2 * Math.PI);
-    this.ctx.fill();
-    
-    // Rita vedtextur (radiell)
-    this.drawWoodTextureCircular(centerX, centerY, radius);
-    
-    // Rita ram vid hover (runt)
-    if (isHovered) {
-      this.drawCollapseRiskBorderCircular(centerX, centerY, radius, piece.collapseRisk);
-      
-      // Rita varelsehint om det finns någon
-      if (piece.creature) {
-        this.drawCreatureHint(piece);
-      }
-    }
   }
   
   /**
@@ -143,24 +292,6 @@ export class GameRenderer {
       piece.position.y + piece.size.height / 2 + 5
     );
     this.ctx.textAlign = 'left'; // Reset
-  }
-  
-  /**
-   * Ritar cirkulär ram som visar rasrisk
-   */
-  private drawCollapseRiskBorderCircular(centerX: number, centerY: number, radius: number, collapseRisk: CollapseRisk): void {
-    const colors = {
-      [CollapseRisk.NONE]: '#90EE90',
-      [CollapseRisk.LOW]: '#FFFF00',
-      [CollapseRisk.MEDIUM]: '#FFA500', 
-      [CollapseRisk.HIGH]: '#FF0000'
-    };
-    
-    this.ctx.strokeStyle = colors[collapseRisk];
-    this.ctx.lineWidth = 3;
-    this.ctx.beginPath();
-    this.ctx.arc(centerX, centerY, radius + 2, 0, 2 * Math.PI);
-    this.ctx.stroke();
   }
   
   /**
