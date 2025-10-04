@@ -1,0 +1,229 @@
+@startuml Within_the_Woodpile_Architecture
+
+!define LIGHTBLUE #E1F5FE
+!define LIGHTGREEN #E8F5E8
+!define LIGHTYELLOW #FFF9C4
+!define LIGHTPINK #FCE4EC
+
+package "Types & Configuration" LIGHTYELLOW {
+    interface Position {
+        +x: number
+        +y: number
+    }
+    
+    interface Size {
+        +width: number
+        +height: number
+    }
+    
+    interface WoodPiece {
+        +id: string
+        +position: Position
+        +size: Size
+        +isRemoved: boolean
+        +creature?: CreatureType
+        +collapseRisk: CollapseRisk
+    }
+    
+    interface GameState {
+        +score: number
+        +health: number
+        +isGameOver: boolean
+        +isPaused: boolean
+        +activeCreature?: ActiveCreature
+    }
+    
+    interface ActiveCreature {
+        +type: CreatureType
+        +timeLeft: number
+        +position: Position
+        +maxTime: number
+    }
+    
+    interface GameConfig {
+        +canvasWidth: number
+        +canvasHeight: number
+        +woodWidth: number
+        +woodHeight: number
+        +creatureProbability: number
+        +reactionTime: number
+        +pointsPerWood: number
+        +healthPenalty: number
+        +collapseDamage: number
+    }
+    
+    enum CreatureType {
+        SPIDER
+        WASP
+        HEDGEHOG
+        GHOST
+        PUMPKIN
+    }
+    
+    enum CollapseRisk {
+        NONE
+        LOW
+        MEDIUM
+        HIGH
+    }
+    
+    interface KeyBinding {
+        +creature: CreatureType
+        +key: string
+        +keyCode: string
+        +action: string
+    }
+}
+
+package "Core Game Logic" LIGHTBLUE {
+    class Game {
+        -config: GameConfig
+        -woodPileGenerator: WoodPileGenerator
+        -renderer: GameRenderer
+        -i18n: I18n
+        -woodPieces: WoodPiece[]
+        -gameState: GameState
+        -hoveredPiece?: WoodPiece
+        -canvas: HTMLCanvasElement
+        -animationId?: number
+        -lastUpdateTime: number
+        
+        +constructor(canvas: HTMLCanvasElement, i18n: I18n, config: GameConfig)
+        +onScore(callback: (score: number) => void): void
+        +onHealth(callback: (health: number) => void): void
+        +onGameEnd(callback: () => void): void
+        +togglePause(): void
+        +destroy(): void
+        +getGameState(): GameState
+        
+        -createInitialGameState(): GameState
+        -initializeGame(): void
+        -setupEventListeners(): void
+        -handleCanvasClick(event: MouseEvent): void
+        -handleMouseMove(event: MouseEvent): void
+        -handleMouseLeave(): void
+        -handleKeyPress(event: KeyboardEvent): void
+        -getClickedPiece(event: MouseEvent): WoodPiece | undefined
+        -removeWoodPiece(piece: WoodPiece): void
+        -encounterCreature(piece: WoodPiece): void
+        -handleSuccessfulCreatureReaction(): void
+        -handleFailedCreatureReaction(): void
+        -handlePotentialCollapse(removedPiece: WoodPiece): void
+        -addScore(points: number): void
+        -reduceHealth(damage: number): void
+        -endGame(): void
+        -restartGame(): void
+        -startGameLoop(): void
+        -update(deltaTime: number): void
+        -render(): void
+    }
+}
+
+package "Data Generation" LIGHTGREEN {
+    class WoodPileGenerator {
+        -config: GameConfig
+        
+        +constructor(config: GameConfig)
+        +generateWoodPile(): WoodPiece[]
+        +updateCollapseRisks(woodPieces: WoodPiece[]): WoodPiece[]
+        +findCollapsingPieces(removedPiece: WoodPiece, allPieces: WoodPiece[]): WoodPiece[]
+        
+        -calculateRows(): number
+        -calculatePiecesPerRow(): number
+        -createWoodPiece(row: number, col: number): WoodPiece
+        -generateId(row: number, col: number): string
+        -calculateBrickPosition(row: number, col: number): Position
+        -createSize(): Size
+        -assignCreature(): CreatureType | undefined
+        -getRandomCreature(): CreatureType
+        -calculateCollapseRisks(woodPieces: WoodPiece[]): WoodPiece[]
+        -calculateRiskForPiece(piece: WoodPiece, allPieces: WoodPiece[]): CollapseRisk
+        -isOnGround(piece: WoodPiece): boolean
+        -findSupportingPieces(piece: WoodPiece, allPieces: WoodPiece[]): WoodPiece[]
+        -isPieceSupporting(piece: WoodPiece, supportPiece: WoodPiece): boolean
+    }
+}
+
+package "Rendering & UI" LIGHTPINK {
+    class GameRenderer {
+        -ctx: CanvasRenderingContext2D
+        -i18n: I18n
+        
+        +constructor(canvas: HTMLCanvasElement, i18n: I18n)
+        +render(woodPieces: WoodPiece[], gameState: GameState, hoveredPiece?: WoodPiece): void
+        
+        -drawBackground(): void
+        -clearCanvas(): void
+        -drawWoodPieces(woodPieces: WoodPiece[], hoveredPiece?: WoodPiece): void
+        -drawWoodPiece(piece: WoodPiece, isHovered: boolean): void
+        -drawWoodTextureCircular(centerX: number, centerY: number, radius: number): void
+        -drawCreatureHint(piece: WoodPiece): void
+        -drawCollapseRiskBorderCircular(centerX: number, centerY: number, radius: number, collapseRisk: CollapseRisk): void
+        -drawActiveCreature(activeCreature: ActiveCreature): void
+        -getCreatureEmoji(type: CreatureType): string
+        -drawReactionTimer(progress: number, position: {x: number; y: number}): void
+        -drawCreatureInstruction(type: CreatureType): void
+        -drawGameOverOverlay(): void
+    }
+    
+    class I18n {
+        -currentLanguage: string
+        -translations: Record<string, any>
+        
+        +loadLanguage(lang: string): Promise<void>
+        +translate(key: string): string
+        +getCurrentLanguage(): string
+        +getSavedLanguage(): string
+        +updateUI(): void
+        +initialize(): Promise<void>
+    }
+}
+
+package "Entry Point" LIGHTYELLOW {
+    class Main {
+        +game: Game
+        +i18n: I18n
+        
+        +initializeGame(): Promise<void>
+        +updateGameStats(score?: number, health?: number): void
+        +handleGameOver(): void
+        +cleanup(): void
+    }
+}
+
+' Relationships
+Game --> WoodPileGenerator : uses
+Game --> GameRenderer : uses
+Game --> I18n : uses
+Game --> GameConfig : uses
+Game --> GameState : manages
+Game --> WoodPiece : manages
+
+WoodPileGenerator --> GameConfig : uses
+WoodPileGenerator --> WoodPiece : creates
+WoodPileGenerator --> CreatureType : uses
+WoodPileGenerator --> CollapseRisk : uses
+WoodPileGenerator --> Position : uses
+WoodPileGenerator --> Size : uses
+
+GameRenderer --> I18n : uses
+GameRenderer --> WoodPiece : renders
+GameRenderer --> GameState : renders
+GameRenderer --> ActiveCreature : renders
+GameRenderer --> CreatureType : renders
+GameRenderer --> CollapseRisk : renders
+
+Main --> Game : creates
+Main --> I18n : creates
+Main --> GameConfig : uses
+
+WoodPiece --> Position : contains
+WoodPiece --> Size : contains
+WoodPiece --> CreatureType : contains
+WoodPiece --> CollapseRisk : contains
+
+GameState --> ActiveCreature : contains
+ActiveCreature --> CreatureType : contains
+ActiveCreature --> Position : contains
+
+@enduml
