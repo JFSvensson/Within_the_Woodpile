@@ -19,7 +19,10 @@ export class WoodPileGenerator {
     const piecesPerRow = this.calculatePiecesPerRow();
 
     for (let row = 0; row < rows; row++) {
-      for (let col = 0; col < piecesPerRow; col++) {
+      const isEvenRow = row % 2 === 0;
+      const rowPieces = isEvenRow ? piecesPerRow : piecesPerRow - 1; // Udda rader har en pinne mindre
+      
+      for (let col = 0; col < rowPieces; col++) {
         const woodPiece = this.createWoodPiece(row, col);
         woodPieces.push(woodPiece);
       }
@@ -43,12 +46,12 @@ export class WoodPileGenerator {
   }
 
   /**
-   * Skapar en enskild vedpinne
+   * Skapar en enskild vedpinne med brick pattern-positionering
    */
   private createWoodPiece(row: number, col: number): WoodPiece {
     return {
       id: this.generateId(row, col),
-      position: this.calculatePosition(row, col),
+      position: this.calculateBrickPosition(row, col),
       size: this.createSize(),
       isRemoved: false,
       creature: this.assignCreature(),
@@ -64,11 +67,17 @@ export class WoodPileGenerator {
   }
 
   /**
-   * Beräknar position för vedpinne
+   * Beräknar position för vedpinne med brick pattern (omväxlande rader)
    */
-  private calculatePosition(row: number, col: number): Position {
+  private calculateBrickPosition(row: number, col: number): Position {
+    const isEvenRow = row % 2 === 0;
+    const baseX = 50 + col * this.config.woodWidth;
+    
+    // Udda rader förskjuts med halva pinnbredden
+    const offsetX = isEvenRow ? 0 : this.config.woodWidth / 2;
+    
     return {
-      x: 50 + col * this.config.woodWidth,
+      x: baseX + offsetX,
       y: this.config.canvasHeight - 50 - (row + 1) * this.config.woodHeight
     };
   }
@@ -112,7 +121,7 @@ export class WoodPileGenerator {
   }
 
   /**
-   * Beräknar rasrisk för en specifik vedpinne
+   * Beräknar rasrisk för en specifik vedpinne (uppdaterad för brick pattern)
    */
   private calculateRiskForPiece(piece: WoodPiece, allPieces: WoodPiece[]): CollapseRisk {
     // Vedpinnar på marken har ingen rasrisk
@@ -139,7 +148,7 @@ export class WoodPileGenerator {
   }
 
   /**
-   * Hittar alla vedpinnar som stödjer given pinne
+   * Hittar alla vedpinnar som stödjer given pinne (uppdaterad för brick pattern)
    */
   private findSupportingPieces(piece: WoodPiece, allPieces: WoodPiece[]): WoodPiece[] {
     return allPieces.filter(otherPiece =>
@@ -150,23 +159,30 @@ export class WoodPileGenerator {
   }
 
   /**
-   * Kontrollerar om en vedpinne stödjer en annan
+   * Kontrollerar om en vedpinne stödjer en annan (uppdaterad för runda pinnar i brick pattern)
    */
   private isPieceSupporting(piece: WoodPiece, supportPiece: WoodPiece): boolean {
     // Stödet måste vara under den aktuella pinnen
     const isBelow = supportPiece.position.y > piece.position.y;
     
-    // Kontrollera horisontell överlappning
-    const pieceLeft = piece.position.x;
-    const pieceRight = piece.position.x + piece.size.width;
-    const supportLeft = supportPiece.position.x;
-    const supportRight = supportPiece.position.x + supportPiece.size.width;
+    // Beräkna centrum för runda pinnar
+    const pieceCenterX = piece.position.x + piece.size.width / 2;
+    const supportCenterX = supportPiece.position.x + supportPiece.size.width / 2;
     
-    const hasOverlap = pieceLeft < supportRight && pieceRight > supportLeft;
+    // För runda pinnar i brick pattern: kontrollera om de överlappar tillräckligt
+    const radius = Math.min(piece.size.width, piece.size.height) / 2;
+    const supportRadius = Math.min(supportPiece.size.width, supportPiece.size.height) / 2;
+    
+    // Horisontell distans mellan centrum
+    const horizontalDistance = Math.abs(pieceCenterX - supportCenterX);
+    
+    // Pinnar stödjer varandra om de överlappar med minst 25% av radien
+    const minOverlap = (radius + supportRadius) * 0.75;
+    const hasOverlap = horizontalDistance < minOverlap;
     
     // Kontrollera vertikal närhet (direkt under)
     const verticalDistance = supportPiece.position.y - (piece.position.y + piece.size.height);
-    const isDirectlyBelow = verticalDistance <= this.config.woodHeight;
+    const isDirectlyBelow = verticalDistance <= this.config.woodHeight * 0.5;
     
     return isBelow && hasOverlap && isDirectlyBelow;
   }
@@ -179,7 +195,7 @@ export class WoodPileGenerator {
   }
 
   /**
-   * Hittar vedpinnar som kommer att rasa när given pinne tas bort
+   * Hittar vedpinnar som kommer att rasa när given pinne tas bort (uppdaterad för brick pattern)
    */
   findCollapsingPieces(removedPiece: WoodPiece, allPieces: WoodPiece[]): WoodPiece[] {
     const collapsingPieces: WoodPiece[] = [];
@@ -198,5 +214,17 @@ export class WoodPileGenerator {
     }
     
     return collapsingPieces;
+  }
+
+  /**
+   * Hjälpmetod för att hitta rad och kolumn från position (för debugging)
+   */
+  private getRowColFromPosition(piece: WoodPiece): { row: number, col: number } {
+    const row = Math.floor((this.config.canvasHeight - 50 - piece.position.y) / this.config.woodHeight);
+    const isEvenRow = row % 2 === 0;
+    const baseX = piece.position.x - 50 - (isEvenRow ? 0 : this.config.woodWidth / 2);
+    const col = Math.floor(baseX / this.config.woodWidth);
+    
+    return { row, col };
   }
 }
