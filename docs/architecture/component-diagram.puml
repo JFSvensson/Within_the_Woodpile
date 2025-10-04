@@ -1,0 +1,74 @@
+@startuml Within_the_Woodpile_Components
+
+!define LIGHTBLUE #E1F5FE
+!define LIGHTGREEN #E8F5E8
+!define LIGHTYELLOW #FFF9C4
+!define LIGHTPINK #FCE4EC
+
+package "Browser Environment" {
+    [HTML Canvas] as Canvas
+    [DOM Elements] as DOM
+    [Local Storage] as Storage
+    [Event System] as Events
+}
+
+package "Game Core" LIGHTBLUE {
+    [Game Controller] as Game
+    [Game State] as State
+}
+
+package "Data Layer" LIGHTGREEN {
+    [Wood Pile Generator] as Generator
+    [Collision Detection] as Collision
+    [Physics Engine] as Physics
+}
+
+package "Presentation Layer" LIGHTPINK {
+    [Game Renderer] as Renderer
+    [I18n System] as I18n
+    [UI Manager] as UI
+}
+
+package "Configuration" LIGHTYELLOW {
+    [Game Config] as Config
+    [Type Definitions] as Types
+    [Key Bindings] as Keys
+}
+
+package "Assets" {
+    [Language Files] as Lang
+    [Styles] as CSS
+}
+
+' Dependencies
+Game --> Generator : generates wood pile
+Game --> Renderer : renders scene
+Game --> I18n : translates text
+Game --> State : manages state
+Game --> Config : uses configuration
+Game --> Events : handles input
+
+Generator --> Types : uses types
+Generator --> Config : uses config
+Generator --> Physics : applies physics
+
+Renderer --> Canvas : draws to
+Renderer --> I18n : gets translations
+Renderer --> Types : uses types
+
+I18n --> Lang : loads from
+I18n --> Storage : saves preferences
+I18n --> DOM : updates elements
+
+UI --> DOM : manages
+UI --> CSS : applies styles
+
+Events --> Canvas : listens to
+Events --> DOM : listens to
+
+' External interfaces
+Canvas ..> Events : mouse/touch events
+Storage ..> I18n : language persistence
+Lang ..> I18n : translation data
+
+@enduml
