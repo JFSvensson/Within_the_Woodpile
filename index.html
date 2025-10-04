@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Within the Woodpile - Ett spel för Alla kodares buggiga natt 2025">
+    <meta name="author" content="Fredrik Svensson">
+    <title>Within the Woodpile 🌲</title>
+    <link rel="stylesheet" href="styles.css">
+    <script type="module" src="main.js" defer></script>
+</head>
+<body>
+    <header class="header">
+        <h1 class="main-title" data-i18n="title">Within the Woodpile 🌲</h1>
+        
+        <div class="language-selector">
+            <label for="languageSelect" data-i18n="language">Språk</label>
+            <select id="languageSelect" aria-label="Välj språk">
+                <option value="sv">Svenska</option>
+                <option value="en">English</option>
+            </select>
+        </div>
+    </header>
+
+    <main>
+        <section class="game-info" aria-label="Spelstatistik">
+            <div class="info-item">
+                <strong><span data-i18n="score">Poäng</span>:</strong> 
+                <span id="score" aria-live="polite">0</span>
+            </div>
+            <div class="info-item">
+                <strong><span data-i18n="health">Hälsa</span>:</strong> 
+                <span id="health" aria-live="polite">100</span>
+            </div>
+        </section>
+        
+        <canvas id="gameCanvas" class="game-canvas" width="800" height="600" 
+                aria-label="Spelområde" role="img">
+            <p>Din webbläsare stöder inte Canvas. Uppgradera till en modernare webbläsare för att spela.</p>
+        </canvas>
+        
+        <section class="instructions">
+            <p><strong><span data-i18n="instructions">Instruktioner: Klicka på ved för att plocka den. Akta dig för varelser!</span></strong></p>
+            <div class="controls" data-i18n="controls">🕷️ MELLANSLAG | 🐝 ESCAPE | 🦔 S | 👻 L | 🎃 R</div>
+        </section>
+    </main>
+</body>
+</html>
