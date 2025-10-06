@@ -16,6 +16,19 @@ body {
     line-height: 1.5;
 }
 
+/* Meny-läge styles */
+body.menu-mode .game-info {
+    display: none !important;
+}
+
+body.menu-mode .header {
+    display: none !important;
+}
+
+body.menu-mode .instructions {
+    display: none !important;
+}
+
 /* Header section */
 .header {
     display: flex;
