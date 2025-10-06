@@ -191,13 +191,14 @@ export class MenuRenderer {
             const woodCount = rows[rowIndex];
             // Räkna Y-position från botten av pyramiden
             const rowY = (rows.length - 1 - rowIndex) * 16; // Inverterad Y för pyramid
-            
             // Centrera raden och lägg till offset för brick-pattern
             const totalWidth = (woodCount - 1) * woodSpacing;
             const startX = -totalWidth / 2;
+            // Förskjutning för att skapa brick-pattern (halva avståndet mellan stockar)
+            const brickPatternOffset = woodSpacing / 2;
 
             for (let col = 0; col < woodCount; col++) {
-                const x = startX + col * woodSpacing - 9;
+                const x = startX + col * woodSpacing - brickPatternOffset;
                 const y = rowY;
                 // Rita vedstock
                 this.ctx.fillStyle = '#D2691E';
