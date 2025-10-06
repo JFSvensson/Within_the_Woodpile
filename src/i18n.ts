@@ -26,7 +26,18 @@ export class I18n {
    * Hämtar översättning för given nyckel
    */
   translate(key: string): string {
-    return this.translations[key] || key;
+    const keys = key.split('.');
+    let value: any = this.translations;
+    
+    for (const k of keys) {
+      if (value && typeof value === 'object' && k in value) {
+        value = value[k];
+      } else {
+        return key; // Returnera nyckeln om översättning inte hittas
+      }
+    }
+    
+    return typeof value === 'string' ? value : key;
   }
 
   /**
