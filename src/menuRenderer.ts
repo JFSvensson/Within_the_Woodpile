@@ -182,19 +182,42 @@ export class MenuRenderer {
         this.ctx.translate(centerX, logoY + 60);
         this.ctx.scale(breathingScale, breathingScale);
         
-        // Rita mini vedstapel
-        for (let row = 0; row < 3; row++) {
-            for (let col = 0; col < 4; col++) {
-                const x = (col - 1.5) * 25;
-                const y = row * 20;
-                
+        // Rita mini vedstapel med brick-pattern (4-3-2-1 pyramid)
+        const rows = [4, 3, 2, 1]; // Antal vedstockar per rad (botten till topp)
+        const woodRadius = 8;
+        const woodSpacing = 18; // Avstånd mellan vedstockar
+        
+        for (let rowIndex = 0; rowIndex < rows.length; rowIndex++) {
+            const woodCount = rows[rowIndex];
+            // Räkna Y-position från botten av pyramiden
+            const rowY = (rows.length - 1 - rowIndex) * 16; // Inverterad Y för pyramid
+            
+            // Centrera raden och lägg till offset för brick-pattern
+            const totalWidth = (woodCount - 1) * woodSpacing;
+            const startX = -totalWidth / 2;
+
+            for (let col = 0; col < woodCount; col++) {
+                const x = startX + col * woodSpacing - 9;
+                const y = rowY;
+                // Rita vedstock
                 this.ctx.fillStyle = '#D2691E';
                 this.ctx.beginPath();
-                this.ctx.arc(x, y, 8, 0, Math.PI * 2);
+                this.ctx.arc(x, y, woodRadius, 0, Math.PI * 2);
                 this.ctx.fill();
                 
+                // Rita bark-kontur
                 this.ctx.strokeStyle = '#8B4513';
                 this.ctx.lineWidth = 2;
+                this.ctx.stroke();
+                
+                // Lägg till trästruktur (små linjer)
+                this.ctx.strokeStyle = '#A0522D';
+                this.ctx.lineWidth = 1;
+                this.ctx.beginPath();
+                this.ctx.moveTo(x - woodRadius * 0.6, y - 2);
+                this.ctx.lineTo(x + woodRadius * 0.6, y - 2);
+                this.ctx.moveTo(x - woodRadius * 0.4, y + 2);
+                this.ctx.lineTo(x + woodRadius * 0.4, y + 2);
                 this.ctx.stroke();
             }
         }
