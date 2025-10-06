@@ -44,6 +44,25 @@ export enum CreatureType {
   PUMPKIN = 'pumpkin'
 }
 
+export enum MenuState {
+  MAIN_MENU = 'main_menu',
+  GAME = 'game',
+  SETTINGS = 'settings',
+  INSTRUCTIONS = 'instructions',
+  GAME_OVER = 'game_over'
+}
+
+export interface MenuButton {
+  id: string;
+  textKey: string;
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+  onClick: () => void;
+  isHovered: boolean;
+}
+
 export interface GameState {
   score: number;
   health: number;
