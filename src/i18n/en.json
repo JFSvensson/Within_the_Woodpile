@@ -11,5 +11,11 @@
   "ghost": "Ghost",
   "pumpkin": "Pumpkin Head",
   "gameOver": "Game Over!",
-  "wellDone": "Well done!"
+  "wellDone": "Well done!",
+  "menu": {
+    "play": "🎮 Play",
+    "instructions": "📚 Instructions",
+    "settings": "⚙️ Settings",
+    "footer": "Made with GitHub Copilot for Alla kodares buggiga natt 2025"
+  }
 }

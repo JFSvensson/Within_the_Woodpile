@@ -11,5 +11,11 @@
   "ghost": "Spöke",
   "pumpkin": "Pumpahuvud",
   "gameOver": "Spelet är slut!",
-  "wellDone": "Bra jobbat!"
+  "wellDone": "Bra jobbat!",
+  "menu": {
+    "play": "🎮 Spela",
+    "instructions": "📚 Instruktioner",
+    "settings": "⚙️ Inställningar",
+    "footer": "Skapad med GitHub Copilot för Alla kodares buggiga natt 2025"
+  }
 }
