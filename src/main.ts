@@ -1,10 +1,181 @@
 import { I18n } from './i18n.js';
 import { Game } from './game.js';
-import { DEFAULT_CONFIG } from './types.js';
+import { MenuRenderer } from './menuRenderer.js';
+import { AppStateManager } from './appStateManager.js';
+import { DEFAULT_CONFIG, MenuState } from './types.js';
 
 // Globala variabler
-let game: Game;
+let game: Game | null = null;
 let i18n: I18n;
+let menuRenderer: MenuRenderer;
+let appStateManager: AppStateManager;
+let canvas: HTMLCanvasElement;
+let menuAnimationId: number;
+
+/**
+ * Menyens renderingsloop (bara när vi är i menyläge)
+ */
+function menuRenderLoop(): void {
+    if (appStateManager.getCurrentState() === MenuState.MAIN_MENU) {
+        menuRenderer.render();
+        menuAnimationId = requestAnimationFrame(menuRenderLoop);
+    }
+}
+
+/**
+ * Startar menyloopen
+ */
+function startMenuRenderLoop(): void {
+    menuAnimationId = requestAnimationFrame(menuRenderLoop);
+}
+
+/**
+ * Startar spelet från menyn
+ */
+function startGameFromMenu(): void {
+    try {
+        // Stoppa meny-renderingsloopen
+        if (menuAnimationId) {
+            cancelAnimationFrame(menuAnimationId);
+        }
+
+        // Skapa nytt spelobjekt
+        game = new Game(canvas, i18n, DEFAULT_CONFIG);
+        
+        // Sätt upp callbacks för UI-uppdateringar
+        game.onScore((score) => updateGameStats(score, undefined));
+        game.onHealth((health) => updateGameStats(undefined, health));
+        game.onGameEnd(handleGameOver);
+        
+        // Initiera UI
+        updateGameStats(0, 100);
+        
+        // Visa spelstatistik och dölj menyläge
+        document.body.classList.remove('menu-mode');
+        const gameInfo = document.querySelector('.game-info') as HTMLElement;
+        if (gameInfo) gameInfo.style.display = 'block';
+        
+        // Byt till spelläge
+        appStateManager.startGame();
+        
+        console.log('Game started from menu');
+    } catch (error) {
+        console.error('Failed to start game:', error);
+        appStateManager.returnToMainMenu();
+        startMenuRenderLoop(); // Återstarta menyloopen
+    }
+}
+/**
+ * Hanterar när spelet tar slut
+ */
+function handleGameOver(): void {
+    console.log('Game Over!');
+    
+    // Återgå till menyn efter spelslut
+    if (game) {
+        game.destroy();
+        game = null;
+    }
+    
+    // Dölj spelstatistik
+    const gameInfo = document.querySelector('.game-info') as HTMLElement;
+    if (gameInfo) gameInfo.style.display = 'none';
+    
+    // Återgå till menyläge
+    document.body.classList.add('menu-mode');
+    
+    appStateManager.returnToMainMenu();
+    startMenuRenderLoop();
+}
+
+/**
+ * Initialiserar hela applikationen
+ */
+async function initializeApp(): Promise<void> {
+    console.log('Initialiserar Within the Woodpile...');
+    
+    try {
+        // Initiera språksystemet
+        i18n = new I18n();
+        await i18n.initialize();
+        
+        // Hämta canvas-element
+        canvas = document.getElementById('gameCanvas') as HTMLCanvasElement;
+        if (!canvas) {
+            throw new Error('Kunde inte hitta canvas-element');
+        }
+        
+        // Skapa state manager
+        appStateManager = new AppStateManager();
+        
+        // Skapa meny renderer
+        menuRenderer = new MenuRenderer(canvas, i18n);
+        
+        // Sätt upp meny callbacks
+        menuRenderer.setOnPlayClick(startGameFromMenu);
+        
+        // Sätt upp meny event listeners
+        setupMenuEventListeners();
+        
+        // Dölj spelstatistik initialt och visa menyläge
+        document.body.classList.add('menu-mode');
+        const gameInfo = document.querySelector('.game-info') as HTMLElement;
+        if (gameInfo) gameInfo.style.display = 'none';
+        
+        // Starta menyloopen
+        startMenuRenderLoop();
+        
+        console.log('Applikationen initialiserad');
+        
+    } catch (error) {
+        console.error('Fel vid initialisering av applikationen:', error);
+        
+        // Visa felmeddelande på sidan
+        if (canvas) {
+            const ctx = canvas.getContext('2d');
+            if (ctx) {
+                ctx.fillStyle = '#FF0000';
+                ctx.font = '24px Arial';
+                ctx.textAlign = 'center';
+                ctx.fillText(
+                    'Fel vid laddning av applikationen', 
+                    canvas.width / 2, 
+                    canvas.height / 2
+                );
+                ctx.fillText(
+                    'Se konsolen för mer information', 
+                    canvas.width / 2, 
+                    canvas.height / 2 + 30
+                );
+            }
+        }
+    }
+}
+
+/**
+ * Sätter upp event listeners för menyn
+ */
+function setupMenuEventListeners(): void {
+    // Musklick på canvas
+    canvas.addEventListener('click', (event) => {
+        if (appStateManager.getCurrentState() === MenuState.MAIN_MENU) {
+            const rect = canvas.getBoundingClientRect();
+            const x = event.clientX - rect.left;
+            const y = event.clientY - rect.top;
+            menuRenderer.handleClick(x, y);
+        }
+    });
+    
+    // Mushover på canvas
+    canvas.addEventListener('mousemove', (event) => {
+        if (appStateManager.getCurrentState() === MenuState.MAIN_MENU) {
+            const rect = canvas.getBoundingClientRect();
+            const x = event.clientX - rect.left;
+            const y = event.clientY - rect.top;
+            menuRenderer.handleMouseMove(x, y);
+        }
+    });
+}
 
 /**
  * Uppdaterar poäng och hälsa på skärmen
@@ -22,69 +193,6 @@ function updateGameStats(score?: number, health?: number): void {
 }
 
 /**
- * Hanterar när spelet tar slut
- */
-function handleGameOver(): void {
-    console.log('Game Over!');
-    // Spelet visar redan game over-skärm via renderer
-    // Användaren kan klicka för att starta om
-}
-
-/**
- * Initialiserar spelet
- */
-async function initializeGame(): Promise<void> {
-    console.log('Initialiserar Within the Woodpile...');
-    
-    try {
-        // Initiera språksystemet
-        i18n = new I18n();
-        await i18n.initialize();
-        
-        // Hämta canvas-element
-        const canvas = document.getElementById('gameCanvas') as HTMLCanvasElement;
-        if (!canvas) {
-            throw new Error('Kunde inte hitta canvas-element');
-        }
-        
-        // Skapa spelobjekt
-        game = new Game(canvas, i18n, DEFAULT_CONFIG);
-        
-        // Sätt upp callbacks för UI-uppdateringar
-        game.onScore((score) => updateGameStats(score, undefined));
-        game.onHealth((health) => updateGameStats(undefined, health));
-        game.onGameEnd(handleGameOver);
-        
-        // Initiera UI
-        updateGameStats(0, 100);
-        
-    } catch (error) {
-        console.error('Fel vid initialisering av spelet:', error);
-        
-        // Visa felmeddelande på sidan
-        const canvas = document.getElementById('gameCanvas') as HTMLCanvasElement;
-        if (canvas) {
-            const ctx = canvas.getContext('2d');
-            if (ctx) {
-                ctx.fillStyle = '#FF0000';
-                ctx.font = '24px Arial';
-                ctx.textAlign = 'center';
-                ctx.fillText(
-                    'Fel vid laddning av spelet', 
-                    canvas.width / 2, 
-                    canvas.height / 2
-                );
-                ctx.fillText(
-                    'Se konsolen för mer information', 
-                    canvas.width / 2, 
-                    canvas.height / 2 + 30
-                );
-            }
-        }
-    }
-}
-
-/**
  * Rensar resurser
  */
 function cleanup(): void {
@@ -94,7 +202,7 @@ function cleanup(): void {
 }
 
 // Event listeners
-document.addEventListener('DOMContentLoaded', initializeGame);
+document.addEventListener('DOMContentLoaded', initializeApp);
 window.addEventListener('beforeunload', cleanup);
 
 // Exponera globala funktioner för debugging
