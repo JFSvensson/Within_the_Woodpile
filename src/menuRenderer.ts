@@ -287,7 +287,7 @@ export class MenuRenderer {
         this.ctx.fillText(
             this.i18n.translate('menu.footer') || 'Made with GitHub Copilot for Alla kodares buggiga natt 2025',
             this.canvas.width / 2,
-            this.canvas.height - 20
+            this.canvas.height - 10
         );
     }
 
