@@ -3,12 +3,20 @@ Ett spel skapat för **Alla kodares buggiga natt 2025** av Fredrik Svensson med 
 
 ## Om spelet
 Du är en person som ska plocka ved ur en vedstapel. Men akta dig - bakom veden kan det finnas farliga djur och läskiga varelser! Vedhögen kan också rasa om du inte är försiktig.
-Spelet har **flerspråksstöd** (för närvarande svenska och engelska).
+
+Spelet har **fullständig startmeny** med animerad skogsglänta-bakgrund, **flerspråksstöd** (svenska och engelska), och **avancerad kollapsförutsägelse** som visar exakt vilka pinnar som påverkas av ditt drag.
 
 ## Spelmekanik
 
-### Grundläggande
-- **Klicka på ved** för att plocka den
+### Startmeny 🎮
+- **Animerad skogsglänta-bakgrund** med svajande träd
+- **Fallande löv-partiklar** för atmosfär
+- **Animerad vedstapel-logotyp** med "andning"-effekt
+- **Träknapp-design** med hover-effekter
+- **Språkväljare** i header för direkt tillgång
+
+### Grundläggande spelande
+- **Klicka på ved** för att plocka den (runda vedpinnar)
 - **Samla poäng** genom att plocka ved och undvika faror
 - **Undvik faror** som kan kosta dig hälsa
 - **Smart hover-feedback** visar vilka pinnar som påverkas av ditt drag
@@ -16,11 +24,11 @@ Spelet har **flerspråksstöd** (för närvarande svenska och engelska).
 ### Intelligent kollapsförutsägelse 🧠
 När du hovrar över en vedpinne visas:
 - **🟡 Gul hover-ram**: Den pinne du kan ta
-- **🔴 Röd solid ram**: Pinnar som kommer att rasa
+- **🔴 Röd solid ram + pulsande effekt**: Pinnar som kommer att rasa
 - **🟠 Orange streckad**: Hög risk för ras
 - **🟡 Gul streckad**: Medel risk för ras
 - **🟨 Ljusgul prickad**: Låg risk för ras
-- **✨ Pulsande effekt**: Kritiska pinnar som definitivt kommer att falla
+- **✨ Sekundäreffekt-analys**: Beräknar kedjereaktion av kollaps
 
 ### Varelser och reaktioner
 När du plockat en vedpinne som gömmer en varelse har du en kort tid på dig att reagera:
@@ -31,56 +39,64 @@ När du plockat en vedpinne som gömmer en varelse har du en kort tid på dig at
 - 👻 **Spöke**: Tryck `L` för att tända lyktan
 - 🎃 **Pumpahuvud**: Tryck `R` för att springa
 
-### Avancerad fysik
+Varelser visas med:
+- **Pulsande emoji** och glow-effekt
+- **Progressbar** som visar återstående tid
+- **Tangentinstruktioner** på skärmen
+
+### Avancerad fysik och rendering
 - **Brick-pattern stapel**: Vedpinnar staplas omväxlande för realistisk stabilitet
+- **Runda vedpinnar**: Cirkulär geometri med realistisk trätextur och årensringar
 - **Sekundära effekter**: Rasande pinnar kan få andra att förlora stöd
 - **Grundstöd**: Pinnar på marken har ingen rasrisk
 - **Stödberäkning**: Använder centrum-till-centrum-distans för runda pinnar
+- **Layered rendering**: Visar påverkade pinnar med korrekt z-order
 
 ## Teknisk info
 
 ### Utvecklat med
 - **TypeScript** för typning och struktur
 - **HTML5 Canvas** för 2D-grafik med runda vedpinnar
+- **Modular arkitektur** med specialiserade renderare
 - **Internationalisering (i18n)** med JSON-språkfiler
+- **State management** med AppStateManager
 - **Modern ES modules** och clean code-arkitektur
 - **GitHub Copilot** för AI-assisterad kodutveckling
-
-### AI-assisterad utveckling 🤖
-Detta projekt utvecklades med hjälp av:
-- **GitHub Copilot** för kodkomplettering och struktur
-- **AI-baserad arkitektur** för clean code-principer
-- **Intelligent problemlösning** för kollapsberäkningar
-- **Automatiserad typning** och felfång med TypeScript
 
 ### Projektstruktur
 ```
 src/
-├── types.ts              # Typedefinitioner och konfiguration
-├── woodPileGenerator.ts  # Genererar vedstapel med brick-pattern
-├── gameRenderer.ts       # Canvas-rendering och intelligent preview
-├── game.ts              # Huvudspellogik och state management
-├── i18n.ts              # Internationalisering
-├── main.ts              # Startpunkt och initialisering
-└── i18n/
-    ├── sv.json          # Svenska översättningar
-    └── en.json          # Engelska översättningar
-
-docs/
-├── README-architecture.md # Detaljerad arkitektur-dokumentation
-└── architecture/          # UML-diagram (PlantUML)
-    ├── class-diagram.puml
-    ├── component-diagram.puml
-    └── dataflow-diagram.puml
+├── types.ts                    # Typedefinitioner och konfiguration
+├── main.ts                     # Startpunkt och app-initialisering
+├── appStateManager.ts          # State management (meny ↔ spel)
+├── game.ts                     # Huvudspellogik och state management
+├── gameRenderer.ts             # Koordinerar all spelrendering
+├── menuRenderer.ts             # Fullständig menyrendering
+├── woodPileGenerator.ts        # Genererar vedstapel med brick-pattern
+├── collapsePredictionCalculator.ts # Intelligent kollapsförutsägelse
+├── woodPieceRenderer.ts        # Runda vedpinnar med textur
+├── uiRenderer.ts               # Varelser och UI-element
+├── i18n.ts                     # Internationalisering
+├── i18n/
+│   ├── sv.json                 # Svenska översättningar (inkl. meny)
+│   └── en.json                 # Engelska översättningar (inkl. meny)
+├── ui/
+│   └── MenuButtonManager.ts    # Knappar och interaktion
+├── renderers/
+│   ├── LogoRenderer.ts         # Animerad logo med vedstapel
+│   └── BackgroundRenderer.ts   # Skogsglänta med träd
+└── particles/
+    └── MenuParticleSystem.ts   # Fallande löv-partiklar
 ```
 
 ### Arkitektur
 Projektet följer **clean code-principer** med AI-assisterad design:
-- **Separation of concerns**: Logik, rendering och i18n separerat
+- **Separation of concerns**: Dedikerade renderare för varje ansvar
+- **Single Responsibility Principle**: Varje klass har ett specifikt syfte
 - **Dependency injection**: Klasser tar emot beroenden via konstruktor
 - **Type safety**: Fullständig TypeScript-typning
 - **Event-driven**: Löst kopplad kommunikation mellan komponenter
-- **Intelligent prediction**: Avancerad kollapsförutsägelse med visuell feedback
+- **State pattern**: AppStateManager hanterar app-tillstånd
 
 ## Kom igång
 
@@ -106,62 +122,73 @@ npm run build  # Kompilerar och kopierar filer till dist/
 
 ## Implementerat ✅
 
-### Kärnfunktioner
-- [x] Grundläggande vedplockning med musklick för runda pinnar
-- [x] Brick-pattern vedstapel för realistisk stabilitet
-- [x] Fem olika varelser med unika reaktioner och timers
-- [x] Avancerad kollapsberäkning med sekundära effekter
-- [x] **Intelligent hover-preview** som visar påverkade pinnar
-- [x] Flerspråksstöd (svenska/engelska) med localStorage
-- [x] Responsiv design och tillgänglighet
+### Meny och navigation
+- [x] **Fullständig startmeny** med animerad skogsglänta-bakgrund
+- [x] **Animerade träd** som svajar i vinden med bark-textur
+- [x] **Fallande löv-partiklar** (🍂🍃) för naturlig atmosfär
+- [x] **Animerad vedstapel-logotyp** med "andning"-effekt och brick-pattern
+- [x] **Träknapp-design** med hover-effekter och rotation
+- [x] **State management** för smidig övergång mellan meny och spel
+- [x] **Språkväljare** integrerad i header
 
-### Visuella effekter
-- [x] Runda vedpinnar med realistisk trätextur
-- [x] Färgkodade risknivåer (solid/streckad/prickad)
-- [x] Pulsande effekter för kritiska pinnar
-- [x] Varelsehints och reaktionstimers
-- [x] Game over-skärm med restart-funktionalitet
+### Kärnfunktioner
+- [x] **Grundläggande vedplockning** med musklick för runda pinnar
+- [x] **Brick-pattern vedstapel** för realistisk stabilitet
+- [x] **Fem olika varelser** med unika reaktioner och timers
+- [x] **Avancerad kollapsberäkning** med sekundära effekter
+- [x] **Intelligent hover-preview** som visar påverkade pinnar
+- [x] **Flerspråksstöd** (svenska/engelska) med localStorage
+- [x] **Responsiv design** och tillgänglighet
+
+### Visuella effekter och rendering
+- [x] **Runda vedpinnar** med realistisk trätextur och årsringar
+- [x] **Färgkodade risknivåer** (solid/streckad/prickad ramar)
+- [x] **Pulsande effekter** för kritiska pinnar
+- [x] **Varelsehints** med glow-effekter och subtil indikation
+- [x] **Reaktionstimers** med färgkodade progressbars
+- [x] **Game over-skärm** med restart-funktionalitet
+- [x] **Layered rendering** för korrekt z-order av påverkade pinnar
 
 ### Teknisk excellens
-- [x] Clean code-arkitektur med TypeScript
-- [x] Komplett UML-dokumentation
-- [x] Event-driven state management
-- [x] Modulär komponentdesign
-- [x] Automatiserad byggprocess
+- [x] **Clean code-arkitektur** med TypeScript
+- [x] **Modulär komponentdesign** med specialiserade renderare
+- [x] **Komplett UML-dokumentation** (class, component, dataflow)
+- [x] **Event-driven state management**
+- [x] **Automatiserad byggprocess** med i18n-kopiering
 
 ## Framtida förbättringar
 
 ### Kortsiktigt 🎯
-- [ ] Animerade vedras-effekter
-- [ ] Ljudeffekter och bakgrundsmusik
-- [ ] Partikeleffekter för kollaps
-- [ ] High score-system med localStorage
-- [ ] Powerups (lykta, verktyg, etc.)
+- [ ] **Animerade vedras-effekter** med partiklar
+- [ ] **Ljudeffekter** och atmosfärisk bakgrundsmusik
+- [ ] **Instruktioner-skärm** från menyn (knapp finns)
+- [ ] **Inställningar-skärm** för volym och grafik (knapp finns)
+- [ ] **High score-system** med localStorage-persistering
 
 ### Långsiktigt 🚀
-- [ ] Flera nivåer med olika svårighetsgrader
-- [ ] Olika vedtyper (gran, björk, ek) med olika egenskaper
-- [ ] Multiplayer-läge via WebRTC
-- [ ] Progressive Web App (PWA) för mobiler
-- [ ] Procedurellt genererade utmaningar
-- [ ] Berättarläge med bakgrundshistoria
+- [ ] **Flera nivåer** med olika svårighetsgrader och vedstapel-former
+- [ ] **Olika vedtyper** (gran, björk, ek) med olika egenskaper
+- [ ] **Progressive Web App (PWA)** för mobila enheter
+- [ ] **Procedurellt genererade utmaningar** med varierande layouts
+- [ ] **Berättarläge** med bakgrundshistoria och karaktärer
 
 ## Utvecklingsnotiser
 
 ### AI-utvecklingsprocess 🧠
 Projektet utvecklades genom:
-1. **Konceptuell design** med AI-assistans
-2. **Arkitekturplanering** med UML-generering
-3. **Iterativ kodning** med Copilot-förslag
-4. **Intelligent refaktoring** för clean code
-5. **Automatiserad testning** av logik
+1. **Konceptuell design** med AI-assistans för spelmekanik
+2. **Arkitekturplanering** med UML-generering och clean code
+3. **Iterativ kodning** med Copilot för komponentstruktur
+4. **Intelligent refaktoring** för modulär design
+5. **Automatiserad optimering** av rendering och fysik
 
 ### Utökning av spelet
-- **Nya varelser**: Lägg till i [`CreatureType`](src/types.ts), uppdatera [`KEY_BINDINGS`](src/types.ts) och [`GameRenderer`](src/gameRenderer.ts)
+- **Nya varelser**: Lägg till i [`CreatureType`](src/types.ts), uppdatera [`KEY_BINDINGS`](src/types.ts) och [`UIRenderer`](src/uiRenderer.ts)
 - **Vedstapel-ändringar**: Modifiera [`WoodPileGenerator`](src/woodPileGenerator.ts)
+- **Menyfunktioner**: Utöka [`MenuRenderer`](src/menuRenderer.ts) och [`MenuButtonManager`](src/ui/MenuButtonManager.ts)
 - **Spelregler**: Justera i [`Game`](src/game.ts) klassen
 - **Översättningar**: Uppdatera JSON-filerna i [`src/i18n/`](src/i18n/)
-- **Visuella effekter**: Utöka [`GameRenderer`](src/gameRenderer.ts)
+- **Visuella effekter**: Utöka renderare i [`src/renderers/`](src/renderers/) och [`src/particles/`](src/particles/)
 
 ### Debug-funktioner
 I utvecklarläge finns globala debug-funktioner:
@@ -187,11 +214,18 @@ Intelligent kollapsförutsägelse använder:
 - **Centrum-till-centrum distans** för runda pinnar
 - **Överlappning-thresholds** för stödvalidering
 
-### Rendering-optimering
+### Rendering-pipeline
 - **Layered rendering**: Icke-påverkade → påverkade → hovrade pinnar
-- **Cirkulär geometri** för runda vedpinnar
-- **Texturerad träyta** med koncentriska ringar
+- **Specialiserade renderare**: WoodPieceRenderer, UIRenderer, MenuRenderer
+- **Cirkulär geometri** för runda vedpinnar med trätextur
+- **Partikeleffekter** med MenuParticleSystem
 - **Adaptiv färgkodning** baserat på risknivå
+
+### State management
+- **AppStateManager** hanterar övergångar mellan meny och spel
+- **MenuState enum** för clean state-definitioner
+- **Event-driven callbacks** för state-ändringar
+- **Automatisk resurs-hantering** vid state-övergångar
 
 ## Kreativa bidrag
 
@@ -205,6 +239,7 @@ Intelligent kollapsförutsägelse använder:
 - 💻 Kodstruktur och implementation
 - 🔧 TypeScript-typning och felfång
 - 📋 Algoritmer för kollapsberäkning
+- 🎨 Rendering-optimering och effekter
 - 📖 Dokumentation och kommentarer
 
 ## Licens
