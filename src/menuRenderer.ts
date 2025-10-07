@@ -2,6 +2,7 @@ import { I18n } from './i18n.js';
 import { MenuButton, Position } from './types.js';
 import { LogoRenderer } from './renderers/LogoRenderer.js';
 import { MenuParticleSystem } from './particles/MenuParticleSystem.js';
+import { BackgroundRenderer } from './renderers/BackgroundRenderer.js';
 
 /**
  * MenuRenderer ansvarar för att rendera startmenyn med skogsglänta-tema
@@ -13,6 +14,7 @@ export class MenuRenderer {
     private i18n: I18n;
     private logoRenderer: LogoRenderer;
     private particleSystem: MenuParticleSystem;
+    private backgroundRenderer: BackgroundRenderer;
     private buttons: MenuButton[] = [];
     private animationTime: number = 0;
 
@@ -22,6 +24,7 @@ export class MenuRenderer {
         this.i18n = i18n;
         this.logoRenderer = new LogoRenderer(canvas);
         this.particleSystem = new MenuParticleSystem(canvas);
+        this.backgroundRenderer = new BackgroundRenderer(canvas);
         this.initializeButtons();
     }
 
@@ -73,51 +76,12 @@ export class MenuRenderer {
     public render(): void {
         this.animationTime += 0.016; // ~60fps
         
-        this.clearCanvas();
-        this.renderBackground();
+        this.backgroundRenderer.render(this.animationTime);
         this.particleSystem.update();
         this.particleSystem.render();
         this.logoRenderer.render(this.animationTime);
         this.renderButtons();
         this.renderFooter();
-    }
-
-    /**
-     * Rensa canvas med gradient bakgrund
-     */
-    private clearCanvas(): void {
-        // Skapa skogsgradient
-        const gradient = this.ctx.createLinearGradient(0, 0, 0, this.canvas.height);
-        gradient.addColorStop(0, '#87CEEB'); // Himmelblå
-        gradient.addColorStop(0.3, '#90EE90'); // Ljusgrön
-        gradient.addColorStop(1, '#228B22'); // Skogsgrön
-        
-        this.ctx.fillStyle = gradient;
-        this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
-    }
-
-    /**
-     * Renderar animerad skogsbakgrund
-     */
-    private renderBackground(): void {
-        // Rita stiliserade träd i bakgrunden
-        this.ctx.fillStyle = '#8B4513'; // Brun stam
-        
-        for (let i = 0; i < 8; i++) {
-            const x = (i * this.canvas.width / 7) + Math.sin(this.animationTime + i) * 2;
-            const treeHeight = 150 + Math.sin(this.animationTime * 0.5 + i) * 10;
-            
-            // Stam
-            this.ctx.fillRect(x - 10, this.canvas.height - treeHeight, 20, treeHeight);
-            
-            // Krona
-            this.ctx.fillStyle = '#228B22';
-            this.ctx.beginPath();
-            this.ctx.arc(x, this.canvas.height - treeHeight + 20, 40, 0, Math.PI * 2);
-            this.ctx.fill();
-            
-            this.ctx.fillStyle = '#8B4513';
-        }
     }
 
     /**
