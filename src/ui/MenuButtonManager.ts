@@ -1,5 +1,5 @@
-import { MenuButton } from '../types.js';
-import { I18n } from '../i18n.js';
+import { MenuButton } from '../types/index.js';
+import { I18n } from '../infrastructure/i18n/I18n.js';
 
 /**
  * Hanterar alla knappar i startmenyn - rendering, interaktion och events

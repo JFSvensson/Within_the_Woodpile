@@ -5,9 +5,9 @@ import {
 } from '../../types/index.js';
 import { DEFAULT_CONFIG } from '../../shared/constants/index.js';
 import { WoodPileGenerator } from '../services/WoodPileGenerator.js';
-import { GameRenderer } from '../../gameRenderer.js';
-import { I18n } from '../../i18n.js';
-import { GameInputHandler } from '../../game/GameInputHandler.js';
+import { GameRenderer } from '../../presentation/renderers/game/GameRenderer.js';
+import { I18n } from '../../infrastructure/i18n/I18n.js';
+import { GameInputHandler } from '../../infrastructure/input/GameInputHandler.js';
 import { CreatureManager } from '../managers/CreatureManager.js';
 import { CollisionManager } from '../managers/CollisionManager.js';
 import { GameStateManager } from '../managers/GameStateManager.js';
@@ -71,7 +71,7 @@ export class Game {
    * Sätter upp callbacks för input handler
    */
   private setupInputCallbacks(): void {
-    this.inputHandler.setOnWoodPieceClick((piece) => this.removeWoodPiece(piece));
+    this.inputHandler.setOnWoodPieceClick((piece: WoodPiece) => this.removeWoodPiece(piece));
     this.inputHandler.setOnSuccessfulCreatureReaction(() => this.creatureManager.handleSuccessfulReaction());
     this.inputHandler.setOnGameRestart(() => this.restartGame());
   }

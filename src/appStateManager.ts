@@ -1,4 +1,4 @@
-import { MenuState } from './types.js';
+import { MenuState } from './types/index.js';
 
 /**
  * AppStateManager hanterar övergångar mellan olika appllägen

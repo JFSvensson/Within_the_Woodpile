@@ -1,8 +1,9 @@
-import { I18n } from './i18n.js';
-import { Game } from './game.js';
-import { MenuRenderer } from './menuRenderer.js';
+import { I18n } from './infrastructure/i18n/I18n.js';
+import { Game } from './core/game/Game.js';
+import { MenuRenderer } from './presentation/renderers/menu/MenuRenderer.js';
 import { AppStateManager } from './appStateManager.js';
-import { DEFAULT_CONFIG, MenuState } from './types.js';
+import { DEFAULT_CONFIG } from './shared/constants/index.js';
+import { MenuState } from './types/index.js';
 
 // Globala variabler
 let game: Game | null = null;
@@ -43,8 +44,8 @@ function startGameFromMenu(): void {
         game = new Game(canvas, i18n, DEFAULT_CONFIG);
         
         // Sätt upp callbacks för UI-uppdateringar
-        game.onScore((score) => updateGameStats(score, undefined));
-        game.onHealth((health) => updateGameStats(undefined, health));
+        game.onScore((score: number) => updateGameStats(score, undefined));
+        game.onHealth((health: number) => updateGameStats(undefined, health));
         game.onGameEnd(handleGameOver);
         
         // Initiera UI
