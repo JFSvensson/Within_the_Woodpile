@@ -12,6 +12,7 @@ import { GameRenderer } from './gameRenderer.js';
 import { I18n } from './i18n.js';
 import { GameInputHandler } from './game/GameInputHandler.js';
 import { CreatureManager } from './game/CreatureManager.js';
+import { CollisionManager } from './game/CollisionManager.js';
 
 /**
  * Huvudklass för spellogik och state management
@@ -23,6 +24,7 @@ export class Game {
   private i18n: I18n;
   private inputHandler: GameInputHandler;
   private creatureManager: CreatureManager;
+  private collisionManager: CollisionManager;
   
   private woodPieces: WoodPiece[] = [];
   private gameState: GameState;
@@ -49,10 +51,12 @@ export class Game {
     // Skapa managers
     this.inputHandler = new GameInputHandler(canvas, this.woodPieces, this.gameState);
     this.creatureManager = new CreatureManager(config, this.gameState);
+    this.collisionManager = new CollisionManager(config, this.woodPileGenerator);
     
     // Sätt upp callbacks
     this.setupInputCallbacks();
     this.setupCreatureCallbacks();
+    this.setupCollisionCallbacks();
     
     this.initializeGame();
   }
@@ -96,6 +100,17 @@ export class Game {
   }
 
   /**
+   * Sätter upp callbacks för collision manager
+   */
+  private setupCollisionCallbacks(): void {
+    this.collisionManager.setOnCollapseDetected((damage, collapsingPieces) => {
+      this.reduceHealth(damage);
+      // Eventuellt logga kollaps-information för debugging
+      console.log(`Kollaps! ${collapsingPieces.length} pinnar rasade, ${damage} skada`);
+    });
+  }
+
+  /**
    * Tar bort vedpinne och hanterar konsekvenser
    */
   private removeWoodPiece(piece: WoodPiece): void {
@@ -111,30 +126,8 @@ export class Game {
     // Lägg till poäng
     this.addScore(this.config.pointsPerWood);
     
-    // Kontrollera kollaps
-    this.handlePotentialCollapse(piece);
-    
-    // Uppdatera rasrisker
-    this.woodPieces = this.woodPileGenerator.updateCollapseRisks(this.woodPieces);
-  }
-
-  /**
-   * Hanterar potentiell kollaps av vedstapel
-   */
-  private handlePotentialCollapse(removedPiece: WoodPiece): void {
-    const collapsingPieces = this.woodPileGenerator.findCollapsingPieces(
-      removedPiece, 
-      this.woodPieces
-    );
-    
-    if (collapsingPieces.length > 0) {
-      // Markera som borttagna
-      collapsingPieces.forEach(piece => piece.isRemoved = true);
-      
-      // Minska hälsa baserat på antal rasande pinnar
-      const damage = collapsingPieces.length * this.config.collapseDamage;
-      this.reduceHealth(damage);
-    }
+    // Hantera kollaps och uppdatera rasrisker
+    this.woodPieces = this.collisionManager.handlePotentialCollapse(piece, this.woodPieces);
   }
 
   /**
@@ -259,6 +252,7 @@ export class Game {
     // Rensa managers
     this.inputHandler.destroy();
     this.creatureManager.destroy();
+    this.collisionManager.destroy();
   }
 
   /**
