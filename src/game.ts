@@ -11,6 +11,7 @@ import { WoodPileGenerator } from './woodPileGenerator.js';
 import { GameRenderer } from './gameRenderer.js';
 import { I18n } from './i18n.js';
 import { GameInputHandler } from './game/GameInputHandler.js';
+import { CreatureManager } from './game/CreatureManager.js';
 
 /**
  * Huvudklass för spellogik och state management
@@ -21,6 +22,7 @@ export class Game {
   private renderer: GameRenderer;
   private i18n: I18n;
   private inputHandler: GameInputHandler;
+  private creatureManager: CreatureManager;
   
   private woodPieces: WoodPiece[] = [];
   private gameState: GameState;
@@ -44,9 +46,13 @@ export class Game {
     
     this.gameState = this.createInitialGameState();
     
-    // Skapa input handler och sätt upp callbacks
+    // Skapa managers
     this.inputHandler = new GameInputHandler(canvas, this.woodPieces, this.gameState);
+    this.creatureManager = new CreatureManager(config, this.gameState);
+    
+    // Sätt upp callbacks
     this.setupInputCallbacks();
+    this.setupCreatureCallbacks();
     
     this.initializeGame();
   }
@@ -77,8 +83,16 @@ export class Game {
    */
   private setupInputCallbacks(): void {
     this.inputHandler.setOnWoodPieceClick((piece) => this.removeWoodPiece(piece));
-    this.inputHandler.setOnSuccessfulCreatureReaction(() => this.handleSuccessfulCreatureReaction());
+    this.inputHandler.setOnSuccessfulCreatureReaction(() => this.creatureManager.handleSuccessfulReaction());
     this.inputHandler.setOnGameRestart(() => this.restartGame());
+  }
+
+  /**
+   * Sätter upp callbacks för creature manager
+   */
+  private setupCreatureCallbacks(): void {
+    this.creatureManager.setOnScoreUpdate((points) => this.addScore(points));
+    this.creatureManager.setOnHealthUpdate((damage) => this.reduceHealth(damage));
   }
 
   /**
@@ -86,8 +100,8 @@ export class Game {
    */
   private removeWoodPiece(piece: WoodPiece): void {
     // Kontrollera om det finns en varelse
-    if (piece.creature) {
-      this.encounterCreature(piece);
+    if (this.creatureManager.hasCreature(piece)) {
+      this.creatureManager.encounterCreature(piece);
       return;
     }
     
@@ -102,49 +116,6 @@ export class Game {
     
     // Uppdatera rasrisker
     this.woodPieces = this.woodPileGenerator.updateCollapseRisks(this.woodPieces);
-  }
-
-  /**
-   * Hanterar möte med varelse
-   */
-  private encounterCreature(piece: WoodPiece): void {
-    if (!piece.creature) return;
-    
-    this.gameState.activeCreature = {
-      type: piece.creature,
-      timeLeft: this.config.reactionTime,
-      position: { ...piece.position },
-      maxTime: this.config.reactionTime
-    };
-    
-    // Ta bort veden (varelser visas ovanpå)
-    piece.isRemoved = true;
-  }
-
-  /**
-   * Hanterar lyckad reaktion på varelse
-   */
-  private handleSuccessfulCreatureReaction(): void {
-    if (!this.gameState.activeCreature) return;
-    
-    // Ge poäng för lyckad reaktion
-    this.addScore(this.config.pointsPerWood * 2);
-    
-    // Ta bort aktiv varelse
-    this.gameState.activeCreature = undefined;
-  }
-
-  /**
-   * Hanterar misslyckad reaktion på varelse
-   */
-  private handleFailedCreatureReaction(): void {
-    if (!this.gameState.activeCreature) return;
-    
-    // Minska hälsa
-    this.reduceHealth(this.config.healthPenalty);
-    
-    // Ta bort aktiv varelse
-    this.gameState.activeCreature = undefined;
   }
 
   /**
@@ -191,7 +162,7 @@ export class Game {
    */
   private endGame(): void {
     this.gameState.isGameOver = true;
-    this.gameState.activeCreature = undefined;
+    this.creatureManager.clearActiveCreature();
     this.onGameOver?.();
   }
 
@@ -201,6 +172,7 @@ export class Game {
   private restartGame(): void {
     this.gameState = this.createInitialGameState();
     this.woodPieces = this.woodPileGenerator.generateWoodPile();
+    this.creatureManager.clearActiveCreature();
     
     // Uppdatera UI
     this.onScoreUpdate?.(0);
@@ -232,17 +204,12 @@ export class Game {
       return;
     }
     
-    // Uppdatera input handler med aktuell state
+    // Uppdatera managers med aktuell state
     this.inputHandler.updateReferences(this.woodPieces, this.gameState);
+    this.creatureManager.updateGameState(this.gameState);
     
     // Uppdatera aktiv varelse
-    if (this.gameState.activeCreature) {
-      this.gameState.activeCreature.timeLeft -= deltaTime;
-      
-      if (this.gameState.activeCreature.timeLeft <= 0) {
-        this.handleFailedCreatureReaction();
-      }
-    }
+    this.creatureManager.updateActiveCreature(deltaTime);
   }
 
   /**
@@ -289,8 +256,9 @@ export class Game {
       cancelAnimationFrame(this.animationId);
     }
     
-    // Rensa input handler
+    // Rensa managers
     this.inputHandler.destroy();
+    this.creatureManager.destroy();
   }
 
   /**
