@@ -2,10 +2,7 @@ import {
   WoodPiece, 
   GameState, 
   GameConfig, 
-  DEFAULT_CONFIG, 
-  CreatureType, 
-  ActiveCreature,
-  KEY_BINDINGS 
+  DEFAULT_CONFIG
 } from './types.js';
 import { WoodPileGenerator } from './woodPileGenerator.js';
 import { GameRenderer } from './gameRenderer.js';
@@ -60,19 +57,6 @@ export class Game {
     this.setupGameLoopCallbacks();
     
     this.initializeGame();
-  }
-
-  /**
-   * Skapar initialt speltillstånd
-   */
-  private createInitialGameState(): GameState {
-    return {
-      score: 0,
-      health: 100,
-      isGameOver: false,
-      isPaused: false,
-      activeCreature: undefined
-    };
   }
 
   /**
