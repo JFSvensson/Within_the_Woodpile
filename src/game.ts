@@ -10,6 +10,7 @@ import {
 import { WoodPileGenerator } from './woodPileGenerator.js';
 import { GameRenderer } from './gameRenderer.js';
 import { I18n } from './i18n.js';
+import { GameInputHandler } from './game/GameInputHandler.js';
 
 /**
  * Huvudklass för spellogik och state management
@@ -19,10 +20,10 @@ export class Game {
   private woodPileGenerator: WoodPileGenerator;
   private renderer: GameRenderer;
   private i18n: I18n;
+  private inputHandler: GameInputHandler;
   
   private woodPieces: WoodPiece[] = [];
   private gameState: GameState;
-  private hoveredPiece?: WoodPiece;
   private canvas: HTMLCanvasElement;
   
   private animationId?: number;
@@ -43,7 +44,10 @@ export class Game {
     
     this.gameState = this.createInitialGameState();
     
-    this.setupEventListeners();
+    // Skapa input handler och sätt upp callbacks
+    this.inputHandler = new GameInputHandler(canvas, this.woodPieces, this.gameState);
+    this.setupInputCallbacks();
+    
     this.initializeGame();
   }
 
@@ -69,106 +73,12 @@ export class Game {
   }
 
   /**
-   * Sätter upp event listeners för användarinteraktion
+   * Sätter upp callbacks för input handler
    */
-  private setupEventListeners(): void {
-    // Musinteraktion
-    this.canvas.addEventListener('click', this.handleCanvasClick.bind(this));
-    this.canvas.addEventListener('mousemove', this.handleMouseMove.bind(this));
-    this.canvas.addEventListener('mouseleave', this.handleMouseLeave.bind(this));
-    
-    // Tangentbordsinput för varelsereaktioner
-    document.addEventListener('keydown', this.handleKeyPress.bind(this));
-  }
-
-  /**
-   * Hanterar musklick på canvas
-   */
-  private handleCanvasClick(event: MouseEvent): void {
-    if (this.gameState.isGameOver) {
-      this.restartGame();
-      return;
-    }
-    
-    if (this.gameState.isPaused || this.gameState.activeCreature) {
-      return;
-    }
-    
-    const clickedPiece = this.getClickedPiece(event);
-    if (clickedPiece) {
-      this.removeWoodPiece(clickedPiece);
-    }
-  }
-
-  /**
-   * Hanterar musrörelse för hover-effekter
-   */
-  private handleMouseMove(event: MouseEvent): void {
-    if (this.gameState.isGameOver || this.gameState.activeCreature) {
-      return;
-    }
-    
-    const hoveredPiece = this.getClickedPiece(event);
-    if (hoveredPiece !== this.hoveredPiece) {
-      this.hoveredPiece = hoveredPiece;
-    }
-  }
-
-  /**
-   * Hanterar när muspekaren lämnar canvas
-   */
-  private handleMouseLeave(): void {
-    this.hoveredPiece = undefined;
-  }
-
-  /**
-   * Hanterar tangenttryckningar för varelsereaktioner
-   */
-  private handleKeyPress(event: KeyboardEvent): void {
-    if (!this.gameState.activeCreature) {
-      return;
-    }
-    
-    const binding = KEY_BINDINGS.find(b => 
-      b.creature === this.gameState.activeCreature!.type &&
-      (b.key === event.key || b.keyCode === event.code)
-    );
-    
-    if (binding) {
-      this.handleSuccessfulCreatureReaction();
-      event.preventDefault();
-    }
-  }
-
-  /**
-   * Hittar vedpinne vid musposition (uppdaterat för runda vedpinnar)
-   */
-  private getClickedPiece(event: MouseEvent): WoodPiece | undefined {
-    const rect = this.canvas.getBoundingClientRect();
-    const x = event.clientX - rect.left;
-    const y = event.clientY - rect.top;
-    
-    // Kolla vedpinnar i omvänd ordning (översta först)
-    for (let i = this.woodPieces.length - 1; i >= 0; i--) {
-      const piece = this.woodPieces[i];
-      if (piece.isRemoved) continue;
-      
-      // Beräkna centrum och radie för rund vedpinne
-      const centerX = piece.position.x + piece.size.width / 2;
-      const centerY = piece.position.y + piece.size.height / 2;
-      const radius = Math.min(piece.size.width, piece.size.height) / 2;
-      
-      // Kontrollera om musposition är inom cirkelns radie
-      const distance = Math.sqrt(
-        Math.pow(x - centerX, 2) + Math.pow(y - centerY, 2)
-      );
-      
-      if (distance <= radius) {
-        return piece;
-      }
-    }
-    
-    return undefined;
+  private setupInputCallbacks(): void {
+    this.inputHandler.setOnWoodPieceClick((piece) => this.removeWoodPiece(piece));
+    this.inputHandler.setOnSuccessfulCreatureReaction(() => this.handleSuccessfulCreatureReaction());
+    this.inputHandler.setOnGameRestart(() => this.restartGame());
   }
 
   /**
@@ -291,7 +201,6 @@ export class Game {
   private restartGame(): void {
     this.gameState = this.createInitialGameState();
     this.woodPieces = this.woodPileGenerator.generateWoodPile();
-    this.hoveredPiece = undefined;
     
     // Uppdatera UI
     this.onScoreUpdate?.(0);
@@ -323,6 +232,9 @@ export class Game {
       return;
     }
     
+    // Uppdatera input handler med aktuell state
+    this.inputHandler.updateReferences(this.woodPieces, this.gameState);
+    
     // Uppdatera aktiv varelse
     if (this.gameState.activeCreature) {
       this.gameState.activeCreature.timeLeft -= deltaTime;
@@ -337,7 +249,8 @@ export class Game {
    * Renderar spelet
    */
   private render(): void {
-    this.renderer.render(this.woodPieces, this.gameState, this.hoveredPiece);
+    const currentHoveredPiece = this.inputHandler.getCurrentHoveredPiece();
+    this.renderer.render(this.woodPieces, this.gameState, currentHoveredPiece);
   }
 
   /**
@@ -376,11 +289,8 @@ export class Game {
       cancelAnimationFrame(this.animationId);
     }
     
-    // Ta bort event listeners
-    this.canvas.removeEventListener('click', this.handleCanvasClick);
-    this.canvas.removeEventListener('mousemove', this.handleMouseMove);
-    this.canvas.removeEventListener('mouseleave', this.handleMouseLeave);
-    document.removeEventListener('keydown', this.handleKeyPress);
+    // Rensa input handler
+    this.inputHandler.destroy();
   }
 
   /**
