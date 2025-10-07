@@ -14,6 +14,7 @@ import { GameInputHandler } from './game/GameInputHandler.js';
 import { CreatureManager } from './game/CreatureManager.js';
 import { CollisionManager } from './game/CollisionManager.js';
 import { GameStateManager } from './game/GameStateManager.js';
+import { GameLoop } from './game/GameLoop.js';
 
 /**
  * Huvudklass för spellogik och state management
@@ -27,12 +28,10 @@ export class Game {
   private creatureManager: CreatureManager;
   private collisionManager: CollisionManager;
   private stateManager: GameStateManager;
+  private gameLoop: GameLoop;
   
   private woodPieces: WoodPiece[] = [];
   private canvas: HTMLCanvasElement;
-  
-  private animationId?: number;
-  private lastUpdateTime = 0;
 
   constructor(canvas: HTMLCanvasElement, i18n: I18n, config: GameConfig = DEFAULT_CONFIG) {
     this.canvas = canvas;
@@ -45,6 +44,9 @@ export class Game {
     // Skapa state manager först
     this.stateManager = new GameStateManager(config);
     
+    // Skapa GameLoop manager
+    this.gameLoop = new GameLoop();
+    
     // Skapa managers med state-referens
     this.inputHandler = new GameInputHandler(canvas, this.woodPieces, this.stateManager.getGameStateReference());
     this.creatureManager = new CreatureManager(config, this.stateManager.getGameStateReference());
@@ -55,6 +57,7 @@ export class Game {
     this.setupCreatureCallbacks();
     this.setupCollisionCallbacks();
     this.setupStateCallbacks();
+    this.setupGameLoopCallbacks();
     
     this.initializeGame();
   }
@@ -77,7 +80,7 @@ export class Game {
    */
   private initializeGame(): void {
     this.woodPieces = this.woodPileGenerator.generateWoodPile();
-    this.startGameLoop();
+    this.gameLoop.start();
   }
 
   /**
@@ -117,6 +120,14 @@ export class Game {
   }
 
   /**
+   * Sätter upp callbacks för game loop manager
+   */
+  private setupGameLoopCallbacks(): void {
+    this.gameLoop.setOnUpdate((deltaTime) => this.update(deltaTime));
+    this.gameLoop.setOnRender(() => this.render());
+  }
+
+  /**
    * Tar bort vedpinne och hanterar konsekvenser
    */
   private removeWoodPiece(piece: WoodPiece): void {
@@ -143,23 +154,6 @@ export class Game {
     this.stateManager.restartGame();
     this.woodPieces = this.woodPileGenerator.generateWoodPile();
     this.creatureManager.clearActiveCreature();
-  }
-
-  /**
-   * Huvudspelloop
-   */
-  private startGameLoop(): void {
-    const gameLoop = (currentTime: number) => {
-      const deltaTime = currentTime - this.lastUpdateTime;
-      this.lastUpdateTime = currentTime;
-      
-      this.update(deltaTime);
-      this.render();
-      
-      this.animationId = requestAnimationFrame(gameLoop);
-    };
-    
-    this.animationId = requestAnimationFrame(gameLoop);
   }
 
   /**
@@ -214,15 +208,20 @@ export class Game {
    */
   public togglePause(): void {
     this.stateManager.togglePause();
+    
+    // Synkronisera GameLoop med pause state
+    if (this.stateManager.getGameState().isPaused) {
+      this.gameLoop.pause();
+    } else {
+      this.gameLoop.resume();
+    }
   }
 
   /**
    * Stoppar spelet och rensar resurser
    */
   public destroy(): void {
-    if (this.animationId) {
-      cancelAnimationFrame(this.animationId);
-    }
+    this.gameLoop.destroy();
     
     // Rensa managers
     this.inputHandler.destroy();
