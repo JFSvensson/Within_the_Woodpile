@@ -1,5 +1,6 @@
 import { I18n } from './i18n.js';
 import { MenuButton, Position } from './types.js';
+import { LogoRenderer } from './renderers/LogoRenderer.js';
 
 /**
  * MenuRenderer ansvarar för att rendera startmenyn med skogsglänta-tema
@@ -9,6 +10,7 @@ export class MenuRenderer {
     private canvas: HTMLCanvasElement;
     private ctx: CanvasRenderingContext2D;
     private i18n: I18n;
+    private logoRenderer: LogoRenderer;
     private buttons: MenuButton[] = [];
     private animationTime: number = 0;
     private particles: Particle[] = [];
@@ -17,6 +19,7 @@ export class MenuRenderer {
         this.canvas = canvas;
         this.ctx = canvas.getContext('2d')!;
         this.i18n = i18n;
+        this.logoRenderer = new LogoRenderer(canvas);
         this.initializeButtons();
         this.initializeParticles();
     }
@@ -92,7 +95,7 @@ export class MenuRenderer {
         this.clearCanvas();
         this.renderBackground();
         this.renderParticles();
-        this.renderLogo();
+        this.logoRenderer.render(this.animationTime);
         this.renderButtons();
         this.renderFooter();
     }
@@ -158,75 +161,6 @@ export class MenuRenderer {
             this.ctx.fillText(particle.type, 0, 0);
             this.ctx.restore();
         });
-    }
-
-    /**
-     * Renderar game logotyp med "andande" vedstapel
-     */
-    private renderLogo(): void {
-        const centerX = this.canvas.width / 2;
-        const logoY = 120;
-        
-        // Titel
-        this.ctx.fillStyle = '#8B4513';
-        this.ctx.font = 'bold 48px serif';
-        this.ctx.textAlign = 'center';
-        this.ctx.strokeStyle = '#FFFFFF';
-        this.ctx.lineWidth = 3;
-        this.ctx.strokeText('Within the Woodpile', centerX, logoY);
-        this.ctx.fillText('Within the Woodpile', centerX, logoY);
-        
-        // Animerad vedstapel
-        const breathingScale = 1 + Math.sin(this.animationTime * 2) * 0.02;
-        this.ctx.save();
-        this.ctx.translate(centerX, logoY + 60);
-        this.ctx.scale(breathingScale, breathingScale);
-        
-        // Rita mini vedstapel med brick-pattern (4-3-2-1 pyramid)
-        const rows = [4, 3, 2, 1]; // Antal vedstockar per rad (botten till topp)
-        const woodRadius = 8;
-        const woodSpacing = 18; // Avstånd mellan vedstockar
-        
-        for (let rowIndex = 0; rowIndex < rows.length; rowIndex++) {
-            const woodCount = rows[rowIndex];
-            // Räkna Y-position från botten av pyramiden
-            const rowY = (rows.length - 1 - rowIndex) * 16; // Inverterad Y för pyramid
-            // Centrera raden och lägg till offset för brick-pattern
-            const totalWidth = (woodCount - 1) * woodSpacing;
-            const startX = -totalWidth / 2;
-            // Förskjutning för att skapa brick-pattern (halva avståndet mellan stockar)
-            const brickPatternOffset = woodSpacing / 2;
-
-            for (let col = 0; col < woodCount; col++) {
-                const x = startX + col * woodSpacing - brickPatternOffset;
-                const y = rowY;
-                // Rita vedstock
-                this.ctx.fillStyle = '#D2691E';
-                this.ctx.beginPath();
-                this.ctx.arc(x, y, woodRadius, 0, Math.PI * 2);
-                this.ctx.fill();
-                
-                // Rita bark-kontur
-                this.ctx.strokeStyle = '#8B4513';
-                this.ctx.lineWidth = 2;
-                this.ctx.stroke();
-                
-                // Lägg till trästruktur (små linjer)
-                this.ctx.strokeStyle = '#A0522D';
-                this.ctx.lineWidth = 1;
-                this.ctx.beginPath();
-                this.ctx.moveTo(x - woodRadius * 0.6, y - 2);
-                this.ctx.lineTo(x + woodRadius * 0.6, y - 2);
-                this.ctx.moveTo(x - woodRadius * 0.4, y + 2);
-                this.ctx.lineTo(x + woodRadius * 0.4, y + 2);
-                this.ctx.stroke();
-            }
-        }
-        this.ctx.restore();
-        
-        // Emoji
-        this.ctx.font = '40px Arial';
-        this.ctx.fillText('🌲', centerX + 150, logoY + 10);
     }
 
     /**
