@@ -1,6 +1,7 @@
 import { I18n } from './i18n.js';
 import { MenuButton, Position } from './types.js';
 import { LogoRenderer } from './renderers/LogoRenderer.js';
+import { MenuParticleSystem } from './particles/MenuParticleSystem.js';
 
 /**
  * MenuRenderer ansvarar för att rendera startmenyn med skogsglänta-tema
@@ -11,17 +12,17 @@ export class MenuRenderer {
     private ctx: CanvasRenderingContext2D;
     private i18n: I18n;
     private logoRenderer: LogoRenderer;
+    private particleSystem: MenuParticleSystem;
     private buttons: MenuButton[] = [];
     private animationTime: number = 0;
-    private particles: Particle[] = [];
 
     constructor(canvas: HTMLCanvasElement, i18n: I18n) {
         this.canvas = canvas;
         this.ctx = canvas.getContext('2d')!;
         this.i18n = i18n;
         this.logoRenderer = new LogoRenderer(canvas);
+        this.particleSystem = new MenuParticleSystem(canvas);
         this.initializeButtons();
-        this.initializeParticles();
     }
 
     /**
@@ -67,26 +68,6 @@ export class MenuRenderer {
     }
 
     /**
-     * Initialiserar fallande löv-partiklar för atmosfär
-     */
-    private initializeParticles(): void {
-        for (let i = 0; i < 20; i++) {
-            this.particles.push({
-                x: Math.random() * this.canvas.width,
-                y: Math.random() * this.canvas.height,
-                velocity: {
-                    x: (Math.random() - 0.5) * 0.5,
-                    y: Math.random() * 1 + 0.5
-                },
-                size: Math.random() * 8 + 4,
-                rotation: Math.random() * Math.PI * 2,
-                rotationSpeed: (Math.random() - 0.5) * 0.02,
-                type: Math.random() > 0.5 ? '🍂' : '🍃'
-            });
-        }
-    }
-
-    /**
      * Renderar hela startmenyn
      */
     public render(): void {
@@ -94,7 +75,8 @@ export class MenuRenderer {
         
         this.clearCanvas();
         this.renderBackground();
-        this.renderParticles();
+        this.particleSystem.update();
+        this.particleSystem.render();
         this.logoRenderer.render(this.animationTime);
         this.renderButtons();
         this.renderFooter();
@@ -136,31 +118,6 @@ export class MenuRenderer {
             
             this.ctx.fillStyle = '#8B4513';
         }
-    }
-
-    /**
-     * Renderar fallande löv-partiklar
-     */
-    private renderParticles(): void {
-        this.particles.forEach(particle => {
-            particle.x += particle.velocity.x;
-            particle.y += particle.velocity.y;
-            particle.rotation += particle.rotationSpeed;
-
-            // Återställ partikel om den faller ut ur skärmen
-            if (particle.y > this.canvas.height + 10) {
-                particle.y = -10;
-                particle.x = Math.random() * this.canvas.width;
-            }
-
-            this.ctx.save();
-            this.ctx.translate(particle.x, particle.y);
-            this.ctx.rotate(particle.rotation);
-            this.ctx.font = `${particle.size}px Arial`;
-            this.ctx.textAlign = 'center';
-            this.ctx.fillText(particle.type, 0, 0);
-            this.ctx.restore();
-        });
     }
 
     /**
@@ -303,22 +260,6 @@ export class MenuRenderer {
      */
     public destroy(): void {
         this.buttons = [];
-        this.particles = [];
+        this.particleSystem.destroy();
     }
-}
-
-/**
- * Interface för partiklar (fallande löv)
- */
-interface Particle {
-    x: number;
-    y: number;
-    velocity: {
-        x: number;
-        y: number;
-    };
-    size: number;
-    rotation: number;
-    rotationSpeed: number;
-    type: string;
 }
