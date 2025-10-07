@@ -5,7 +5,7 @@
   "main": "dist/main.js",
   "scripts": {
     "dev": "tsc --watch",
-    "build": "tsc && xcopy src\\i18n dist\\i18n\\ /E /I /Y && copy index.html dist\\ && copy styles.css dist\\",
+    "build": "tsc && xcopy src\\infrastructure\\i18n\\data dist\\i18n\\ /E /I /Y && copy index.html dist\\ && copy styles.css dist\\",
     "serve": "echo 'Öppna dist/index.html i webbläsaren eller använd VS Code Live Server'"
   },
   "author": "Fredrik Svensson",
