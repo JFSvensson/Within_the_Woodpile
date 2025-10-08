@@ -6,10 +6,10 @@ describe('I18n', () => {
 
   beforeEach(() => {
     // Mock fetch för olika språkfiler
-    global.fetch = vi.fn()
+    globalThis.fetch = vi.fn()
     
     // Mock localStorage
-    global.localStorage = {
+    globalThis.localStorage = {
       getItem: vi.fn(),
       setItem: vi.fn(),
       removeItem: vi.fn(),
@@ -25,7 +25,7 @@ describe('I18n', () => {
     })
 
     it('should load saved language from localStorage', () => {
-      const mockGetItem = vi.mocked(localStorage.getItem)
+      const mockGetItem = vi.mocked(globalThis.localStorage.getItem)
       mockGetItem.mockReturnValue('en')
       
       const savedLanguage = i18n.getSavedLanguage()
@@ -33,7 +33,7 @@ describe('I18n', () => {
     })
 
     it('should fallback to Swedish if no saved language', () => {
-      const mockGetItem = vi.mocked(localStorage.getItem)
+      const mockGetItem = vi.mocked(globalThis.localStorage.getItem)
       mockGetItem.mockReturnValue(null)
       
       const savedLanguage = i18n.getSavedLanguage()
@@ -48,7 +48,7 @@ describe('I18n', () => {
         'menu.instructions': '📚 Instruktioner'
       }
 
-      const mockFetch = vi.mocked(fetch)
+      const mockFetch = vi.mocked(globalThis.fetch)
       mockFetch.mockResolvedValue({
         ok: true,
         json: () => Promise.resolve(mockTranslations)
@@ -58,7 +58,7 @@ describe('I18n', () => {
 
       expect(mockFetch).toHaveBeenCalledWith('i18n/sv.json')
       expect(i18n.getCurrentLanguage()).toBe('sv')
-      expect(localStorage.setItem).toHaveBeenCalledWith('language', 'sv')
+      expect(globalThis.localStorage.setItem).toHaveBeenCalledWith('language', 'sv')
     })
 
     it('should load English translations successfully', async () => {
@@ -67,7 +67,7 @@ describe('I18n', () => {
         'menu.instructions': '📚 Instructions'
       }
 
-      const mockFetch = vi.mocked(fetch)
+      const mockFetch = vi.mocked(globalThis.fetch)
       mockFetch.mockResolvedValue({
         ok: true,
         json: () => Promise.resolve(mockTranslations)
@@ -80,7 +80,7 @@ describe('I18n', () => {
     })
 
     it('should fallback to Swedish on failed language load', async () => {
-      const mockFetch = vi.mocked(fetch)
+      const mockFetch = vi.mocked(globalThis.fetch)
       
       // Första anropet (för 'de') misslyckas
       mockFetch.mockResolvedValueOnce({
@@ -114,7 +114,7 @@ describe('I18n', () => {
         }
       }
 
-      vi.mocked(fetch).mockResolvedValue({
+      vi.mocked(globalThis.fetch).mockResolvedValue({
         ok: true,
         json: () => Promise.resolve(mockTranslations)
       } as Response)
@@ -151,7 +151,7 @@ describe('I18n', () => {
         }
       }
 
-      vi.mocked(fetch).mockResolvedValue({
+      vi.mocked(globalThis.fetch).mockResolvedValue({
         ok: true,
         json: () => Promise.resolve(mockTranslations)
       } as Response)
