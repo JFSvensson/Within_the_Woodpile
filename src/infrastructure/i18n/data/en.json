@@ -48,6 +48,91 @@
     "sounds": "Enable sound effects",
     "reset": "Reset"
   },
+  "highscore": {
+    "title": "High Scores",
+    "topScores": "Top Scores",
+    "playerName": "Player Name",
+    "score": "Score",
+    "level": "Level", 
+    "duration": "Play Time",
+    "date": "Date",
+    "position": "Position",
+    "noScores": "No scores yet",
+    "newRecord": "New Record!",
+    "personalBest": "Personal Best!",
+    "enterName": "Enter your name",
+    "addScore": "Add Score",
+    "yourScore": "Your Score",
+    "congratulations": "Congratulations!",
+    "qualifiesForTop10": "You have qualified for the top 10!",
+    "notQualified": "You did not qualify for the top 10 this time.",
+    "tryAgain": "Try again to reach the top 10!",
+    "statistics": {
+      "title": "Statistics",
+      "totalGames": "Total Games",
+      "averageScore": "Average Score",
+      "highestScore": "Highest Score", 
+      "mostFrequentPlayer": "Most Active Player",
+      "averagePlayDuration": "Average Play Time"
+    },
+    "achievements": {
+      "title": "Achievements",
+      "totalGamesPlayed": "Games Played",
+      "bestScore": "Best Score",
+      "gamesInTop10": "Games in Top 10",
+      "consistencyRating": "Consistency",
+      "excellent": "Excellent",
+      "good": "Good",
+      "average": "Average", 
+      "needsImprovement": "Needs Improvement"
+    },
+    "ranking": {
+      "title": "Ranking",
+      "currentRank": "Current Rank",
+      "totalPlayers": "Total Players",
+      "noRanking": "No ranking yet"
+    },
+    "actions": {
+      "viewAll": "View All",
+      "viewTop10": "View Top 10",
+      "viewPlayer": "View Player",
+      "export": "Export",
+      "import": "Import",
+      "clear": "Clear All",
+      "clearConfirm": "Are you sure you want to clear all scores?",
+      "back": "Back"
+    },
+    "import": {
+      "title": "Import Scores",
+      "selectFile": "Select File",
+      "success": "Scores imported successfully",
+      "error": "Error importing scores",
+      "invalidFormat": "Invalid file format"
+    },
+    "export": {
+      "title": "Export Scores",
+      "success": "Scores exported successfully", 
+      "error": "Error exporting scores"
+    },
+    "validation": {
+      "nameRequired": "Player name is required",
+      "nameTooLong": "Player name is too long",
+      "invalidScore": "Invalid score",
+      "scoreNegative": "Score cannot be negative",
+      "scoreUnrealistic": "Score seems unrealistic",
+      "levelInvalid": "Invalid level",
+      "durationNegative": "Play duration cannot be negative"
+    },
+    "errors": {
+      "loadFailed": "Failed to load scores",
+      "saveFailed": "Failed to save scores",
+      "exportFailed": "Failed to export scores",
+      "importFailed": "Failed to import scores",
+      "clearFailed": "Failed to clear scores",
+      "networkError": "Network error",
+      "unknownError": "Unknown error occurred"
+    }
+  },
   "common": {
     "close": "Close"
   }

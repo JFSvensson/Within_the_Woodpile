@@ -48,6 +48,91 @@
     "sounds": "Aktivera ljudeffekter",
     "reset": "Återställ"
   },
+  "highscore": {
+    "title": "Bästa resultat",
+    "topScores": "Topplista",
+    "playerName": "Spelarnamn",
+    "score": "Poäng",
+    "level": "Nivå",
+    "duration": "Speltid",
+    "date": "Datum",
+    "position": "Position",
+    "noScores": "Inga resultat än",
+    "newRecord": "Nytt rekord!",
+    "personalBest": "Personligt rekord!",
+    "enterName": "Ange ditt namn",
+    "addScore": "Lägg till resultat",
+    "yourScore": "Din poäng",
+    "congratulations": "Grattis!",
+    "qualifiesForTop10": "Du har kvalificerat dig för topplistan!",
+    "notQualified": "Du har inte kvalificerat dig för topplistan denna gång.",
+    "tryAgain": "Försök igen för att nå topplistan!",
+    "statistics": {
+      "title": "Statistik",
+      "totalGames": "Totalt antal spel",
+      "averageScore": "Genomsnittlig poäng",
+      "highestScore": "Högsta poäng",
+      "mostFrequentPlayer": "Mest aktiva spelare",
+      "averagePlayDuration": "Genomsnittlig speltid"
+    },
+    "achievements": {
+      "title": "Prestationer",
+      "totalGamesPlayed": "Spelade spel",
+      "bestScore": "Bästa poäng",
+      "gamesInTop10": "Spel i topp-10",
+      "consistencyRating": "Konsistens",
+      "excellent": "Utmärkt",
+      "good": "Bra", 
+      "average": "Medel",
+      "needsImprovement": "Kan förbättras"
+    },
+    "ranking": {
+      "title": "Rankning",
+      "currentRank": "Nuvarande position",
+      "totalPlayers": "Totalt antal spelare",
+      "noRanking": "Ingen rankning än"
+    },
+    "actions": {
+      "viewAll": "Visa alla",
+      "viewTop10": "Visa topp-10",
+      "viewPlayer": "Visa spelare",
+      "export": "Exportera",
+      "import": "Importera",
+      "clear": "Rensa alla",
+      "clearConfirm": "Är du säker på att du vill rensa alla resultat?",
+      "back": "Tillbaka"
+    },
+    "import": {
+      "title": "Importera resultat",
+      "selectFile": "Välj fil",
+      "success": "Resultat importerade framgångsrikt",
+      "error": "Fel vid import av resultat",
+      "invalidFormat": "Ogiltigt filformat"
+    },
+    "export": {
+      "title": "Exportera resultat", 
+      "success": "Resultat exporterade framgångsrikt",
+      "error": "Fel vid export av resultat"
+    },
+    "validation": {
+      "nameRequired": "Spelarnamn krävs",
+      "nameTooLong": "Spelarnamnet är för långt",
+      "invalidScore": "Ogiltig poäng",
+      "scoreNegative": "Poängen kan inte vara negativ",
+      "scoreUnrealistic": "Poängen verkar orealistisk",
+      "levelInvalid": "Ogiltig nivå",
+      "durationNegative": "Speltiden kan inte vara negativ"
+    },
+    "errors": {
+      "loadFailed": "Kunde inte ladda resultat",
+      "saveFailed": "Kunde inte spara resultat",
+      "exportFailed": "Kunde inte exportera resultat",
+      "importFailed": "Kunde inte importera resultat",
+      "clearFailed": "Kunde inte rensa resultat",
+      "networkError": "Nätverksfel",
+      "unknownError": "Okänt fel uppstod"
+    }
+  },
   "common": {
     "close": "Stäng"
   }
