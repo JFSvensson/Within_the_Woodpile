@@ -25,6 +25,14 @@ export interface HighscoreList {
 }
 
 /**
+ * Resultat av kvalifikationskontroll för top 10
+ */
+export interface QualificationResult {
+  readonly qualifies: boolean
+  readonly position?: number // Position om kvalificerad (1-10)
+}
+
+/**
  * Resultat av highscore-validering
  */
 export interface HighscoreValidationResult {
@@ -117,6 +125,16 @@ export interface IHighscoreRepository {
    * Hämtar statistik
    */
   getStats(): Promise<HighscoreStats>
+  
+  /**
+   * Kontrollerar om poäng kvalificerar för top 10
+   */
+  qualifiesForTop10(score: number): Promise<QualificationResult>
+  
+  /**
+   * Hämtar highscores för specifik spelare
+   */
+  getByPlayer(playerName: string): Promise<ReadonlyArray<HighscoreEntry>>
 }
 
 /**
