@@ -101,6 +101,20 @@ export class MenuRenderer extends BaseRenderer {
     }
 
     /**
+     * Sätter hover-status för tangentbordsnavigation
+     */
+    public setButtonHover(buttonId: string, isHovered: boolean): void {
+        this.buttonManager.setButtonHover(buttonId, isHovered);
+    }
+
+    /**
+     * Aktiverar en knapp baserat på ID (för tangentbordsnavigation)
+     */
+    public activateButton(buttonId: string): boolean {
+        return this.buttonManager.activateButton(buttonId);
+    }
+
+    /**
      * Rensa resurser
      */
     public destroy(): void {
