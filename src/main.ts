@@ -6,6 +6,12 @@ import { TransitionManager } from './TransitionManager.js';
 import { ResponsiveManager } from './ResponsiveManager.js';
 import { DEFAULT_CONFIG } from './shared/constants/index.js';
 import { MenuState } from './types/index.js';
+import { HighscoreModal } from './ui/highscore/HighscoreModal.js';
+import { HighscoreManager } from './core/managers/HighscoreManager.js';
+import { HighscoreService } from './core/services/HighscoreService.js';
+import { HighscoreI18nService } from './core/services/HighscoreI18nService.js';
+import { HighscoreStorageService } from './infrastructure/storage/HighscoreStorageService.js';
+import { LocalStorageService } from './infrastructure/storage/LocalStorageService.js';
 
 // Globala variabler
 let game: Game | null = null;
@@ -16,6 +22,10 @@ let transitionManager: TransitionManager;
 let responsiveManager: ResponsiveManager;
 let canvas: HTMLCanvasElement;
 let menuAnimationId: number;
+
+// Highscore-system variabler
+let highscoreModal: HighscoreModal;
+let highscoreManager: HighscoreManager;
 
 /**
  * Menyens renderingsloop (bara när vi är i menyläge)
@@ -339,6 +349,27 @@ function showSettings(): void {
 }
 
 /**
+ * Visar highscore modal
+ */
+function showHighscore(): void {
+    if (!highscoreModal) {
+        console.warn('HighscoreModal is not initialized');
+        return;
+    }
+
+    highscoreModal.show();
+
+    // Hantera ESC-tangent för att stänga modal
+    const escapeHandler = (event: KeyboardEvent) => {
+        if (event.key === 'Escape') {
+            highscoreModal!.hide();
+            document.removeEventListener('keydown', escapeHandler);
+        }
+    };
+    document.addEventListener('keydown', escapeHandler);
+}
+
+/**
  * Hanterar när spelet tar slut
  */
 async function handleGameOver(): Promise<void> {
@@ -401,10 +432,22 @@ async function initializeApp(): Promise<void> {
         // Skapa meny renderer
         menuRenderer = new MenuRenderer(canvas, i18n);
         
+        // Initiera highscore system med dependencies
+        const storageService = new LocalStorageService();
+        const highscoreRepository = new HighscoreStorageService(storageService);
+        highscoreManager = new HighscoreManager(highscoreRepository, i18n);
+        highscoreModal = new HighscoreModal(
+            canvas.getContext('2d')!,
+            canvas,
+            i18n,
+            highscoreManager
+        );
+        
         // Sätt upp meny callbacks
         menuRenderer.setOnPlayClick(startGameFromMenu);
         menuRenderer.setOnInstructionsClick(showInstructions);
         menuRenderer.setOnSettingsClick(showSettings);
+        menuRenderer.setOnHighscoreClick(showHighscore);
         
         // Sätt upp meny event listeners
         setupMenuEventListeners();
