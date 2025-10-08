@@ -75,6 +75,7 @@ export class MenuRenderer extends BaseRenderer {
     private onPlayClick: () => void = () => console.log('Play callback not set');
     private onInstructionsClick: () => void = () => console.log('Instructions callback not set');
     private onSettingsClick: () => void = () => console.log('Settings callback not set');
+    private onHighscoreClick: () => void = () => console.log('Highscore callback not set');
 
     /**
      * Sätter callback för när "Spela"-knappen klickas
@@ -98,6 +99,14 @@ export class MenuRenderer extends BaseRenderer {
     public setOnSettingsClick(callback: () => void): void {
         this.onSettingsClick = callback;
         this.buttonManager.setOnSettingsClick(callback);
+    }
+
+    /**
+     * Sätter callback för när "Highscore"-knappen klickas
+     */
+    public setOnHighscoreClick(callback: () => void): void {
+        this.onHighscoreClick = callback;
+        this.buttonManager.setOnHighscoreClick(callback);
     }
 
     /**
