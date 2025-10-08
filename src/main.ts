@@ -3,6 +3,7 @@ import { Game } from './core/game/Game.js';
 import { MenuRenderer } from './presentation/renderers/menu/MenuRenderer.js';
 import { AppStateManager } from './appStateManager.js';
 import { TransitionManager } from './TransitionManager.js';
+import { ResponsiveManager } from './ResponsiveManager.js';
 import { DEFAULT_CONFIG } from './shared/constants/index.js';
 import { MenuState } from './types/index.js';
 
@@ -12,6 +13,7 @@ let i18n: I18n;
 let menuRenderer: MenuRenderer;
 let appStateManager: AppStateManager;
 let transitionManager: TransitionManager;
+let responsiveManager: ResponsiveManager;
 let canvas: HTMLCanvasElement;
 let menuAnimationId: number;
 
@@ -123,6 +125,9 @@ async function initializeApp(): Promise<void> {
         // Skapa state manager
         appStateManager = new AppStateManager();
         
+        // Skapa responsive manager
+        responsiveManager = new ResponsiveManager(canvas);
+        
         // Skapa transition manager
         transitionManager = new TransitionManager(i18n);
         
@@ -134,6 +139,9 @@ async function initializeApp(): Promise<void> {
         
         // Sätt upp meny event listeners
         setupMenuEventListeners();
+        
+        // Sätt upp responsive canvas listeners
+        setupCanvasResizeListeners();
         
         // Dölj spelstatistik initialt och visa menyläge
         document.body.classList.add('menu-mode');
@@ -175,23 +183,61 @@ async function initializeApp(): Promise<void> {
  */
 function setupMenuEventListeners(): void {
     // Musklick på canvas
-    canvas.addEventListener('click', (event) => {
+    canvas.addEventListener('click', handleMenuInteraction);
+    
+    // Touch-events för mobil
+    canvas.addEventListener('touchend', (event) => {
+        event.preventDefault(); // Förhindra zoom och andra touch-beteenden
+        
         if (appStateManager.getCurrentState() === MenuState.MAIN_MENU) {
+            const touch = event.changedTouches[0];
             const rect = canvas.getBoundingClientRect();
-            const x = event.clientX - rect.left;
-            const y = event.clientY - rect.top;
+            const x = touch.clientX - rect.left;
+            const y = touch.clientY - rect.top;
             menuRenderer.handleClick(x, y);
         }
     });
     
-    // Mushover på canvas
+    // Mushover på canvas (bara för desktop)
     canvas.addEventListener('mousemove', (event) => {
-        if (appStateManager.getCurrentState() === MenuState.MAIN_MENU) {
+        if (appStateManager.getCurrentState() === MenuState.MAIN_MENU && !responsiveManager.isMobile()) {
             const rect = canvas.getBoundingClientRect();
             const x = event.clientX - rect.left;
             const y = event.clientY - rect.top;
             menuRenderer.handleMouseMove(x, y);
         }
+    });
+}
+
+/**
+ * Hanterar meny-interaktioner (klick och touch)
+ */
+function handleMenuInteraction(event: MouseEvent): void {
+    if (appStateManager.getCurrentState() === MenuState.MAIN_MENU) {
+        const rect = canvas.getBoundingClientRect();
+        const x = event.clientX - rect.left;
+        const y = event.clientY - rect.top;
+        menuRenderer.handleClick(x, y);
+    }
+}
+
+/**
+ * Sätter upp event listeners för canvas resize
+ */
+function setupCanvasResizeListeners(): void {
+    window.addEventListener('canvasResize', (event: Event) => {
+        const customEvent = event as CustomEvent;
+        const { width, height, breakpoint } = customEvent.detail;
+        
+        console.log(`Canvas resized: ${width}x${height} (${breakpoint})`);
+        
+        // Future: Uppdatera renderer-komponenter när de stöder resize
+        // if (menuRenderer?.handleCanvasResize) {
+        //     menuRenderer.handleCanvasResize(width, height);
+        // }
+        // if (game?.handleCanvasResize) {
+        //     game.handleCanvasResize(width, height);
+        // }
     });
 }
 
@@ -216,6 +262,10 @@ function updateGameStats(score?: number, health?: number): void {
 function cleanup(): void {
     if (game) {
         game.destroy();
+    }
+    
+    if (responsiveManager) {
+        responsiveManager.destroy();
     }
 }
 
