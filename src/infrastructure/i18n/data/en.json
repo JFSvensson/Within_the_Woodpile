@@ -49,7 +49,14 @@
     "reset": "Reset"
   },
   "highscore": {
-    "title": "High Scores",
+    "title": {
+      "main": "High Scores",
+      "newRecord": "New Record!"
+    },
+    "views": {
+      "table": "Leaderboard",
+      "statistics": "Statistics"
+    },
     "topScores": "Top Scores",
     "playerName": "Player Name",
     "score": "Score",
@@ -67,16 +74,42 @@
     "qualifiesForTop10": "You have qualified for the top 10!",
     "notQualified": "You did not qualify for the top 10 this time.",
     "tryAgain": "Try again to reach the top 10!",
+    "form": {
+      "playerName": "Player Name",
+      "playerNamePlaceholder": "Enter your name..."
+    },
+    "ranking": {
+      "title": "Ranking",
+      "position": "Position",
+      "player": "Player",
+      "score": "Score",
+      "duration": "Time",
+      "date": "Date",
+      "currentRank": "Current Rank",
+      "totalPlayers": "Total Players",
+      "noRanking": "No ranking yet"
+    },
     "statistics": {
       "title": "Statistics",
+      "overview": "Overview",
+      "finalScore": "Final Score",
+      "level": "Level",
+      "duration": "Play Time",
       "totalGames": "Total Games",
       "averageScore": "Average Score",
+      "bestScore": "Best Score",
       "highestScore": "Highest Score", 
       "mostFrequentPlayer": "Most Active Player",
-      "averagePlayDuration": "Average Play Time"
+      "averagePlayDuration": "Average Play Time",
+      "totalPlayTime": "Total Play Time"
     },
     "achievements": {
       "title": "Achievements",
+      "none": "No achievements yet",
+      "firstScore": "First Score",
+      "firstScoreDesc": "Played your first game",
+      "highScore": "High Score",
+      "highScoreDesc": "Achieved over 1000 points",
       "totalGamesPlayed": "Games Played",
       "bestScore": "Best Score",
       "gamesInTop10": "Games in Top 10",
@@ -86,13 +119,10 @@
       "average": "Average", 
       "needsImprovement": "Needs Improvement"
     },
-    "ranking": {
-      "title": "Ranking",
-      "currentRank": "Current Rank",
-      "totalPlayers": "Total Players",
-      "noRanking": "No ranking yet"
-    },
     "actions": {
+      "add": "Add",
+      "cancel": "Cancel",
+      "close": "Close",
       "viewAll": "View All",
       "viewTop10": "View Top 10",
       "viewPlayer": "View Player",
@@ -115,7 +145,7 @@
       "error": "Error exporting scores"
     },
     "validation": {
-      "nameRequired": "Player name is required",
+      "nameRequired": "Player name is required (at least 2 characters)",
       "nameTooLong": "Player name is too long",
       "invalidScore": "Invalid score",
       "scoreNegative": "Score cannot be negative",

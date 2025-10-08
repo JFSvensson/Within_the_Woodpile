@@ -49,7 +49,14 @@
     "reset": "Återställ"
   },
   "highscore": {
-    "title": "Bästa resultat",
+    "title": {
+      "main": "Bästa resultat",
+      "newRecord": "Nytt rekord!"
+    },
+    "views": {
+      "table": "Topplista",
+      "statistics": "Statistik"
+    },
     "topScores": "Topplista",
     "playerName": "Spelarnamn",
     "score": "Poäng",
@@ -67,16 +74,42 @@
     "qualifiesForTop10": "Du har kvalificerat dig för topplistan!",
     "notQualified": "Du har inte kvalificerat dig för topplistan denna gång.",
     "tryAgain": "Försök igen för att nå topplistan!",
+    "form": {
+      "playerName": "Spelarnamn",
+      "playerNamePlaceholder": "Ange ditt namn..."
+    },
+    "ranking": {
+      "title": "Rankning",
+      "position": "Position",
+      "player": "Spelare",
+      "score": "Poäng",
+      "duration": "Tid",
+      "date": "Datum",
+      "currentRank": "Nuvarande position",
+      "totalPlayers": "Totalt antal spelare",
+      "noRanking": "Ingen rankning än"
+    },
     "statistics": {
       "title": "Statistik",
+      "overview": "Översikt",
+      "finalScore": "Slutpoäng",
+      "level": "Nivå",
+      "duration": "Speltid",
       "totalGames": "Totalt antal spel",
       "averageScore": "Genomsnittlig poäng",
+      "bestScore": "Bästa poäng",
       "highestScore": "Högsta poäng",
       "mostFrequentPlayer": "Mest aktiva spelare",
-      "averagePlayDuration": "Genomsnittlig speltid"
+      "averagePlayDuration": "Genomsnittlig speltid",
+      "totalPlayTime": "Total speltid"
     },
     "achievements": {
       "title": "Prestationer",
+      "none": "Inga prestationer än",
+      "firstScore": "Första poäng",
+      "firstScoreDesc": "Spelade ditt första spel",
+      "highScore": "Hög poäng",
+      "highScoreDesc": "Uppnådde över 1000 poäng",
       "totalGamesPlayed": "Spelade spel",
       "bestScore": "Bästa poäng",
       "gamesInTop10": "Spel i topp-10",
@@ -86,13 +119,10 @@
       "average": "Medel",
       "needsImprovement": "Kan förbättras"
     },
-    "ranking": {
-      "title": "Rankning",
-      "currentRank": "Nuvarande position",
-      "totalPlayers": "Totalt antal spelare",
-      "noRanking": "Ingen rankning än"
-    },
     "actions": {
+      "add": "Lägg till",
+      "cancel": "Avbryt",
+      "close": "Stäng",
       "viewAll": "Visa alla",
       "viewTop10": "Visa topp-10",
       "viewPlayer": "Visa spelare",
@@ -115,7 +145,7 @@
       "error": "Fel vid export av resultat"
     },
     "validation": {
-      "nameRequired": "Spelarnamn krävs",
+      "nameRequired": "Spelarnamn krävs (minst 2 tecken)",
       "nameTooLong": "Spelarnamnet är för långt",
       "invalidScore": "Ogiltig poäng",
       "scoreNegative": "Poängen kan inte vara negativ",
