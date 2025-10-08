@@ -27,6 +27,10 @@ let menuAnimationId: number;
 let highscoreModal: HighscoreModal;
 let highscoreManager: HighscoreManager;
 
+// Game session variabler för highscore tracking
+let gameStartTime: number | null = null;
+let currentLevel: number = 1;
+
 /**
  * Menyens renderingsloop (bara när vi är i menyläge)
  */
@@ -59,6 +63,10 @@ async function startGameFromMenu(): Promise<void> {
 
         // Skapa nytt spelobjekt
         game = new Game(canvas, i18n, DEFAULT_CONFIG);
+        
+        // Spåra spelstart för highscore
+        gameStartTime = Date.now();
+        currentLevel = 1;
         
         // Sätt upp callbacks för UI-uppdateringar
         game.onScore((score: number) => updateGameStats(score, undefined));
@@ -370,11 +378,89 @@ function showHighscore(): void {
 }
 
 /**
+ * Beräknar level baserat på poäng (approximering)
+ */
+function calculateLevelFromScore(score: number): number {
+    if (score < 100) return 1;
+    if (score < 300) return 2;
+    if (score < 600) return 3;
+    if (score < 1000) return 4;
+    if (score < 1500) return 5;
+    return Math.min(10, Math.floor(score / 300) + 1);
+}
+
+/**
  * Hanterar när spelet tar slut
  */
 async function handleGameOver(): Promise<void> {
     console.log('Game Over!');
     
+    // Beräkna speldata för highscore
+    const finalScore = game?.getGameState().score || 0;
+    const playDuration = gameStartTime ? Math.floor((Date.now() - gameStartTime) / 1000) : 0;
+    const finalLevel = calculateLevelFromScore(finalScore);
+    
+    console.log('Final game stats:', { 
+        score: finalScore, 
+        level: finalLevel, 
+        duration: playDuration 
+    });
+    
+    try {
+        // Kontrollera om poäng kvalificerar för highscore
+        const qualification = await highscoreManager.checkQualification(finalScore);
+        
+        if (qualification.result.qualifies) {
+            console.log('Score qualifies for highscore!', qualification);
+            
+            // Visa highscore modal med Add Score dialog
+            if (highscoreModal) {
+                // Sätt upp modal för add score med speldata
+                await showHighscoreWithAddScore(finalScore, finalLevel, playDuration);
+            }
+        } else {
+            console.log('Score did not qualify:', qualification.message);
+            
+            // Visa vanlig game over meddelande och gå till meny
+            await performGameOverTransition();
+        }
+    } catch (error) {
+        console.error('Error checking highscore qualification:', error);
+        
+        // Fallback till vanlig game over-process
+        await performGameOverTransition();
+    }
+}
+
+/**
+ * Visar highscore modal med Add Score dialog förifylld
+ */
+async function showHighscoreWithAddScore(score: number, level: number, playDuration: number): Promise<void> {
+    if (!highscoreModal) {
+        console.warn('HighscoreModal is not initialized');
+        return;
+    }
+    
+    // Visa highscore modal och växla till Add Score-vy
+    await highscoreModal.show();
+    highscoreModal.showAddScoreDialog(score, level, playDuration);
+    
+    // Hantera ESC-tangent för att stänga modal och gå till meny
+    const escapeHandler = (event: KeyboardEvent) => {
+        if (event.key === 'Escape') {
+            highscoreModal!.hide();
+            document.removeEventListener('keydown', escapeHandler);
+            // Gå till meny efter stängning
+            performGameOverTransition();
+        }
+    };
+    document.addEventListener('keydown', escapeHandler);
+}
+
+/**
+ * Utför standard game over övergång till meny
+ */
+async function performGameOverTransition(): Promise<void> {
     try {
         // Smooth övergång tillbaka till meny
         await transitionManager.transitionToMenu();
@@ -384,6 +470,10 @@ async function handleGameOver(): Promise<void> {
             game.destroy();
             game = null;
         }
+        
+        // Rensa spelsession variabler
+        gameStartTime = null;
+        currentLevel = 1;
         
         // Återgå till menyläge
         appStateManager.returnToMainMenu();
@@ -396,6 +486,9 @@ async function handleGameOver(): Promise<void> {
             game.destroy();
             game = null;
         }
+        
+        gameStartTime = null;
+        currentLevel = 1;
         
         transitionManager.quickTransitionToMenu();
         appStateManager.returnToMainMenu();
