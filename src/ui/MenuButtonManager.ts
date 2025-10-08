@@ -16,6 +16,7 @@ export class MenuButtonManager {
     private onPlayClick: () => void = () => console.log('Play callback not set');
     private onInstructionsClick: () => void = () => console.log('Instructions callback not set');
     private onSettingsClick: () => void = () => console.log('Settings callback not set');
+    private onHighscoreClick: () => void = () => console.log('Highscore callback not set');
 
     constructor(ctx: CanvasRenderingContext2D, canvas: HTMLCanvasElement, i18n: I18n) {
         this.ctx = ctx;
@@ -30,7 +31,7 @@ export class MenuButtonManager {
     private initializeButtons(): void {
         const centerX = this.canvas.width / 2;
         const startY = this.canvas.height / 2 + 50;
-        const buttonSpacing = 80;
+        const buttonSpacing = 70; // Mindre spacing för fler knappar
 
         this.buttons = [
             {
@@ -44,10 +45,20 @@ export class MenuButtonManager {
                 isHovered: false
             },
             {
+                id: 'highscore',
+                textKey: 'menu.highscore',
+                x: centerX - 100,
+                y: startY + buttonSpacing,
+                width: 200,
+                height: 60,
+                onClick: () => this.onHighscoreClick(),
+                isHovered: false
+            },
+            {
                 id: 'instructions',
                 textKey: 'menu.instructions',
                 x: centerX - 100,
-                y: startY + buttonSpacing,
+                y: startY + buttonSpacing * 2,
                 width: 200,
                 height: 60,
                 onClick: () => this.onInstructionsClick(),
@@ -57,7 +68,7 @@ export class MenuButtonManager {
                 id: 'settings',
                 textKey: 'menu.settings',
                 x: centerX - 100,
-                y: startY + buttonSpacing * 2,
+                y: startY + buttonSpacing * 3,
                 width: 200,
                 height: 60,
                 onClick: () => this.onSettingsClick(),
@@ -179,6 +190,13 @@ export class MenuButtonManager {
      */
     public setOnSettingsClick(callback: () => void): void {
         this.onSettingsClick = callback;
+    }
+
+    /**
+     * Sätter callback för när "Highscore"-knappen klickas
+     */
+    public setOnHighscoreClick(callback: () => void): void {
+        this.onHighscoreClick = callback;
     }
 
     /**
