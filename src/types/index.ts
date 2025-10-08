@@ -22,11 +22,17 @@ export {
 
 // UI-relaterade typer
 export type {
-  MenuButton
+  MenuButton,
+  HighscoreUIConfig,
+  TableColumn,
+  FormField,
+  UIButton,
+  ModalConfig
 } from './ui.js';
 
 export {
-  MenuState
+  MenuState,
+  HighscoreViewType
 } from './ui.js';
 
 // Konfigurations-typer
@@ -44,6 +50,7 @@ export type {
   HighscoreExport,
   HighscoreFilter,
   HighscoreStats,
+  Achievement,
   IHighscoreRepository,
   IHighscoreService,
   HighscoreEvents,
