@@ -39,6 +39,7 @@ export type {
   HighscoreEntry,
   HighscoreList,
   HighscoreValidationResult,
+  QualificationResult,
   NewHighscoreInput,
   HighscoreExport,
   HighscoreFilter,
