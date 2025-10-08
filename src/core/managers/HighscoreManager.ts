@@ -116,7 +116,7 @@ export class HighscoreManager {
     } catch (error) {
       if (error instanceof HighscoreError) {
         const message = this.i18nService.getErrorMessage(error)
-        throw new HighscoreError(message, error.code, error.details)
+        throw new HighscoreError(message, error.code, error.context)
       }
       throw error
     }
