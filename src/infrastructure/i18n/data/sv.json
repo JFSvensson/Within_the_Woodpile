@@ -2,7 +2,6 @@
   "title": "Within the Woodpile 🌲",
   "score": "Poäng",
   "health": "Hälsa",
-  "instructions": "Instruktioner: Klicka på ved för att plocka den, men var försiktig!",
   "controls": "🕷️ MELLANSLAG | 🐝 ESCAPE | 🦔 S | 👻 L | 🎃 R",
   "language": "Språk",
   "spider": "Spindel",
@@ -21,5 +20,35 @@
   "transition": {
     "loading": "Förbereder spelet...",
     "returning": "Återvänder till menyn..."
+  },
+  "instructions": {
+    "title": "Instruktioner",
+    "objective": "Mål",
+    "objectiveText": "Plocka ved från högen utan att störa de farliga varelserna som gömmer sig där.",
+    "controls": "Kontroller",
+    "click": "Klicka på ved för att plocka",
+    "spider": "Skrämma bort spindlar",
+    "wasp": "Undvika getingar",
+    "hedgehog": "Locka igelkottar",
+    "ghost": "Lysa upp spöken",
+    "pumpkin": "Rulla bort pumpor",
+    "tips": "Tips",
+    "tip1": "Var försiktig - vissa vedstycken kan få högen att kollapsa!",
+    "tip2": "Håll koll på din hälsa - varelserna kan skada dig.",
+    "tip3": "Tjäna poäng genom att plocka ved säkert."
+  },
+  "settings": {
+    "title": "Inställningar",
+    "language": "Språk",
+    "graphics": "Grafik",
+    "particles": "Aktivera partiklar",
+    "animations": "Aktivera animationer",
+    "audio": "Ljud",
+    "volume": "Volym",
+    "sounds": "Aktivera ljudeffekter",
+    "reset": "Återställ"
+  },
+  "common": {
+    "close": "Stäng"
   }
 }
