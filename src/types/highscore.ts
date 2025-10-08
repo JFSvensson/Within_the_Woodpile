@@ -87,6 +87,18 @@ export interface HighscoreStats {
 }
 
 /**
+ * Achievement system för prestationer
+ */
+export interface Achievement {
+  readonly id: string
+  readonly type: string
+  readonly title: string
+  readonly description: string
+  readonly unlockedAt: Date
+  readonly requirements: Record<string, unknown>
+}
+
+/**
  * Repository interface för highscore-storage
  * Abstraction layer för olika storage implementationer
  */
