@@ -171,29 +171,137 @@ body.menu-mode .instructions {
 }
 
 /* Responsive design */
-@media (max-width: 768px) {
+
+/* Mobile-first approach - bas styling för mobil */
+@media (max-width: 480px) {
     body {
-        padding: 10px;
+        padding: 8px;
     }
     
     .main-title {
-        font-size: 2rem;
+        font-size: 1.8rem;
+        margin-bottom: 15px;
     }
     
     .game-canvas {
-        width: 100%;
-        max-width: 100%;
-        height: auto;
+        width: calc(100vw - 16px);
+        max-width: 400px;
+        height: 300px;
+        margin: 15px 0;
     }
     
     .header {
         flex-direction: column;
-        gap: 15px;
+        gap: 10px;
+        margin-bottom: 15px;
+    }
+    
+    .language-selector {
+        flex-direction: column;
+        gap: 5px;
+        text-align: center;
     }
     
     .game-info {
         flex-direction: column;
         align-items: center;
+        gap: 10px;
+    }
+    
+    .info-item {
+        min-width: 100px;
+        padding: 10px 14px;
+        font-size: 0.9rem;
+    }
+    
+    .instructions {
+        font-size: 0.9rem;
+        margin-top: 15px;
+    }
+    
+    .controls {
+        font-size: 0.8rem;
+        padding: 8px;
+    }
+}
+
+/* Tablet styling */
+@media (min-width: 481px) and (max-width: 768px) {
+    body {
+        padding: 15px;
+    }
+    
+    .main-title {
+        font-size: 2.2rem;
+    }
+    
+    .game-canvas {
+        width: 100%;
+        max-width: 600px;
+        height: 450px;
+    }
+    
+    .header {
+        flex-direction: row;
+        gap: 15px;
+    }
+    
+    .game-info {
+        flex-direction: row;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 15px;
+    }
+}
+
+/* Desktop styling */
+@media (min-width: 769px) {
+    .game-canvas {
+        width: 800px;
+        height: 600px;
+    }
+    
+    .main-title {
+        font-size: 2.5rem;
+    }
+}
+
+/* Large desktop */
+@media (min-width: 1200px) {
+    body {
+        padding: 30px;
+    }
+    
+    .main-title {
+        font-size: 3rem;
+    }
+    
+    .game-canvas {
+        width: 900px;
+        height: 675px;
+    }
+}
+
+/* Landscape orientation på mobil */
+@media (max-width: 768px) and (orientation: landscape) {
+    .game-canvas {
+        width: calc(100vw - 16px);
+        max-width: 600px;
+        height: calc(100vh - 200px);
+        max-height: 400px;
+    }
+    
+    .header {
+        margin-bottom: 10px;
+    }
+    
+    .main-title {
+        font-size: 1.5rem;
+        margin-bottom: 10px;
+    }
+    
+    .game-info {
+        margin-bottom: 10px;
     }
 }
 
