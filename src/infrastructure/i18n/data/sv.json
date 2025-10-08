@@ -17,5 +17,9 @@
     "instructions": "📚 Instruktioner",
     "settings": "⚙️ Inställningar",
     "footer": "Skapad med GitHub Copilot för Alla kodares buggiga natt 2025"
+  },
+  "transition": {
+    "loading": "Förbereder spelet...",
+    "returning": "Återvänder till menyn..."
   }
 }

@@ -17,5 +17,9 @@
     "instructions": "📚 Instructions",
     "settings": "⚙️ Settings",
     "footer": "Made with GitHub Copilot for Alla kodares buggiga natt 2025"
+  },
+  "transition": {
+    "loading": "Preparing game...",
+    "returning": "Returning to menu..."
   }
 }
