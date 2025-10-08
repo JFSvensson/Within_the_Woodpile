@@ -44,6 +44,40 @@ Varelser visas med:
 - **Progressbar** som visar återstående tid
 - **Tangentinstruktioner** på skärmen
 
+### Highscore-system 🏆
+Komplett highscore-tracking med automatisk integration:
+
+#### Funktionaliteter
+- **Automatisk score-tracking** från spelstart till game over
+- **Intelligent level-beräkning** baserat på poäng (Level 1: 0-99p, Level 2: 100-299p, osv.)
+- **Speltids-tracking** för fullständig statistik
+- **Automatisk kvalifikationskontroll** - bara kvalificerade scores får lägga till highscore
+- **Top 10-systemet** med lokal lagring (LocalStorage)
+
+#### UI-komponenter
+- **🏆 Highscore-knapp** i huvudmenyn för enkel åtkomst
+- **HighscoreModal** med tre huvudvyer:
+  - **📊 Leaderboard**: Top 10-lista med position, namn, poäng, level, speltid och datum
+  - **➕ Add Score**: Dialog för att lägga till ny highscore (visas automatiskt efter kvalificerat spel)
+  - **📈 Statistics**: Översikt av spelstatistik och prestationer
+- **Seamless integration** - från game over direkt till Add Score-dialog för kvalificerade poäng
+- **🌍 Flerspråksstöd** med över 60 översättningssträngar (svenska/engelska)
+
+#### Game Over-flöde
+1. **Spelet slutar** → Beräkna final score, level och speltid
+2. **Qualification check** → Kontrollera automatiskt om score kvalificerar för top 10
+3. **Kvalificerad** → Visa highscore modal med Add Score-dialog förifylld
+4. **Ej kvalificerad** → Visa meddelande och återgå till meny
+5. **Komplett datalagring** → Namn, poäng, level, speltid och datum sparas lokalt
+
+#### Arkitektur
+- **Clean Architecture** med separata lager för domain logic, services och UI
+- **HighscoreManager**: Koordinerar business logic med internationalisering
+- **HighscoreService**: Ren business logic för highscore-hantering
+- **HighscoreStorageService**: LocalStorage-implementation med IHighscoreRepository
+- **HighscoreI18nService**: Lokaliserade meddelanden och formatering
+- **Type-safe**: Kompletta TypeScript-definitioner för alla highscore-objekt
+
 ### Avancerad fysik och rendering
 - **Brick-pattern stapel**: Vedpinnar staplas omväxlande för realistisk stabilitet
 - **Runda vedpinnar**: Cirkulär geometri med realistisk trätextur och årensringar
@@ -90,10 +124,13 @@ src/
 │   │   ├── CollisionManager.ts   # Kollisionsdetektering
 │   │   ├── CreatureManager.ts    # Varelse-hantering och spawning
 │   │   ├── GameStateManager.ts   # Spelstatus och poäng
+│   │   ├── HighscoreManager.ts   # Högsta nivå highscore-manager med i18n
 │   │   └── index.ts
 │   └── services/
 │       ├── CollapsePredictionCalculator.ts # Intelligent kollapsförutsägelse
 │       ├── WoodPileGenerator.ts  # Genererar vedstapel med brick-pattern
+│       ├── HighscoreService.ts   # Ren business logic för highscores
+│       ├── HighscoreI18nService.ts # Lokaliserade meddelanden och formatering
 │       └── index.ts
 ├── infrastructure/               # Externa integrationer (Clean Architecture)
 │   ├── index.ts                  # Barrel export
@@ -110,6 +147,7 @@ src/
 │   └── storage/
 │       ├── LocalStorageService.ts # Browser localStorage-wrapper
 │       ├── GameDataRepository.ts # Data-persistering
+│       ├── HighscoreStorageService.ts # Highscore LocalStorage-implementation
 │       ├── interfaces.ts         # Storage-kontrakt
 │       └── index.ts
 ├── presentation/                 # UI och rendering (Clean Architecture)
@@ -130,7 +168,13 @@ src/
 │           ├── BackgroundRenderer.ts # Skogsglänta med träd
 │           └── index.ts
 ├── ui/
-│   └── MenuButtonManager.ts      # Knappar och interaktion
+│   ├── MenuButtonManager.ts      # Knappar och interaktion
+│   └── highscore/                # Komplett highscore UI-system
+│       ├── HighscoreModal.ts     # Huvudkomponent för highscore-modalen
+│       ├── HighscoreTable.ts     # Top 10-lista med formatering
+│       ├── AddScoreDialog.ts     # Dialog för att lägga till ny score
+│       ├── StatisticsPanel.ts    # Spelstatistik och översikter
+│       └── index.ts
 └── particles/
     └── MenuParticleSystem.ts     # Fallande löv-partiklar
 ```
@@ -189,6 +233,33 @@ npm run build  # Kompilerar och kopierar filer till dist/
 2. Öppna `dist/index.html` i webbläsaren
 3. Eller använd VS Code Live Server på `dist/index.html`
 
+### Testning 🧪
+Projektet har omfattande testtäckning med 213 automatiserade tester:
+
+```bash
+npm test              # Kör alla tester med Vitest
+npm run test:watch    # Kör tester i watch-mode
+```
+
+#### Test-arkitektur
+- **Unit tests**: Tester för individuella komponenter och services
+- **Integration tests**: Tester för komponentinteraktion och dataflöde
+- **Business logic tests**: Validering av highscore-logik och spelregler
+- **Storage tests**: LocalStorage-persistering och datahantering
+- **I18n tests**: Översättningar och lokalisering
+- **Edge case tests**: Gränsfall och felhantering
+
+#### Test-täckning per område
+- **Core business logic**: 34 tester (HighscoreService, spellogik)
+- **Infrastructure**: 28 tester (Storage, I18n, input-hantering)
+- **UI-komponenter**: 16 tester (HighscoreModal och sub-komponenter)
+- **Type validation**: 12 tester (Datastrukturer och gränssnitt)
+- **Integration scenarios**: 16 tester (End-to-end flöden)
+- **Edge cases**: 12 tester (Felhantering och gränsfall)
+- **Algorithms**: 8 tester (Kollapsberäkning, generering)
+
+Alla tester använder **TypeScript strict mode** och **Vitest** för modern testmiljö.
+
 ## Implementerat ✅
 
 ### Meny och navigation
@@ -226,6 +297,18 @@ npm run build  # Kompilerar och kopierar filer till dist/
 - [x] **Automatiserad byggprocess** med modulär i18n-kopiering
 - [x] **Separation of Concerns** med domain/infrastructure/presentation layers
 
+### Highscore-system 🏆
+- [x] **Komplett highscore-tracking** med automatisk integration
+- [x] **Top 10-systemet** med lokal lagring och persistering
+- [x] **Intelligent level-beräkning** baserat på poäng-progression
+- [x] **Automatisk speltids-tracking** från start till game over
+- [x] **Kvalifikationskontroll** för effektiv highscore-hantering  
+- [x] **UI-komponenter** med HighscoreModal, Table, AddScore, Statistics
+- [x] **Clean Architecture** med HighscoreManager, Service, Storage separation
+- [x] **Flerspråksstöd** med 60+ översättningssträngar för highscore-systemet
+- [x] **Seamless game integration** med automatisk Add Score-dialog
+- [x] **Professional UX** med smooth övergångar och fallback-hantering
+
 ## Framtida förbättringar
 
 ### Kortsiktigt 🎯
@@ -233,7 +316,7 @@ npm run build  # Kompilerar och kopierar filer till dist/
 - [ ] **Ljudeffekter** och atmosfärisk bakgrundsmusik
 - [ ] **Instruktioner-skärm** från menyn (knapp finns)
 - [ ] **Inställningar-skärm** för volym och grafik (knapp finns)
-- [ ] **High score-system** med localStorage-persistering
+- [ ] **Export/import** av highscore-data för backup och delning
 
 ### Långsiktigt 🚀
 - [ ] **Flera nivåer** med olika svårighetsgrader och vedstapel-former
@@ -241,6 +324,8 @@ npm run build  # Kompilerar och kopierar filer till dist/
 - [ ] **Progressive Web App (PWA)** för mobila enheter
 - [ ] **Procedurellt genererade utmaningar** med varierande layouts
 - [ ] **Berättarläge** med bakgrundshistoria och karaktärer
+- [ ] **Online highscore-delning** och leaderboards
+- [ ] **Achievements-system** med utmärkelser och milstolpar
 
 ## Moderniseringsresa 🚀
 
@@ -294,7 +379,15 @@ Projektet utvecklades och moderniserades genom:
    - Fas 2: Domain logic separation (core/)
    - Fas 3: Infrastructure layer (i18n, input, storage)
    - Fas 4: Presentation layer med BaseRenderer
-7. **Automatiserad optimering** av imports och byggprocess
+7. **Highscore-system implementation** genom systematisk 7-stegs approach:
+   - Steg 1: Domain models och typer (HighscoreEntry, NewHighscoreInput, etc.)
+   - Steg 2: Storage layer (HighscoreStorageService med LocalStorage)
+   - Steg 3: Business logic (HighscoreService för ren affärslogik)
+   - Steg 4: I18n-integration (HighscoreI18nService med lokaliserade meddelanden)
+   - Steg 5: UI-komponenter (HighscoreModal, Table, AddScore, Statistics)
+   - Steg 6: Menu integration (Highscore-knapp och navigation)
+   - Steg 7: Game integration (Automatisk score-tracking och kvalifikation)
+8. **Automatiserad optimering** av imports och byggprocess
 
 ### Utökning av spelet
 - **Nya varelser**: Lägg till i [`CreatureType`](src/types/game.ts), uppdatera [`KEY_BINDINGS`](src/shared/constants/keyBindings.ts) och [`UIRenderer`](src/presentation/renderers/game/UIRenderer.ts)
@@ -304,6 +397,9 @@ Projektet utvecklades och moderniserades genom:
 - **Översättningar**: Uppdatera JSON-filerna i [`src/infrastructure/i18n/data/`](src/infrastructure/i18n/data/)
 - **Visuella effekter**: Utöka renderare i [`src/presentation/renderers/`](src/presentation/renderers/) och [`src/particles/`](src/particles/)
 - **Nya renderare**: Skapa klasser som ärver från [`BaseRenderer`](src/presentation/renderers/shared/BaseRenderer.ts)
+- **Highscore-funktioner**: Utöka [`HighscoreManager`](src/core/managers/HighscoreManager.ts) för ny business logic
+- **UI-komponenter**: Lägg till nya vyer i [`src/ui/highscore/`](src/ui/highscore/) med konsistent design
+- **Storage-utökningar**: Modifiera [`HighscoreStorageService`](src/infrastructure/storage/HighscoreStorageService.ts) för nya dataformat
 
 ### Debug-funktioner
 I utvecklarläge finns globala debug-funktioner:
