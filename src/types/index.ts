@@ -33,3 +33,23 @@ export {
 export type {
   GameConfig
 } from './config.js';
+
+// Highscore-typer
+export type {
+  HighscoreEntry,
+  HighscoreList,
+  HighscoreValidationResult,
+  NewHighscoreInput,
+  HighscoreExport,
+  HighscoreFilter,
+  HighscoreStats,
+  IHighscoreRepository,
+  IHighscoreService,
+  HighscoreEvents,
+  HighscoreUIState
+} from './highscore.js';
+
+export {
+  HighscoreError,
+  HighscoreValidationError
+} from './highscore.js';
