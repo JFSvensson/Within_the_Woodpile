@@ -2,6 +2,7 @@ import { I18n } from './infrastructure/i18n/I18n.js';
 import { Game } from './core/game/Game.js';
 import { MenuRenderer } from './presentation/renderers/menu/MenuRenderer.js';
 import { AppStateManager } from './appStateManager.js';
+import { TransitionManager } from './TransitionManager.js';
 import { DEFAULT_CONFIG } from './shared/constants/index.js';
 import { MenuState } from './types/index.js';
 
@@ -10,6 +11,7 @@ let game: Game | null = null;
 let i18n: I18n;
 let menuRenderer: MenuRenderer;
 let appStateManager: AppStateManager;
+let transitionManager: TransitionManager;
 let canvas: HTMLCanvasElement;
 let menuAnimationId: number;
 
@@ -33,12 +35,15 @@ function startMenuRenderLoop(): void {
 /**
  * Startar spelet från menyn
  */
-function startGameFromMenu(): void {
+async function startGameFromMenu(): Promise<void> {
     try {
         // Stoppa meny-renderingsloopen
         if (menuAnimationId) {
             cancelAnimationFrame(menuAnimationId);
         }
+
+        // Smooth övergång till spel
+        await transitionManager.transitionToGame();
 
         // Skapa nytt spelobjekt
         game = new Game(canvas, i18n, DEFAULT_CONFIG);
@@ -51,42 +56,51 @@ function startGameFromMenu(): void {
         // Initiera UI
         updateGameStats(0, 100);
         
-        // Visa spelstatistik och dölj menyläge
-        document.body.classList.remove('menu-mode');
-        const gameInfo = document.querySelector('.game-info') as HTMLElement;
-        if (gameInfo) gameInfo.style.display = 'block';
-        
         // Byt till spelläge
         appStateManager.startGame();
         
         console.log('Game started from menu');
     } catch (error) {
         console.error('Failed to start game:', error);
+        
+        // Fallback till snabb övergång vid fel
+        transitionManager.quickTransitionToMenu();
         appStateManager.returnToMainMenu();
-        startMenuRenderLoop(); // Återstarta menyloopen
+        startMenuRenderLoop();
     }
 }
 /**
  * Hanterar när spelet tar slut
  */
-function handleGameOver(): void {
+async function handleGameOver(): Promise<void> {
     console.log('Game Over!');
     
-    // Återgå till menyn efter spelslut
-    if (game) {
-        game.destroy();
-        game = null;
+    try {
+        // Smooth övergång tillbaka till meny
+        await transitionManager.transitionToMenu();
+        
+        // Förstör spelobjekt
+        if (game) {
+            game.destroy();
+            game = null;
+        }
+        
+        // Återgå till menyläge
+        appStateManager.returnToMainMenu();
+        startMenuRenderLoop();
+    } catch (error) {
+        console.error('Error during game over transition:', error);
+        
+        // Fallback till snabb övergång
+        if (game) {
+            game.destroy();
+            game = null;
+        }
+        
+        transitionManager.quickTransitionToMenu();
+        appStateManager.returnToMainMenu();
+        startMenuRenderLoop();
     }
-    
-    // Dölj spelstatistik
-    const gameInfo = document.querySelector('.game-info') as HTMLElement;
-    if (gameInfo) gameInfo.style.display = 'none';
-    
-    // Återgå till menyläge
-    document.body.classList.add('menu-mode');
-    
-    appStateManager.returnToMainMenu();
-    startMenuRenderLoop();
 }
 
 /**
@@ -108,6 +122,9 @@ async function initializeApp(): Promise<void> {
         
         // Skapa state manager
         appStateManager = new AppStateManager();
+        
+        // Skapa transition manager
+        transitionManager = new TransitionManager(i18n);
         
         // Skapa meny renderer
         menuRenderer = new MenuRenderer(canvas, i18n);
