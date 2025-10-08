@@ -72,6 +72,273 @@ async function startGameFromMenu(): Promise<void> {
     }
 }
 /**
+ * Skapar en overlay för modaler
+ */
+function createOverlay(id: string): HTMLElement {
+    // Ta bort befintlig overlay om den finns
+    const existing = document.getElementById(id);
+    if (existing) {
+        existing.remove();
+    }
+    
+    const overlay = document.createElement('div');
+    overlay.id = id;
+    overlay.className = 'modal-overlay';
+    
+    // Klick utanför stänger modalen
+    overlay.addEventListener('click', (e) => {
+        if (e.target === overlay) {
+            closeOverlay(id);
+        }
+    });
+    
+    return overlay;
+}
+
+/**
+ * Stänger en overlay
+ */
+function closeOverlay(id: string): void {
+    const overlay = document.getElementById(id);
+    if (overlay) {
+        overlay.remove();
+    }
+}
+
+/**
+ * Ändrar språk från inställningar
+ */
+function changeLanguageFromSettings(language: string): void {
+    i18n.loadLanguage(language).then(() => {
+        i18n.updateUI();
+    });
+}
+
+/**
+ * Togglar partiklar på/av
+ */
+function toggleParticles(enabled: boolean): void {
+    console.log('Particles:', enabled ? 'enabled' : 'disabled');
+    // TODO: Implementera partikel-toggle i particle system
+}
+
+/**
+ * Togglar animationer på/av
+ */
+function toggleAnimations(enabled: boolean): void {
+    console.log('Animations:', enabled ? 'enabled' : 'disabled');
+    // TODO: Implementera animation-toggle
+}
+
+/**
+ * Sätter volym
+ */
+function setVolume(value: string): void {
+    const volumeValue = document.getElementById('volumeValue');
+    if (volumeValue) {
+        volumeValue.textContent = `${value}%`;
+    }
+    console.log('Volume set to:', value);
+    // TODO: Implementera faktisk volym-kontroll
+}
+
+/**
+ * Togglar ljudeffekter
+ */
+function toggleSounds(enabled: boolean): void {
+    console.log('Sounds:', enabled ? 'enabled' : 'disabled');
+    // TODO: Implementera ljud-toggle
+}
+
+/**
+ * Återställer inställningar till standard
+ */
+function resetSettings(): void {
+    // Återställ språk
+    i18n.loadLanguage('sv').then(() => {
+        i18n.updateUI();
+        const languageSelect = document.getElementById('settingsLanguageSelect') as HTMLSelectElement;
+        if (languageSelect) languageSelect.value = 'sv';
+    });
+    
+    // Återställ checkboxes
+    const checkboxes = ['enableParticles', 'enableAnimations', 'enableSounds'];
+    checkboxes.forEach(id => {
+        const checkbox = document.getElementById(id) as HTMLInputElement;
+        if (checkbox) checkbox.checked = true;
+    });
+    
+    // Återställ volym
+    const volumeSlider = document.getElementById('volumeSlider') as HTMLInputElement;
+    if (volumeSlider) {
+        volumeSlider.value = '50';
+        setVolume('50');
+    }
+    
+    console.log('Settings reset to defaults');
+}
+
+/**
+ * Visar instruktions-overlay
+ */
+function showInstructions(): void {
+    console.log('Showing instructions...');
+    
+    // Skapa instruktions-overlay
+    const overlay = createOverlay('instructions-overlay');
+    
+    const content = `
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 data-i18n="instructions.title">Instruktioner</h2>
+                <button class="close-button" onclick="closeOverlay('instructions-overlay')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="instruction-section">
+                    <h3 data-i18n="instructions.objective">Mål</h3>
+                    <p data-i18n="instructions.objectiveText">Plocka ved från högen utan att störa de farliga varelserna som gömmer sig där.</p>
+                </div>
+                
+                <div class="instruction-section">
+                    <h3 data-i18n="instructions.controls">Kontroller</h3>
+                    <div class="controls-grid">
+                        <div class="control-item">
+                            <span class="control-key">🖱️</span>
+                            <span data-i18n="instructions.click">Klicka på ved för att plocka</span>
+                        </div>
+                        <div class="control-item">
+                            <span class="control-key">MELLANSLAG</span>
+                            <span data-i18n="instructions.spider">Skrämma bort spindlar</span>
+                        </div>
+                        <div class="control-item">
+                            <span class="control-key">ESCAPE</span>
+                            <span data-i18n="instructions.wasp">Undvika getingar</span>
+                        </div>
+                        <div class="control-item">
+                            <span class="control-key">S</span>
+                            <span data-i18n="instructions.hedgehog">Locka igelkottar</span>
+                        </div>
+                        <div class="control-item">
+                            <span class="control-key">L</span>
+                            <span data-i18n="instructions.ghost">Lysa upp spöken</span>
+                        </div>
+                        <div class="control-item">
+                            <span class="control-key">R</span>
+                            <span data-i18n="instructions.pumpkin">Rulla bort pumpor</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="instruction-section">
+                    <h3 data-i18n="instructions.tips">Tips</h3>
+                    <ul>
+                        <li data-i18n="instructions.tip1">Var försiktig - vissa vedstycken kan få högen att kollapsa!</li>
+                        <li data-i18n="instructions.tip2">Håll koll på din hälsa - varelserna kan skada dig.</li>
+                        <li data-i18n="instructions.tip3">Tjäna poäng genom att plocka ved säkert.</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="wood-button" onclick="closeOverlay('instructions-overlay')" data-i18n="common.close">Stäng</button>
+            </div>
+        </div>
+    `;
+    
+    overlay.innerHTML = content;
+    document.body.appendChild(overlay);
+    
+    // Uppdatera översättningar
+    i18n.updateUI();
+    
+    // Lägg till escape-hantering
+    const escapeHandler = (e: KeyboardEvent) => {
+        if (e.key === 'Escape') {
+            closeOverlay('instructions-overlay');
+            document.removeEventListener('keydown', escapeHandler);
+        }
+    };
+    document.addEventListener('keydown', escapeHandler);
+}
+
+/**
+ * Visar inställnings-overlay
+ */
+function showSettings(): void {
+    console.log('Showing settings...');
+    
+    // Skapa inställnings-overlay
+    const overlay = createOverlay('settings-overlay');
+    
+    const content = `
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 data-i18n="settings.title">Inställningar</h2>
+                <button class="close-button" onclick="closeOverlay('settings-overlay')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="setting-section">
+                    <h3 data-i18n="settings.language">Språk</h3>
+                    <select id="settingsLanguageSelect" onchange="changeLanguageFromSettings(this.value)">
+                        <option value="sv">Svenska</option>
+                        <option value="en">English</option>
+                    </select>
+                </div>
+                
+                <div class="setting-section">
+                    <h3 data-i18n="settings.graphics">Grafik</h3>
+                    <label class="setting-item">
+                        <input type="checkbox" id="enableParticles" checked onchange="toggleParticles(this.checked)">
+                        <span data-i18n="settings.particles">Aktivera partiklar</span>
+                    </label>
+                    <label class="setting-item">
+                        <input type="checkbox" id="enableAnimations" checked onchange="toggleAnimations(this.checked)">
+                        <span data-i18n="settings.animations">Aktivera animationer</span>
+                    </label>
+                </div>
+                
+                <div class="setting-section">
+                    <h3 data-i18n="settings.audio">Ljud</h3>
+                    <label class="setting-item">
+                        <span data-i18n="settings.volume">Volym</span>
+                        <input type="range" id="volumeSlider" min="0" max="100" value="50" oninput="setVolume(this.value)">
+                        <span id="volumeValue">50%</span>
+                    </label>
+                    <label class="setting-item">
+                        <input type="checkbox" id="enableSounds" checked onchange="toggleSounds(this.checked)">
+                        <span data-i18n="settings.sounds">Aktivera ljudeffekter</span>
+                    </label>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="wood-button" onclick="resetSettings()" data-i18n="settings.reset">Återställ</button>
+                <button class="wood-button primary" onclick="closeOverlay('settings-overlay')" data-i18n="common.close">Stäng</button>
+            </div>
+        </div>
+    `;
+    
+    overlay.innerHTML = content;
+    document.body.appendChild(overlay);
+    
+    // Sätt aktuella värden
+    const languageSelect = document.getElementById('settingsLanguageSelect') as HTMLSelectElement;
+    if (languageSelect) {
+        languageSelect.value = i18n.getCurrentLanguage();
+    }
+    
+    // Uppdatera översättningar
+    i18n.updateUI();
+    
+    // Lägg till escape-hantering
+    const escapeHandler = (e: KeyboardEvent) => {
+        if (e.key === 'Escape') {
+            closeOverlay('settings-overlay');
+            document.removeEventListener('keydown', escapeHandler);
+        }
+    };
+    document.addEventListener('keydown', escapeHandler);
+}
+
+/**
  * Hanterar när spelet tar slut
  */
 async function handleGameOver(): Promise<void> {
@@ -136,9 +403,14 @@ async function initializeApp(): Promise<void> {
         
         // Sätt upp meny callbacks
         menuRenderer.setOnPlayClick(startGameFromMenu);
+        menuRenderer.setOnInstructionsClick(showInstructions);
+        menuRenderer.setOnSettingsClick(showSettings);
         
         // Sätt upp meny event listeners
         setupMenuEventListeners();
+        
+        // Sätt upp tangentbordsnavigation
+        setupKeyboardNavigation();
         
         // Sätt upp responsive canvas listeners
         setupCanvasResizeListeners();
@@ -222,6 +494,118 @@ function handleMenuInteraction(event: MouseEvent): void {
 }
 
 /**
+ * Sätter upp tangentbordsnavigation för menyhantering
+ */
+function setupKeyboardNavigation(): void {
+    let currentButtonIndex = 0;
+    const buttonIds = ['play', 'instructions', 'settings'];
+    
+    document.addEventListener('keydown', (event) => {
+        // Bara hantera tangentbord när vi är i menyläge
+        if (appStateManager.getCurrentState() !== MenuState.MAIN_MENU) {
+            return;
+        }
+        
+        // Kolla om det finns några öppna modaler
+        const hasOpenModal = document.querySelector('.modal-overlay') !== null;
+        if (hasOpenModal) {
+            return; // Låt modaler hantera sina egna tangentbords-events
+        }
+        
+        switch (event.key) {
+            case 'Tab':
+                event.preventDefault();
+                if (event.shiftKey) {
+                    // Shift+Tab - gå bakåt
+                    currentButtonIndex = (currentButtonIndex - 1 + buttonIds.length) % buttonIds.length;
+                } else {
+                    // Tab - gå framåt
+                    currentButtonIndex = (currentButtonIndex + 1) % buttonIds.length;
+                }
+                highlightButton(currentButtonIndex);
+                break;
+                
+            case 'Enter':
+            case ' ': // Mellanslag
+                event.preventDefault();
+                activateCurrentButton(currentButtonIndex);
+                break;
+                
+            case 'Escape':
+                event.preventDefault();
+                // Escape från meny kan stänga spel eller gå till inställningar
+                console.log('Escape pressed in menu');
+                break;
+                
+            case 'ArrowUp':
+                event.preventDefault();
+                currentButtonIndex = (currentButtonIndex - 1 + buttonIds.length) % buttonIds.length;
+                highlightButton(currentButtonIndex);
+                break;
+                
+            case 'ArrowDown':
+                event.preventDefault();
+                currentButtonIndex = (currentButtonIndex + 1) % buttonIds.length;
+                highlightButton(currentButtonIndex);
+                break;
+                
+            case '1':
+                event.preventDefault();
+                currentButtonIndex = 0;
+                activateCurrentButton(currentButtonIndex);
+                break;
+                
+            case '2':
+                event.preventDefault();
+                currentButtonIndex = 1;
+                activateCurrentButton(currentButtonIndex);
+                break;
+                
+            case '3':
+                event.preventDefault();
+                currentButtonIndex = 2;
+                activateCurrentButton(currentButtonIndex);
+                break;
+        }
+    });
+    
+    // Visa initial highlight på första knappen
+    highlightButton(currentButtonIndex);
+}
+
+/**
+ * Highlightar en specifik knapp visuellt
+ */
+function highlightButton(index: number): void {
+    // Återställ alla knappar och sätt highlight på den valda
+    const buttons = ['play', 'instructions', 'settings'];
+    buttons.forEach((buttonId, i) => {
+        if (menuRenderer) {
+            menuRenderer.setButtonHover(buttonId, i === index);
+        }
+    });
+    
+    console.log(`Button highlighted: ${buttons[index]}`);
+}
+
+/**
+ * Aktiverar den aktuellt markerade knappen
+ */
+function activateCurrentButton(index: number): void {
+    switch (index) {
+        case 0: // Play
+            startGameFromMenu();
+            break;
+        case 1: // Instructions
+            showInstructions();
+            break;
+        case 2: // Settings
+            showSettings();
+            break;
+    }
+}
+
+/**
  * Sätter upp event listeners för canvas resize
  */
 function setupCanvasResizeListeners(): void {
@@ -273,9 +657,18 @@ function cleanup(): void {
 document.addEventListener('DOMContentLoaded', initializeApp);
 window.addEventListener('beforeunload', cleanup);
 
-// Exponera globala funktioner för debugging
+// Exponera globala funktioner för debugging och HTML-callbacks
 (window as any).debugGame = {
     togglePause: () => game?.togglePause(),
     getGameState: () => game?.getGameState(),
     changeLanguage: (lang: string) => i18n?.loadLanguage(lang).then(() => i18n?.updateUI()),
 };
+
+// Exponera funktioner för HTML-callbacks
+(window as any).closeOverlay = closeOverlay;
+(window as any).changeLanguageFromSettings = changeLanguageFromSettings;
+(window as any).toggleParticles = toggleParticles;
+(window as any).toggleAnimations = toggleAnimations;
+(window as any).setVolume = setVolume;
+(window as any).toggleSounds = toggleSounds;
+(window as any).resetSettings = resetSettings;
