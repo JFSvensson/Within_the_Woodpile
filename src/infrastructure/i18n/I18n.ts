@@ -7,7 +7,7 @@ export class I18n {
    */
   async loadLanguage(lang: string): Promise<void> {
     try {
-      const response = await fetch(`infrastructure/i18n/data/${lang}.json`);
+      const response = await fetch(`i18n/${lang}.json`);
       if (!response.ok) {
         throw new Error(`Failed to load language ${lang}`);
       }
