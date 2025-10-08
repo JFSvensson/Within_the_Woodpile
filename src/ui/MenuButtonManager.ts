@@ -182,6 +182,28 @@ export class MenuButtonManager {
     }
 
     /**
+     * Sätter hover-status för en specifik knapp (för tangentbordsnavigation)
+     */
+    public setButtonHover(buttonId: string, isHovered: boolean): void {
+        const button = this.buttons.find(b => b.id === buttonId);
+        if (button) {
+            button.isHovered = isHovered;
+        }
+    }
+
+    /**
+     * Aktiverar en specifik knapp baserat på ID
+     */
+    public activateButton(buttonId: string): boolean {
+        const button = this.buttons.find(b => b.id === buttonId);
+        if (button) {
+            button.onClick();
+            return true;
+        }
+        return false;
+    }
+
+    /**
      * Uppdaterar knapppositioner vid canvas-storleksändring
      */
     public updateButtonPositions(): void {
