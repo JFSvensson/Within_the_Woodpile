@@ -1,52 +1,302 @@
-@startuml Within_the_Woodpile_Components
+@startuml Within_the_Woodpile_Clean_Architecture_Components
 
-!define LIGHTBLUE #E1F5FE
-!define LIGHTGREEN #E8F5E8
-!define LIGHTYELLOW #FFF9C4
-!define LIGHTPINK #FCE4EC
+!define DOMAIN #E8F5E8
+!define INFRASTRUCTURE #E1F5FE
+!define PRESENTATION #FFF9C4
+!define SHARED #FCE4EC
+
+' Layout optimizations
+skinparam packageStyle rectangle
+skinparam defaultFontSize 10
+skinparam componentBackgroundColor White
+skinparam componentBorderColor Black
+skinparam packageBackgroundColor transparent
+left to right direction
 
 package "Browser Environment" {
-    [HTML Canvas] as Canvas
-    [DOM Elements] as DOM
-    [Local Storage] as Storage
-    [Event System] as Events
+    [HTML Canvas]
+    [Local Storage]
+    [Event System]
 }
 
-package "Game Core" LIGHTBLUE {
-    [Game Controller] as Game
-    [Game State] as State
+package "Application Layer" {
+    [Main App]
+    [App State Manager]
+    [Menu Button Manager]
 }
 
-package "Data Layer" LIGHTGREEN {
-    [Wood Pile Generator] as Generator
-    [Collision Detection] as Collision
-    [Physics Engine] as Physics
+package "Shared Layer" SHARED {
+    package "Types" {
+        [Game Types]
+        [UI Types]
+        [Config Types]
+    }
+    
+    package "Constants" {
+        [Game Config]
+        [Key Bindings]
+    }
 }
 
-package "Presentation Layer" LIGHTPINK {
-    [Game Renderer] as Renderer
-    [I18n System] as I18n
-    [UI Manager] as UI
+package "Domain Layer (Core)" DOMAIN {
+    package "Game" {
+        [Game Controller]
+        [Game Loop]
+    }
+    
+    package "Managers" {
+        [State Manager]
+        [Creature Manager]
+        [Collision Manager]
+    }
+    
+    package "Services" {
+        [Collapse Calculator]
+        [Wood Generator]
+    }
 }
 
-package "Configuration" LIGHTYELLOW {
-    [Game Config] as Config
-    [Type Definitions] as Types
-    [Key Bindings] as Keys
+package "Infrastructure Layer" INFRASTRUCTURE {
+    package "I18n" {
+        [I18n Service]
+        [Language Data]
+    }
+    
+    package "Input" {
+        [Input Handler]
+        [Input Interfaces]
+    }
+    
+    package "Storage" {
+        [Storage Service]
+        [Game Data Repo]
+    }
 }
 
-package "Assets" {
-    [Language Files] as Lang
-    [Styles] as CSS
+package "Presentation Layer" PRESENTATION {
+    package "Shared" {
+        [Base Renderer]
+    }
+    
+    package "Game Renderers" {
+        [Game Renderer]
+        [Wood Renderer]
+        [UI Renderer]
+    }
+    
+    package "Menu Renderers" {
+        [Menu Renderer]
+        [Logo Renderer]
+        [Background Renderer]
+    }
 }
 
-' Dependencies
-Game --> Generator : generates wood pile
-Game --> Renderer : renders scene
-Game --> I18n : translates text
-Game --> State : manages state
-Game --> Config : uses configuration
-Game --> Events : handles input
+' === CLEAN ARCHITECTURE DEPENDENCIES ===
+
+' Domain layer - no outward dependencies
+[Game Controller] --> [State Manager]
+[Game Controller] --> [Creature Manager]
+[Game Controller] --> [Collision Manager]
+
+' Infrastructure implements domain interfaces
+[I18n Service] ..> [Game Types] : implements
+[Input Handler] ..> [Game Types] : implements
+[Storage Service] ..> [Game Types] : implements
+
+' Presentation depends on domain & infrastructure
+[Game Renderer] --> [Base Renderer] : extends
+[Wood Renderer] --> [Base Renderer] : extends
+[UI Renderer] --> [Base Renderer] : extends
+[Menu Renderer] --> [Base Renderer] : extends
+
+[Game Renderer] --> [Collapse Calculator] : uses
+[Game Renderer] --> [Wood Renderer] : composes
+[Game Renderer] --> [UI Renderer] : composes
+
+' Application orchestrates all layers
+[Main App] --> [Game Controller] : creates
+[Main App] --> [Menu Renderer] : creates
+[Main App] --> [I18n Service] : uses
+[Game Controller] --> [Input Handler] : uses
+[Game Controller] --> [Game Renderer] : uses
+
+' External dependencies
+[I18n Service] --> [Local Storage] : persists
+[Storage Service] --> [Local Storage] : uses
+[Input Handler] --> [Event System] : listens
+[Game Renderer] --> [HTML Canvas] : renders
+[Menu Renderer] --> [HTML Canvas] : renders
+
+@enduml
+
+package "Domain Layer (Core)" DOMAIN {
+    package "Game Module" {
+        [Game Controller] as Game
+        [Game Loop] as GameLoop
+        [Game Barrel Export] as GameIndex
+    }
+    
+    package "Managers Module" {
+        [Game State Manager] as StateManager
+        [Creature Manager] as CreatureManager
+        [Collision Manager] as CollisionManager
+        [Managers Barrel Export] as ManagersIndex
+    }
+    
+    package "Services Module" {
+        [Collapse Prediction Calculator] as CollapseCalculator
+        [Wood Pile Generator] as WoodGenerator
+        [Services Barrel Export] as ServicesIndex
+    }
+    
+    package "Core Barrel Export" {
+        [Core Index] as CoreIndex
+    }
+    
+    GameIndex --> Game
+    GameIndex --> GameLoop
+    ManagersIndex --> StateManager
+    ManagersIndex --> CreatureManager
+    ManagersIndex --> CollisionManager
+    ServicesIndex --> CollapseCalculator
+    ServicesIndex --> WoodGenerator
+    CoreIndex --> GameIndex
+    CoreIndex --> ManagersIndex
+    CoreIndex --> ServicesIndex
+}
+
+package "Infrastructure Layer" INFRASTRUCTURE {
+    package "I18n Module" {
+        [I18n Service] as I18nService
+        [Language Data] as LangData
+        [I18n Barrel Export] as I18nIndex
+    }
+    
+    package "Input Module" {
+        [Input Handler] as InputHandler
+        [Input Interfaces] as InputInterfaces
+        [Input Barrel Export] as InputIndex
+    }
+    
+    package "Storage Module" {
+        [Local Storage Service] as LocalStorageService
+        [Game Data Repository] as GameDataRepo
+        [Storage Interfaces] as StorageInterfaces
+        [Storage Barrel Export] as StorageIndex
+    }
+    
+    package "Infrastructure Barrel Export" {
+        [Infrastructure Index] as InfraIndex
+    }
+    
+    I18nIndex --> I18nService
+    I18nIndex --> LangData
+    InputIndex --> InputHandler
+    InputIndex --> InputInterfaces
+    StorageIndex --> LocalStorageService
+    StorageIndex --> GameDataRepo
+    StorageIndex --> StorageInterfaces
+    InfraIndex --> I18nIndex
+    InfraIndex --> InputIndex
+    InfraIndex --> StorageIndex
+}
+
+package "Presentation Layer" PRESENTATION {
+    package "Shared Renderers" {
+        [Base Renderer] as BaseRenderer
+        [Shared Barrel Export] as SharedIndex
+    }
+    
+    package "Game Renderers" {
+        [Game Renderer] as GameRenderer
+        [Wood Piece Renderer] as WoodRenderer
+        [UI Renderer] as UIRenderer
+        [Game Renderers Barrel Export] as GameRenderersIndex
+    }
+    
+    package "Menu Renderers" {
+        [Menu Renderer] as MenuRenderer
+        [Logo Renderer] as LogoRenderer
+        [Background Renderer] as BackgroundRenderer
+        [Menu Renderers Barrel Export] as MenuRenderersIndex
+    }
+    
+    package "Presentation Barrel Export" {
+        [Renderers Index] as RenderersIndex
+        [Presentation Index] as PresentationIndex
+    }
+    
+    SharedIndex --> BaseRenderer
+    GameRenderersIndex --> GameRenderer
+    GameRenderersIndex --> WoodRenderer
+    GameRenderersIndex --> UIRenderer
+    MenuRenderersIndex --> MenuRenderer
+    MenuRenderersIndex --> LogoRenderer
+    MenuRenderersIndex --> BackgroundRenderer
+    RenderersIndex --> SharedIndex
+    RenderersIndex --> GameRenderersIndex
+    RenderersIndex --> MenuRenderersIndex
+    PresentationIndex --> RenderersIndex
+}
+
+package "Application Layer" {
+    [App State Manager] as AppStateManager
+    [Main Application] as MainApp
+    [Menu Button Manager] as MenuButtonManager
+    [Particle System] as ParticleSystem
+}
+
+' === CLEAN ARCHITECTURE DEPENDENCIES ===
+
+' Domain layer has NO dependencies on outer layers
+Game --> StateManager : uses
+Game --> CreatureManager : uses
+Game --> CollisionManager : uses
+StateManager --> GameTypes : depends on
+CreatureManager --> GameTypes : depends on
+CollapseCalculator --> GameTypes : depends on
+WoodGenerator --> GameTypes : depends on
+
+' Infrastructure layer depends on Domain interfaces
+I18nService --> GameTypes : implements contracts
+InputHandler --> GameTypes : implements contracts
+LocalStorageService --> StorageInterfaces : implements
+GameDataRepo --> StorageInterfaces : implements
+
+' Presentation layer depends on Domain and Infrastructure
+GameRenderer --> BaseRenderer : extends
+WoodRenderer --> BaseRenderer : extends
+UIRenderer --> BaseRenderer : extends
+MenuRenderer --> BaseRenderer : extends
+LogoRenderer --> BaseRenderer : extends
+BackgroundRenderer --> BaseRenderer : extends
+
+GameRenderer --> CollapseCalculator : uses
+GameRenderer --> WoodRenderer : composes
+GameRenderer --> UIRenderer : composes
+MenuRenderer --> LogoRenderer : composes
+MenuRenderer --> BackgroundRenderer : composes
+
+' Application layer orchestrates all layers
+MainApp --> Game : creates
+MainApp --> MenuRenderer : creates
+MainApp --> AppStateManager : uses
+MainApp --> I18nService : uses
+Game --> InputHandler : uses
+Game --> GameRenderer : uses
+
+' Browser environment integration
+I18nService --> Storage : persists language
+LocalStorageService --> Storage : uses
+InputHandler --> Events : listens to
+GameRenderer --> Canvas : renders to
+MenuRenderer --> Canvas : renders to
+
+' External dependencies (only Infrastructure touches these)
+LangData --> WebAPIs : loads via fetch
+LocalStorageService --> Storage : uses browser localStorage
+
+@enduml
 
 Generator --> Types : uses types
 Generator --> Config : uses config

@@ -1,53 +1,224 @@
-@startuml Within_the_Woodpile_DataFlow
+@startuml Within_the_Woodpile_Clean_Architecture_DataFlow
 
-!define LIGHTBLUE #E1F5FE
-!define LIGHTGREEN #E8F5E8
-!define LIGHTYELLOW #FFF9C4
-!define LIGHTPINK #FCE4EC
+!define DOMAIN #E8F5E8
+!define INFRASTRUCTURE #E1F5FE
+!define PRESENTATION #FFF9C4
+!define SHARED #FCE4EC
+
+' Layout optimizations
+skinparam sequenceMessageAlign center
+skinparam maxMessageSize 80
+skinparam participantPadding 10
+skinparam boxPadding 5
 
 actor Player
-participant "HTML Canvas" as Canvas
-participant "Game Controller" as Game
-participant "Wood Pile Generator" as Generator
-participant "Game Renderer" as Renderer
-participant "I18n System" as I18n
-database "Local Storage" as Storage
 
-== Initialization ==
-Player -> Game : Start Game
-Game -> I18n : Initialize
-I18n -> Storage : Load saved language
-I18n -> I18n : Load language files
-Game -> Generator : Generate wood pile
-Generator -> Game : Return WoodPiece[]
-Game -> Renderer : Initial render
-Renderer -> Canvas : Draw game scene
+box "Browser" 
+    participant Canvas
+    participant Storage
+end box
 
-== Game Loop ==
+box "Application"
+    participant "Main App" as MainApp
+    participant "State Manager" as AppState
+end box
+
+box "Presentation" PRESENTATION
+    participant "Menu Renderer" as MenuRenderer
+    participant "Game Renderer" as GameRenderer
+end box
+
+box "Infrastructure" INFRASTRUCTURE
+    participant "I18n Service" as I18n
+    participant "Input Handler" as Input
+    participant "Data Repository" as DataRepo
+end box
+
+box "Domain (Core)" DOMAIN
+    participant "Game Controller" as Game
+    participant "Game State Manager" as StateManager
+    participant "Creature Manager" as CreatureManager
+    participant "Wood Generator" as WoodGen
+end box
+
+== App Initialization ==
+Player -> MainApp : Open App
+MainApp -> AppState : Initialize (MENU)
+MainApp -> I18n : Load language
+I18n -> Storage : Get saved language
+MainApp -> MenuRenderer : Create menu
+MenuRenderer -> Canvas : Render menu
+
+== Menu to Game Transition ==
+Player -> Input : Click Start
+Input -> MenuRenderer : Handle click
+MenuRenderer -> AppState : Change to GAME
+AppState -> MainApp : State changed
+MainApp -> Game : Create game
+Game -> WoodGen : Generate wood pile
+Game -> GameRenderer : Initialize renderer
+GameRenderer -> Canvas : Render game
+
+== Game Loop - Input ==
 loop Game Running
-    Player -> Canvas : Mouse click/move
-    Canvas -> Game : Mouse event
-    Game -> Game : Handle interaction
+    Player -> Input : Mouse/keyboard
     
-    alt Wood clicked
-        Game -> Generator : Check collapse
-        Generator -> Game : Collapsing pieces
-        Game -> Game : Update score/health
+    alt Mouse Click
+        Input -> Game : Wood piece clicked
+        Game -> StateManager : Update score
+        Game -> CreatureManager : Check creature
+        alt Creature Found
+            CreatureManager -> GameRenderer : Show creature UI
+        end
     end
     
-    alt Creature encountered
-        Game -> Game : Start reaction timer
-        Player -> Game : Key press
-        Game -> Game : Handle reaction
+    alt Creature Reaction
+        Input -> CreatureManager : Key pressed
+        CreatureManager -> StateManager : Update health
     end
     
-    Game -> Renderer : Update render
-    Renderer -> Canvas : Draw updated scene
+    Game -> GameRenderer : Render frame
+    GameRenderer -> Canvas : Draw scene
 end
 
-== Language Change ==
+== Data Persistence ==
+StateManager -> DataRepo : Save game state
+DataRepo -> Storage : Persist data
+
 Player -> I18n : Change language
 I18n -> Storage : Save preference
+I18n -> MainApp : Language changed
+MainApp -> GameRenderer : Update translations
+
+== Game Over ==
+StateManager -> Game : Health = 0
+Game -> AppState : Return to MENU
+AppState -> MainApp : State changed
+MainApp -> MenuRenderer : Show menu
+
+note over Domain
+Domain layer has no 
+outward dependencies.
+All dependencies 
+point inward.
+end note
+
+@enduml
+
+== Menu Interaction ==
+Player -> Events : Click/hover
+Events -> InputHandler : Mouse events
+InputHandler -> MenuRenderer : Handle menu interaction
+MenuRenderer -> AppStateManager : Request state change (GAME)
+AppStateManager -> MainApp : Notify state change
+MainApp -> MainApp : Transition to game
+
+== Game Initialization ==
+MainApp -> Game : Create game instance
+Game -> GameConfig : Load default config
+Game -> WoodGenerator : Generate initial wood pile
+WoodGenerator -> Types : Create WoodPiece instances
+WoodGenerator -> Game : Return WoodPiece[]
+Game -> StateManager : Initialize game state
+Game -> CreatureManager : Initialize creature system
+Game -> CollisionManager : Initialize collision detection
+Game -> GameRenderer : Initialize renderer
+GameRenderer -> WoodRenderer : Create wood renderer
+GameRenderer -> UIRenderer : Create UI renderer
+Game -> InputHandler : Setup input handling
+InputHandler -> Events : Register event listeners
+
+== Game Loop - Input Processing ==
+loop Game Running
+    Player -> Events : Mouse click/move/keyboard
+    Events -> InputHandler : Input events
+    
+    alt Mouse Move
+        InputHandler -> CollisionManager : Check hover
+        CollisionManager -> Game : Hovered piece
+        Game -> CollapseCalculator : Calculate affected pieces
+        CollapseCalculator -> Game : Return affected pieces
+        Game -> GameRenderer : Update hover state
+    end
+    
+    alt Mouse Click
+        InputHandler -> CollisionManager : Check click
+        CollisionManager -> Game : Clicked piece
+        Game -> WoodGenerator : Remove piece
+        Game -> CollapseCalculator : Calculate collapse
+        CollapseCalculator -> Game : Return collapsing pieces
+        Game -> CreatureManager : Check creature spawn
+        
+        alt Creature Found
+            CreatureManager -> StateManager : Get game state
+            CreatureManager -> Game : Activate creature
+            Game -> UIRenderer : Show creature reaction
+        end
+        
+        Game -> StateManager : Update score
+        StateManager -> Game : Return updated state
+    end
+    
+    alt Keyboard Input (Creature Reaction)
+        InputHandler -> CreatureManager : Handle reaction
+        CreatureManager -> StateManager : Update health/score
+        CreatureManager -> Game : Clear creature
+    end
+end
+
+== Rendering Pipeline ==
+loop Render Frame
+    Game -> GameRenderer : Render request
+    GameRenderer -> WoodRenderer : Render wood pieces
+    WoodRenderer -> Canvas : Draw wood pile
+    GameRenderer -> UIRenderer : Render UI elements
+    UIRenderer -> I18nService : Get translations
+    I18nService -> UIRenderer : Return translated text
+    UIRenderer -> Canvas : Draw UI
+    GameRenderer -> Canvas : Composite final frame
+end
+
+== Data Persistence ==
+Game -> StateManager : Get current state
+StateManager -> GameDataRepo : Save game state
+GameDataRepo -> LocalStorageService : Persist data
+LocalStorageService -> Storage : Write to localStorage
+
+Player -> I18nService : Change language
+I18nService -> LocalStorageService : Save preference
+LocalStorageService -> Storage : Update localStorage
+I18nService -> MainApp : Language changed
+MainApp -> GameRenderer : Update renderer i18n
+MainApp -> MenuRenderer : Update renderer i18n
+
+== State Management ==
+StateManager -> StateManager : Health/Score changes
+StateManager -> Game : Notify callbacks
+Game -> MainApp : Game over event
+MainApp -> AppStateManager : Change to MENU state
+AppStateManager -> MainApp : State changed
+MainApp -> MenuRenderer : Show menu
+
+== Clean Architecture Data Flow ==
+note over Domain
+Domain layer never depends on 
+Infrastructure or Presentation.
+All dependencies point inward.
+end note
+
+note over Infrastructure
+Infrastructure implements
+interfaces defined in Domain.
+Handles external concerns.
+end note
+
+note over Presentation
+Presentation orchestrates
+Domain use cases and 
+Infrastructure services.
+end note
+
+@enduml
 I18n -> I18n : Load new language
 I18n -> Renderer : Update UI
 Renderer -> Canvas : Redraw with new text

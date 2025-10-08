@@ -1,53 +1,590 @@
-@startuml Within_the_Woodpile_Architecture
+@startuml Within_the_Woodpile_Clean_Architecture
 
-!define LIGHTBLUE #E1F5FE
-!define LIGHTGREEN #E8F5E8
-!define LIGHTYELLOW #FFF9C4
-!define LIGHTPINK #FCE4EC
+!define DOMAIN #E8F5E8
+!define INFRASTRUCTURE #E1F5FE
+!define PRESENTATION #FFF9C4
+!define SHARED #FCE4EC
 
-package "Types & Configuration" LIGHTYELLOW {
-    interface Position {
-        +x: number
-        +y: number
+' Layout optimizations
+skinparam packageStyle rectangle
+skinparam defaultFontSize 10
+skinparam classBackgroundColor White
+skinparam classBorderColor Black
+skinparam packageBackgroundColor transparent
+
+' === SHARED LAYER ===
+package "Shared Layer" SHARED {
+    package "Types" {
+        interface Position {
+            +x: number
+            +y: number
+        }
+        
+        interface WoodPiece {
+            +id: string
+            +position: Position
+            +size: Size
+            +isRemoved: boolean
+            +creature?: CreatureType
+            +collapseRisk: CollapseRisk
+        }
+        
+        interface GameState {
+            +score: number
+            +health: number
+            +isGameOver: boolean
+            +isPaused: boolean
+            +activeCreature?: ActiveCreature
+        }
+        
+        enum CreatureType {
+            SPIDER
+            WASP
+            HEDGEHOG
+            GHOST
+            PUMPKIN
+        }
+        
+        enum MenuState {
+            MENU
+            GAME
+            SETTINGS
+        }
     }
     
-    interface Size {
-        +width: number
-        +height: number
+    package "Constants" {
+        class GameConfig {
+            +DEFAULT_CONFIG: GameConfig
+            +CANVAS_WIDTH: number
+            +CANVAS_HEIGHT: number
+        }
+        
+        class KeyBindings {
+            +KEY_BINDINGS: Map
+            +getKeyForCreature(): string
+        }
+    }
+}
+
+' === DOMAIN LAYER (CORE) ===
+package "Domain Layer (Core)" DOMAIN {
+    package "Game" {
+        class Game {
+            -canvas: HTMLCanvasElement
+            -renderer: GameRenderer
+            -stateManager: GameStateManager
+            -creatureManager: CreatureManager
+            -inputHandler: GameInputHandler
+            -woodPieces: WoodPiece[]
+            
+            +start(): void
+            +pause(): void
+            +render(): void
+            +onScore(callback): void
+            +onGameEnd(callback): void
+        }
     }
     
-    interface WoodPiece {
-        +id: string
-        +position: Position
-        +size: Size
-        +isRemoved: boolean
-        +creature?: CreatureType
-        +collapseRisk: CollapseRisk
+    package "Managers" {
+        class GameStateManager {
+            -state: GameState
+            -onScoreUpdate?: Function
+            -onHealthUpdate?: Function
+            
+            +getState(): GameState
+            +addScore(points: number): void
+            +reduceHealth(damage: number): void
+            +setGameOver(): void
+            +reset(): void
+        }
+        
+        class CreatureManager {
+            -activeCreature?: ActiveCreature
+            
+            +checkCreatureSpawn(): ActiveCreature?
+            +handleCreatureReaction(key): boolean
+            +updateCreatureTimer(delta): void
+            +getActiveCreature(): ActiveCreature?
+        }
+        
+        class CollisionManager {
+            +checkWoodPieceClick(): WoodPiece?
+            +checkMouseHover(): WoodPiece?
+        }
     }
     
-    interface GameState {
-        +score: number
-        +health: number
-        +isGameOver: boolean
-        +isPaused: boolean
-        +activeCreature?: ActiveCreature
+    package "Services" {
+        class CollapsePredictionCalculator {
+            -canvasHeight: number
+            
+            +calculateAffectedPieces(): WoodPiece[]
+            +calculateCollapseRisk(): CollapseRisk
+            +updateCanvasHeight(height): void
+        }
+        
+        class WoodPileGenerator {
+            +generateWoodPile(): WoodPiece[]
+            +generateBrickPattern(): WoodPiece[]
+        }
+    }
+}
+
+' === INFRASTRUCTURE LAYER ===
+package "Infrastructure Layer" INFRASTRUCTURE {
+    package "I18n" {
+        class I18n {
+            -currentLanguage: string
+            -translations: Map
+            
+            +translate(key: string): string
+            +setLanguage(language): Promise<void>
+            +getCurrentLanguage(): string
+        }
     }
     
-    interface ActiveCreature {
-        +type: CreatureType
-        +timeLeft: number
-        +position: Position
-        +maxTime: number
+    package "Input" {
+        interface InputHandler {
+            +setOnWoodPieceClick(callback): void
+            +setOnMouseMove(callback): void
+            +setOnKeyPress(callback): void
+        }
+        
+        class GameInputHandler {
+            -canvas: HTMLCanvasElement
+            
+            +setOnWoodPieceClick(callback): void
+            +setOnMouseMove(callback): void
+            +setOnKeyPress(callback): void
+        }
     }
     
-    interface GameConfig {
-        +canvasWidth: number
-        +canvasHeight: number
-        +woodWidth: number
-        +woodHeight: number
-        +creatureProbability: number
-        +reactionTime: number
-        +pointsPerWood: number
+    package "Storage" {
+        interface StorageService {
+            +save(key, data): Promise<void>
+            +load(key): Promise<any>
+        }
+        
+        class LocalStorageService {
+            +save(key, data): Promise<void>
+            +load(key): Promise<any>
+        }
+        
+        class GameDataRepository {
+            -storageService: StorageService
+            
+            +saveGameState(state): Promise<void>
+            +loadGameState(): Promise<GameState?>
+        }
+    }
+}
+
+' === PRESENTATION LAYER ===
+package "Presentation Layer" PRESENTATION {
+    package "Renderers" {
+        abstract class BaseRenderer {
+            #canvas: HTMLCanvasElement
+            #ctx: CanvasRenderingContext2D
+            
+            +constructor(canvas)
+            #clearCanvas(): void
+            #setupContext(): void
+            +{abstract} render(): void
+        }
+        
+        class GameRenderer {
+            -collapseCalculator
+            -woodPieceRenderer
+            -uiRenderer
+            
+            +render(woodPieces, gameState): void
+            +updateI18n(newI18n): void
+        }
+        
+        class WoodPieceRenderer {
+            +render(woodPieces): void
+            +drawBackground(): void
+            +drawWoodPieces(): void
+        }
+        
+        class UIRenderer {
+            -i18n: I18n
+            
+            +render(gameState): void
+            +drawActiveCreature(): void
+            +drawGameOverOverlay(): void
+        }
+        
+        class MenuRenderer {
+            -i18n: I18n
+            -logoRenderer
+            -backgroundRenderer
+            
+            +render(): void
+            +handleClick(): boolean
+        }
+    }
+}
+
+' === APP ENTRY POINT ===
+package "Application" {
+    class AppStateManager {
+        -currentState: MenuState
+        
+        +getCurrentState(): MenuState
+        +setState(state): void
+    }
+    
+    class Main {
+        -game?: Game
+        -i18n: I18n
+        -menuRenderer: MenuRenderer
+        
+        +initialize(): Promise<void>
+        +startGame(): void
+        +showMenu(): void
+    }
+}
+
+' === RELATIONSHIPS (simplified for readability) ===
+BaseRenderer <|-- GameRenderer
+BaseRenderer <|-- WoodPieceRenderer  
+BaseRenderer <|-- UIRenderer
+BaseRenderer <|-- MenuRenderer
+
+GameRenderer *-- WoodPieceRenderer
+GameRenderer *-- UIRenderer
+
+Game *-- GameStateManager
+Game *-- CreatureManager
+Game *-- CollisionManager
+Game *-- GameRenderer
+
+InputHandler <|.. GameInputHandler
+StorageService <|.. LocalStorageService
+
+Main *-- AppStateManager
+Main *-- Game
+Main *-- MenuRenderer
+Main *-- I18n
+
+@enduml
+
+' === DOMAIN LAYER (CORE) ===
+package "Domain Layer (Core)" DOMAIN {
+    package "Game" {
+        class Game {
+            -canvas: HTMLCanvasElement
+            -renderer: GameRenderer
+            -stateManager: GameStateManager
+            -creatureManager: CreatureManager
+            -collisionManager: CollisionManager
+            -inputHandler: GameInputHandler
+            -woodPieces: WoodPiece[]
+            -i18n: I18n
+            -config: GameConfig
+            
+            +constructor(canvas: HTMLCanvasElement, i18n: I18n, config: GameConfig)
+            +start(): void
+            +pause(): void
+            +resume(): void
+            +stop(): void
+            +render(): void
+            +onScore(callback: (score: number) => void): void
+            +onHealth(callback: (health: number) => void): void
+            +onGameEnd(callback: () => void): void
+        }
+        
+        class GameLoop {
+            -isRunning: boolean
+            -lastTime: number
+            -targetFPS: number
+            -gameInstance: Game
+            
+            +start(game: Game): void
+            +stop(): void
+            +pause(): void
+            +resume(): void
+            -update(deltaTime: number): void
+        }
+    }
+    
+    package "Managers" {
+        class GameStateManager {
+            -state: GameState
+            -onScoreUpdate?: (score: number) => void
+            -onHealthUpdate?: (health: number) => void
+            -onGameEnd?: () => void
+            
+            +getState(): GameState
+            +addScore(points: number): void
+            +reduceHealth(damage: number): void
+            +setGameOver(): void
+            +reset(): void
+            +setOnScoreUpdate(callback: (score: number) => void): void
+            +setOnHealthUpdate(callback: (health: number) => void): void
+            +setOnGameEnd(callback: () => void): void
+        }
+        
+        class CreatureManager {
+            -activeCreature?: ActiveCreature
+            -onScoreUpdate?: (points: number) => void
+            -onHealthUpdate?: (damage: number) => void
+            
+            +checkCreatureSpawn(woodPiece: WoodPiece): ActiveCreature?
+            +handleCreatureReaction(key: string): boolean
+            +updateCreatureTimer(deltaTime: number): void
+            +getActiveCreature(): ActiveCreature?
+            +clearActiveCreature(): void
+            +setOnScoreUpdate(callback: (points: number) => void): void
+            +setOnHealthUpdate(callback: (damage: number) => void): void
+        }
+        
+        class CollisionManager {
+            +checkWoodPieceClick(mousePos: Position, woodPieces: WoodPiece[]): WoodPiece?
+            +checkMouseHover(mousePos: Position, woodPieces: WoodPiece[]): WoodPiece?
+        }
+    }
+    
+    package "Services" {
+        class CollapsePredictionCalculator {
+            -canvasHeight: number
+            
+            +constructor(canvasHeight: number)
+            +calculateAffectedPieces(targetPiece: WoodPiece, allPieces: WoodPiece[]): WoodPiece[]
+            +calculateCollapseRisk(piece: WoodPiece, allPieces: WoodPiece[]): CollapseRisk
+            +updateCanvasHeight(height: number): void
+            -isDirectlySupported(piece: WoodPiece, supportPieces: WoodPiece[]): boolean
+            -hasSecondarySupport(piece: WoodPiece, allPieces: WoodPiece[]): boolean
+        }
+        
+        class WoodPileGenerator {
+            +generateWoodPile(config: GameConfig): WoodPiece[]
+            +generateBrickPattern(rows: number, piecesPerRow: number, config: GameConfig): WoodPiece[]
+            -createWoodPiece(x: number, y: number, config: GameConfig): WoodPiece
+            -assignCreature(piece: WoodPiece, config: GameConfig): void
+        }
+    }
+}
+
+' === INFRASTRUCTURE LAYER ===
+package "Infrastructure Layer" INFRASTRUCTURE {
+    package "I18n" {
+        class I18n {
+            -currentLanguage: string
+            -translations: Map<string, any>
+            
+            +constructor(language: string)
+            +translate(key: string): string
+            +setLanguage(language: string): Promise<void>
+            +getCurrentLanguage(): string
+            -loadTranslations(language: string): Promise<any>
+        }
+    }
+    
+    package "Input" {
+        interface InputHandler {
+            +setOnWoodPieceClick(callback: (piece: WoodPiece) => void): void
+            +setOnMouseMove(callback: (position: Position) => void): void
+            +setOnKeyPress(callback: (key: string) => void): void
+        }
+        
+        class GameInputHandler {
+            -canvas: HTMLCanvasElement
+            -onWoodPieceClick?: (piece: WoodPiece) => void
+            -onMouseMove?: (position: Position) => void
+            -onKeyPress?: (key: string) => void
+            
+            +constructor(canvas: HTMLCanvasElement)
+            +setOnWoodPieceClick(callback: (piece: WoodPiece) => void): void
+            +setOnMouseMove(callback: (position: Position) => void): void
+            +setOnKeyPress(callback: (key: string) => void): void
+            +destroy(): void
+        }
+    }
+    
+    package "Storage" {
+        interface StorageService {
+            +save(key: string, data: any): Promise<void>
+            +load(key: string): Promise<any>
+            +remove(key: string): Promise<void>
+        }
+        
+        class LocalStorageService {
+            +save(key: string, data: any): Promise<void>
+            +load(key: string): Promise<any>
+            +remove(key: string): Promise<void>
+        }
+        
+        interface GameDataRepository {
+            +saveGameState(state: GameState): Promise<void>
+            +loadGameState(): Promise<GameState?>
+            +saveSettings(settings: any): Promise<void>
+            +loadSettings(): Promise<any>
+        }
+        
+        class GameDataRepositoryImpl {
+            -storageService: StorageService
+            
+            +constructor(storageService: StorageService)
+            +saveGameState(state: GameState): Promise<void>
+            +loadGameState(): Promise<GameState?>
+            +saveSettings(settings: any): Promise<void>
+            +loadSettings(): Promise<any>
+        }
+    }
+}
+
+' === PRESENTATION LAYER ===
+package "Presentation Layer" PRESENTATION {
+    package "Shared Renderers" {
+        abstract class BaseRenderer {
+            #canvas: HTMLCanvasElement
+            #ctx: CanvasRenderingContext2D
+            
+            +constructor(canvas: HTMLCanvasElement)
+            #clearCanvas(): void
+            #setupContext(): void
+            #renderTextWithShadow(text: string, x: number, y: number, color: string): void
+            +{abstract} render(...args: any[]): void
+        }
+    }
+    
+    package "Game Renderers" {
+        class GameRenderer {
+            -collapseCalculator: CollapsePredictionCalculator
+            -woodPieceRenderer: WoodPieceRenderer
+            -uiRenderer: UIRenderer
+            -i18n: I18n
+            
+            +constructor(canvas: HTMLCanvasElement, i18n: I18n)
+            +render(woodPieces: WoodPiece[], gameState: GameState, hoveredPiece?: WoodPiece): void
+            +updateI18n(newI18n: I18n): void
+            +updateCanvasSize(width: number, height: number): void
+            +getCollapseCalculator(): CollapsePredictionCalculator
+            +drawInstructions(): void
+        }
+        
+        class WoodPieceRenderer {
+            +constructor(canvas: HTMLCanvasElement)
+            +render(woodPieces: WoodPiece[], hoveredPiece?: WoodPiece, affectedPieces?: WoodPiece[]): void
+            +drawBackground(): void
+            +drawWoodPieces(pieces: WoodPiece[], hoveredPiece?: WoodPiece, affectedPieces?: WoodPiece[]): void
+            -drawWoodPiece(piece: WoodPiece, isHovered: boolean, isAffected: boolean): void
+            -drawWoodTexture(x: number, y: number, radius: number): void
+        }
+        
+        class UIRenderer {
+            -i18n: I18n
+            
+            +constructor(canvas: HTMLCanvasElement, i18n: I18n)
+            +render(gameState: GameState): void
+            +drawActiveCreature(activeCreature: ActiveCreature): void
+            +drawGameOverOverlay(): void
+            +drawInstructions(): void
+            +updateI18n(newI18n: I18n): void
+            -getCreatureEmoji(type: CreatureType): string
+            -drawCreatureInstruction(type: CreatureType): void
+        }
+    }
+    
+    package "Menu Renderers" {
+        class MenuRenderer {
+            -i18n: I18n
+            -logoRenderer: LogoRenderer
+            -particleSystem: MenuParticleSystem
+            -backgroundRenderer: BackgroundRenderer
+            -buttonManager: MenuButtonManager
+            -animationTime: number
+            
+            +constructor(canvas: HTMLCanvasElement, i18n: I18n)
+            +render(): void
+            +handleClick(mousePos: Position): boolean
+            +handleMouseMove(mousePos: Position): void
+            +setOnStartClick(callback: () => void): void
+            +setOnSettingsClick(callback: () => void): void
+            +destroy(): void
+        }
+        
+        class LogoRenderer {
+            +constructor(canvas: HTMLCanvasElement)
+            +render(animationTime: number): void
+            -renderTitle(centerX: number, logoY: number): void
+            -renderAnimatedWoodPile(centerX: number, logoY: number, animationTime: number): void
+            -renderEmoji(centerX: number, logoY: number): void
+        }
+        
+        class BackgroundRenderer {
+            +constructor(canvas: HTMLCanvasElement)
+            +render(animationTime: number): void
+            -renderGradientBackground(): void
+            -renderAnimatedTrees(animationTime: number): void
+            -drawTree(x: number, baseY: number, height: number, sway: number): void
+        }
+    }
+}
+
+' === APP ENTRY POINT ===
+package "Application" {
+    class AppStateManager {
+        -currentState: MenuState
+        -onStateChange?: (state: MenuState) => void
+        
+        +getCurrentState(): MenuState
+        +setState(state: MenuState): void
+        +setOnStateChange(callback: (state: MenuState) => void): void
+    }
+    
+    class Main {
+        -game?: Game
+        -i18n: I18n
+        -menuRenderer: MenuRenderer
+        -appStateManager: AppStateManager
+        
+        +initialize(): Promise<void>
+        +startGame(): void
+        +showMenu(): void
+        +handleStateChange(state: MenuState): void
+    }
+}
+
+' === RELATIONSHIPS ===
+BaseRenderer <|-- GameRenderer
+BaseRenderer <|-- WoodPieceRenderer  
+BaseRenderer <|-- UIRenderer
+BaseRenderer <|-- MenuRenderer
+BaseRenderer <|-- LogoRenderer
+BaseRenderer <|-- BackgroundRenderer
+
+GameRenderer *-- WoodPieceRenderer
+GameRenderer *-- UIRenderer
+GameRenderer *-- CollapsePredictionCalculator
+
+MenuRenderer *-- LogoRenderer
+MenuRenderer *-- BackgroundRenderer
+
+Game *-- GameStateManager
+Game *-- CreatureManager
+Game *-- CollisionManager
+Game *-- GameRenderer
+Game *-- GameInputHandler
+
+CreatureManager ..> ActiveCreature
+GameStateManager ..> GameState
+WoodPileGenerator ..> WoodPiece
+CollapsePredictionCalculator ..> WoodPiece
+
+InputHandler <|.. GameInputHandler
+StorageService <|.. LocalStorageService
+GameDataRepository <|.. GameDataRepositoryImpl
+
+GameDataRepositoryImpl *-- StorageService
+
+Main *-- AppStateManager
+Main *-- Game
+Main *-- MenuRenderer
+Main *-- I18n
+
+@enduml
         +healthPenalty: number
         +collapseDamage: number
     }
