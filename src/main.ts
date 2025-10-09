@@ -4,6 +4,7 @@ import { MenuRenderer } from './presentation/renderers/menu/MenuRenderer.js';
 import { AppStateManager } from './appStateManager.js';
 import { TransitionManager } from './TransitionManager.js';
 import { ResponsiveManager } from './ResponsiveManager.js';
+import { AudioManager, SoundEvent } from './infrastructure/audio/index.js';
 import { DEFAULT_CONFIG } from './shared/constants/index.js';
 import { MenuState } from './types/index.js';
 import { HighscoreModal } from './ui/highscore/HighscoreModal.js';
@@ -20,6 +21,7 @@ let menuRenderer: MenuRenderer;
 let appStateManager: AppStateManager;
 let transitionManager: TransitionManager;
 let responsiveManager: ResponsiveManager;
+let audioManager: AudioManager;
 let canvas: HTMLCanvasElement;
 let menuAnimationId: number;
 
@@ -53,6 +55,8 @@ function startMenuRenderLoop(): void {
  */
 async function startGameFromMenu(): Promise<void> {
     try {
+        audioManager?.playUIClick();
+        
         // Stoppa meny-renderingsloopen
         if (menuAnimationId) {
             cancelAnimationFrame(menuAnimationId);
@@ -78,6 +82,9 @@ async function startGameFromMenu(): Promise<void> {
         
         // Byt till spelläge
         appStateManager.startGame();
+        
+        // Starta spelmusik
+        audioManager?.playBackgroundMusic(SoundEvent.GAME_MUSIC);
         
         console.log('Game started from menu');
     } catch (error) {
@@ -119,6 +126,7 @@ function createOverlay(id: string): HTMLElement {
 function closeOverlay(id: string): void {
     const overlay = document.getElementById(id);
     if (overlay) {
+        audioManager?.playUIClick();
         overlay.remove();
     }
 }
@@ -149,23 +157,27 @@ function toggleAnimations(enabled: boolean): void {
 }
 
 /**
- * Sätter volym
+ * Sätter volym och uppdaterar audio system
  */
 function setVolume(value: string): void {
     const volumeValue = document.getElementById('volumeValue');
     if (volumeValue) {
         volumeValue.textContent = `${value}%`;
     }
+    
+    // Uppdatera audio system
+    const volumeFloat = parseInt(value) / 100;
+    audioManager?.updateSettings({ masterVolume: volumeFloat });
+    
     console.log('Volume set to:', value);
-    // TODO: Implementera faktisk volym-kontroll
 }
 
 /**
  * Togglar ljudeffekter
  */
 function toggleSounds(enabled: boolean): void {
+    audioManager?.updateSettings({ soundsEnabled: enabled });
     console.log('Sounds:', enabled ? 'enabled' : 'disabled');
-    // TODO: Implementera ljud-toggle
 }
 
 /**
@@ -193,6 +205,9 @@ function resetSettings(): void {
         setVolume('50');
     }
     
+    // Återställ audio-inställningar
+    audioManager?.resetSettings();
+    
     console.log('Settings reset to defaults');
 }
 
@@ -201,6 +216,7 @@ function resetSettings(): void {
  */
 function showInstructions(): void {
     console.log('Showing instructions...');
+    audioManager?.playUIClick();
     
     // Skapa instruktions-overlay
     const overlay = createOverlay('instructions-overlay');
@@ -283,6 +299,7 @@ function showInstructions(): void {
  */
 function showSettings(): void {
     console.log('Showing settings...');
+    audioManager?.playUIClick();
     
     // Skapa inställnings-overlay
     const overlay = createOverlay('settings-overlay');
@@ -337,10 +354,26 @@ function showSettings(): void {
     overlay.innerHTML = content;
     document.body.appendChild(overlay);
     
-    // Sätt aktuella värden
+    // Sätt aktuella värden från audio system
     const languageSelect = document.getElementById('settingsLanguageSelect') as HTMLSelectElement;
     if (languageSelect) {
         languageSelect.value = i18n.getCurrentLanguage();
+    }
+    
+    // Sätt audio-inställningar om audio system är initialiserat
+    if (audioManager) {
+        const audioSettings = audioManager.getSettings();
+        
+        const volumeSlider = document.getElementById('volumeSlider') as HTMLInputElement;
+        if (volumeSlider) {
+            volumeSlider.value = (audioSettings.masterVolume * 100).toString();
+            setVolume(volumeSlider.value);
+        }
+        
+        const soundsCheckbox = document.getElementById('enableSounds') as HTMLInputElement;
+        if (soundsCheckbox) {
+            soundsCheckbox.checked = audioSettings.soundsEnabled;
+        }
     }
     
     // Uppdatera översättningar
@@ -507,6 +540,10 @@ async function initializeApp(): Promise<void> {
         i18n = new I18n();
         await i18n.initialize();
         
+        // Initiera ljud-systemet
+        audioManager = new AudioManager();
+        await audioManager.initialize();
+        
         // Hämta canvas-element
         canvas = document.getElementById('gameCanvas') as HTMLCanvasElement;
         if (!canvas) {
@@ -558,6 +595,9 @@ async function initializeApp(): Promise<void> {
         
         // Starta menyloopen
         startMenuRenderLoop();
+        
+        // Starta menymusik
+        audioManager?.playBackgroundMusic(SoundEvent.MENU_MUSIC);
         
         console.log('Applikationen initialiserad');
         
@@ -721,6 +761,9 @@ function highlightButton(index: number): void {
         }
     });
     
+    // Spela hover-ljud
+    audioManager?.playUIHover();
+    
     console.log(`Button highlighted: ${buttons[index]}`);
 }
 
@@ -786,6 +829,10 @@ function cleanup(): void {
     
     if (responsiveManager) {
         responsiveManager.destroy();
+    }
+    
+    if (audioManager) {
+        audioManager.destroy();
     }
 }
 
