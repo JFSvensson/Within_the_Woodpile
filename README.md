@@ -14,6 +14,7 @@ Spelet har **fullständig startmeny** med animerad skogsglänta-bakgrund, **fler
 - **Animerad vedstapel-logotyp** med "andning"-effekt
 - **Träknapp-design** med hover-effekter
 - **Språkväljare** i header för direkt tillgång
+- **Smooth övergångar** med fade-effekter mellan meny och spel
 
 ### Grundläggande spelande
 - **Klicka på ved** för att plocka den (runda vedpinnar)
@@ -95,7 +96,8 @@ Komplett highscore-tracking med automatisk integration:
 - **BaseRenderer Pattern** för konsistent rendering-hierarki
 - **Barrel Exports** för modulär export-struktur
 - **Internationalisering (i18n)** med JSON-språkfiler
-- **State management** med AppStateManager
+- **State management** med AppStateManager och TransitionManager
+- **Responsive design** med ResponsiveManager för adaptiv canvas-skalning
 - **Modern ES modules** och SOLID-principles
 - **GitHub Copilot** för AI-assisterad kodutveckling
 
@@ -104,6 +106,8 @@ Komplett highscore-tracking med automatisk integration:
 src/
 ├── main.ts                       # Startpunkt och app-initialisering
 ├── appStateManager.ts            # State management (meny ↔ spel)
+├── TransitionManager.ts          # Smooth övergångar med fade-effekter
+├── ResponsiveManager.ts          # Responsiv canvas-hantering
 ├── types/                        # Typ-definitioner (modulär)
 │   ├── index.ts                  # Barrel export för alla typer
 │   ├── game.ts                   # Spel-relaterade typer
@@ -193,6 +197,10 @@ Projektet följer **Clean Architecture** och **clean code-principer** med AI-ass
   - `src/infrastructure/storage/` - Data-persistering
 - **Presentation**: UI, rendering och användarinteraktion
   - `src/presentation/renderers/` - Alla renderare med BaseRenderer-hierarki
+- **Application Layer**: High-level koordination och transitions
+  - `src/AppStateManager.ts` - State-hantering för app-nivå
+  - `src/TransitionManager.ts` - Smooth övergångar mellan states
+  - `src/ResponsiveManager.ts` - Responsiv canvas-anpassning
 - **Shared**: Delade utilities och konstanter
   - `src/shared/constants/` - Konfiguration och konstanter
   - `src/types/` - TypeScript-typedefinitioner
@@ -269,6 +277,8 @@ Alla tester använder **TypeScript strict mode** och **Vitest** för modern test
 - [x] **Animerad vedstapel-logotyp** med "andning"-effekt och brick-pattern
 - [x] **Träknapp-design** med hover-effekter och rotation
 - [x] **State management** för smidig övergång mellan meny och spel
+- [x] **Smooth transitions** med TransitionManager och fade-effekter
+- [x] **Responsive design** med ResponsiveManager för adaptiv canvas
 - [x] **Språkväljare** integrerad i header
 
 ### Kärnfunktioner
@@ -294,6 +304,8 @@ Alla tester använder **TypeScript strict mode** och **Vitest** för modern test
 - [x] **Modulär komponentdesign** med BaseRenderer-hierarki och barrel exports
 - [x] **Komplett UML-dokumentation** (class, component, dataflow)
 - [x] **Event-driven state management** med observer patterns
+- [x] **Transition management** för professionella övergångar med fade-effekter
+- [x] **Responsive canvas** som anpassar sig automatiskt till viewport
 - [x] **Automatiserad byggprocess** med modulär i18n-kopiering
 - [x] **Separation of Concerns** med domain/infrastructure/presentation layers
 
