@@ -446,6 +446,14 @@ Intelligent kollapsförutsägelse använder:
 
 ### State management
 - **AppStateManager** hanterar övergångar mellan meny och spel
+- **TransitionManager** ger smooth fade-effekter (800ms default)
+  - Promise-baserad API för async/await
+  - Konfigurerbar duration och loading-meddelanden
+  - Clean separation från state-logik
+- **ResponsiveManager** hanterar canvas-skalning
+  - Automatisk anpassning till viewport-storlek
+  - Breakpoint-hantering för mobil/tablet/desktop
+  - Event-driven resize med debouncing
 - **MenuState enum** för clean state-definitioner
 - **Event-driven callbacks** för state-ändringar
 - **Automatisk resurs-hantering** vid state-övergångar
