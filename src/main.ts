@@ -123,10 +123,14 @@ function createOverlay(id: string): HTMLElement {
 /**
  * Stänger en overlay
  */
-function closeOverlay(id: string): void {
+async function closeOverlay(id: string): Promise<void> {
     const overlay = document.getElementById(id);
     if (overlay) {
         audioManager?.playUIClick();
+        
+        // Använd TransitionManager för smooth exit
+        await transitionManager?.transitionFromModal(overlay);
+        
         overlay.remove();
     }
 }
@@ -212,9 +216,9 @@ function resetSettings(): void {
 }
 
 /**
- * Visar instruktions-overlay
+ * Visar instruktions-overlay med smooth transition
  */
-function showInstructions(): void {
+async function showInstructions(): Promise<void> {
     console.log('Showing instructions...');
     audioManager?.playUIClick();
     
@@ -284,6 +288,9 @@ function showInstructions(): void {
     // Uppdatera översättningar
     i18n.updateUI();
     
+    // Använd TransitionManager för smooth entrance
+    await transitionManager?.transitionToModal(overlay);
+    
     // Lägg till escape-hantering
     const escapeHandler = (e: KeyboardEvent) => {
         if (e.key === 'Escape') {
@@ -295,9 +302,9 @@ function showInstructions(): void {
 }
 
 /**
- * Visar inställnings-overlay
+ * Visar inställnings-overlay med smooth transition
  */
-function showSettings(): void {
+async function showSettings(): Promise<void> {
     console.log('Showing settings...');
     audioManager?.playUIClick();
     
@@ -378,6 +385,9 @@ function showSettings(): void {
     
     // Uppdatera översättningar
     i18n.updateUI();
+    
+    // Använd TransitionManager för smooth entrance
+    await transitionManager?.transitionToModal(overlay);
     
     // Lägg till escape-hantering
     const escapeHandler = (e: KeyboardEvent) => {
@@ -556,8 +566,8 @@ async function initializeApp(): Promise<void> {
         // Skapa responsive manager
         responsiveManager = new ResponsiveManager(canvas);
         
-        // Skapa transition manager
-        transitionManager = new TransitionManager(i18n);
+        // Skapa transition manager med responsive manager
+        transitionManager = new TransitionManager(i18n, responsiveManager);
         
         // Skapa meny renderer
         menuRenderer = new MenuRenderer(canvas, i18n);
