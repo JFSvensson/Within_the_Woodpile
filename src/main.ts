@@ -181,13 +181,50 @@ function setVolume(value: string): void {
  */
 function toggleSounds(enabled: boolean): void {
     audioManager?.updateSettings({ soundsEnabled: enabled });
+    
+    // Spela feedback-ljud om UI sounds är aktiverade
+    if (enabled && audioManager?.getSettings().uiSoundsEnabled) {
+        audioManager?.playUIClick();
+    }
+    
     console.log('Sounds:', enabled ? 'enabled' : 'disabled');
+}
+
+/**
+ * Togglar bakgrundsmusik
+ */
+function toggleMusic(enabled: boolean): void {
+    audioManager?.updateSettings({ musicEnabled: enabled });
+    
+    // Spela feedback-ljud om UI sounds är aktiverade
+    if (audioManager?.getSettings().uiSoundsEnabled) {
+        audioManager?.playUIClick();
+    }
+    
+    console.log('Music:', enabled ? 'enabled' : 'disabled');
+}
+
+/**
+ * Togglar UI-ljud
+ */
+function toggleUISounds(enabled: boolean): void {
+    audioManager?.updateSettings({ uiSoundsEnabled: enabled });
+    
+    // Spela feedback-ljud om det precis aktiverades
+    if (enabled) {
+        audioManager?.playUIClick();
+    }
+    
+    console.log('UI Sounds:', enabled ? 'enabled' : 'disabled');
 }
 
 /**
  * Återställer inställningar till standard
  */
 function resetSettings(): void {
+    // Spela feedback-ljud
+    audioManager?.playUIClick();
+    
     // Återställ språk
     i18n.loadLanguage('sv').then(() => {
         i18n.updateUI();
@@ -195,22 +232,37 @@ function resetSettings(): void {
         if (languageSelect) languageSelect.value = 'sv';
     });
     
-    // Återställ checkboxes
-    const checkboxes = ['enableParticles', 'enableAnimations', 'enableSounds'];
-    checkboxes.forEach(id => {
+    // Återställ grafik-checkboxes
+    const graphicsCheckboxes = ['enableParticles', 'enableAnimations'];
+    graphicsCheckboxes.forEach(id => {
         const checkbox = document.getElementById(id) as HTMLInputElement;
         if (checkbox) checkbox.checked = true;
     });
     
-    // Återställ volym
-    const volumeSlider = document.getElementById('volumeSlider') as HTMLInputElement;
-    if (volumeSlider) {
-        volumeSlider.value = '50';
-        setVolume('50');
-    }
-    
-    // Återställ audio-inställningar
+    // Återställ audio-inställningar i AudioManager (sätter defaults)
     audioManager?.resetSettings();
+    
+    // Uppdatera UI för att reflektera återställda värden
+    if (audioManager) {
+        const audioSettings = audioManager.getSettings();
+        
+        // Återställ volym slider
+        const volumeSlider = document.getElementById('volumeSlider') as HTMLInputElement;
+        if (volumeSlider) {
+            volumeSlider.value = (audioSettings.masterVolume * 100).toString();
+            setVolume(volumeSlider.value);
+        }
+        
+        // Återställ alla audio checkboxes
+        const soundsCheckbox = document.getElementById('enableSounds') as HTMLInputElement;
+        if (soundsCheckbox) soundsCheckbox.checked = audioSettings.soundsEnabled;
+        
+        const musicCheckbox = document.getElementById('enableMusic') as HTMLInputElement;
+        if (musicCheckbox) musicCheckbox.checked = audioSettings.musicEnabled;
+        
+        const uiSoundsCheckbox = document.getElementById('enableUISounds') as HTMLInputElement;
+        if (uiSoundsCheckbox) uiSoundsCheckbox.checked = audioSettings.uiSoundsEnabled;
+    }
     
     console.log('Settings reset to defaults');
 }
@@ -340,14 +392,43 @@ async function showSettings(): Promise<void> {
                 
                 <div class="setting-section">
                     <h3 data-i18n="settings.audio">Ljud</h3>
-                    <label class="setting-item">
-                        <span data-i18n="settings.volume">Volym</span>
-                        <input type="range" id="volumeSlider" min="0" max="100" value="50" oninput="setVolume(this.value)">
-                        <span id="volumeValue">50%</span>
+                    
+                    <!-- Master Volume Slider -->
+                    <div class="setting-item volume-control">
+                        <label for="volumeSlider">
+                            <span data-i18n="settings.volume">Volym</span>
+                        </label>
+                        <div class="slider-container">
+                            <input type="range" id="volumeSlider" min="0" max="100" value="50" oninput="setVolume(this.value)">
+                            <span id="volumeValue" class="volume-display">50%</span>
+                        </div>
+                    </div>
+                    
+                    <!-- Sound Effects Toggle -->
+                    <label class="setting-item toggle-item">
+                        <span data-i18n="settings.sounds">Ljudeffekter</span>
+                        <div class="toggle-switch">
+                            <input type="checkbox" id="enableSounds" checked onchange="toggleSounds(this.checked)">
+                            <span class="toggle-slider"></span>
+                        </div>
                     </label>
-                    <label class="setting-item">
-                        <input type="checkbox" id="enableSounds" checked onchange="toggleSounds(this.checked)">
-                        <span data-i18n="settings.sounds">Aktivera ljudeffekter</span>
+                    
+                    <!-- Background Music Toggle -->
+                    <label class="setting-item toggle-item">
+                        <span data-i18n="settings.music">Bakgrundsmusik</span>
+                        <div class="toggle-switch">
+                            <input type="checkbox" id="enableMusic" checked onchange="toggleMusic(this.checked)">
+                            <span class="toggle-slider"></span>
+                        </div>
+                    </label>
+                    
+                    <!-- UI Sounds Toggle -->
+                    <label class="setting-item toggle-item">
+                        <span data-i18n="settings.uiSounds">UI-ljud</span>
+                        <div class="toggle-switch">
+                            <input type="checkbox" id="enableUISounds" checked onchange="toggleUISounds(this.checked)">
+                            <span class="toggle-slider"></span>
+                        </div>
                     </label>
                 </div>
             </div>
@@ -371,15 +452,29 @@ async function showSettings(): Promise<void> {
     if (audioManager) {
         const audioSettings = audioManager.getSettings();
         
+        // Sätt master volume
         const volumeSlider = document.getElementById('volumeSlider') as HTMLInputElement;
         if (volumeSlider) {
             volumeSlider.value = (audioSettings.masterVolume * 100).toString();
             setVolume(volumeSlider.value);
         }
         
+        // Sätt sound effects toggle
         const soundsCheckbox = document.getElementById('enableSounds') as HTMLInputElement;
         if (soundsCheckbox) {
             soundsCheckbox.checked = audioSettings.soundsEnabled;
+        }
+        
+        // Sätt music toggle
+        const musicCheckbox = document.getElementById('enableMusic') as HTMLInputElement;
+        if (musicCheckbox) {
+            musicCheckbox.checked = audioSettings.musicEnabled;
+        }
+        
+        // Sätt UI sounds toggle
+        const uiSoundsCheckbox = document.getElementById('enableUISounds') as HTMLInputElement;
+        if (uiSoundsCheckbox) {
+            uiSoundsCheckbox.checked = audioSettings.uiSoundsEnabled;
         }
     }
     
