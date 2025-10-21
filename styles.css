@@ -471,40 +471,187 @@ select:focus {
 
 /* Inställningar specifika stilar */
 .setting-section {
-    margin-bottom: 25px;
+    margin-bottom: 30px;
+    padding: 15px;
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 8px;
+    border: 1px solid rgba(139, 69, 19, 0.3);
 }
 
 .setting-section h3 {
     color: #d2691e;
-    margin-bottom: 15px;
+    margin: 0 0 20px 0;
     font-size: 1.3rem;
+    padding-bottom: 10px;
+    border-bottom: 2px solid rgba(139, 69, 19, 0.4);
 }
 
 .setting-item {
     display: flex;
     align-items: center;
-    gap: 10px;
-    margin: 10px 0;
+    justify-content: space-between;
+    gap: 15px;
+    margin: 15px 0;
+    padding: 10px;
+    border-radius: 6px;
+    transition: background-color 0.2s;
+}
+
+.setting-item:hover {
+    background-color: rgba(139, 69, 19, 0.1);
+}
+
+/* Volume Control */
+.setting-item.volume-control {
+    flex-direction: column;
+    align-items: stretch;
+}
+
+.setting-item.volume-control label {
+    display: block;
+    margin-bottom: 10px;
+    font-weight: 500;
+}
+
+.slider-container {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.volume-display {
+    min-width: 50px;
+    text-align: right;
+    font-weight: bold;
+    color: #d2691e;
+    font-size: 1.1rem;
+}
+
+/* Custom Range Slider */
+.setting-item input[type="range"] {
+    flex: 1;
+    height: 8px;
+    border-radius: 4px;
+    background: linear-gradient(to right, #8b4513 0%, #d2691e 100%);
+    outline: none;
+    -webkit-appearance: none;
+}
+
+.setting-item input[type="range"]::-webkit-slider-thumb {
+    appearance: none;
+    -webkit-appearance: none;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: #deb887;
+    cursor: pointer;
+    border: 3px solid #8b4513;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+    transition: all 0.2s;
+}
+
+.setting-item input[type="range"]::-webkit-slider-thumb:hover {
+    background: #d2691e;
+    transform: scale(1.1);
+}
+
+.setting-item input[type="range"]::-moz-range-thumb {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: #deb887;
+    cursor: pointer;
+    border: 3px solid #8b4513;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+    transition: all 0.2s;
+}
+
+.setting-item input[type="range"]::-moz-range-thumb:hover {
+    background: #d2691e;
+    transform: scale(1.1);
+}
+
+/* Toggle Switch Styling */
+.setting-item.toggle-item {
     cursor: pointer;
 }
 
-.setting-item input[type="checkbox"] {
-    transform: scale(1.2);
+.toggle-switch {
+    position: relative;
+    width: 50px;
+    height: 26px;
+    flex-shrink: 0;
 }
 
-.setting-item input[type="range"] {
-    flex: 1;
-    margin: 0 10px;
+.toggle-switch input[type="checkbox"] {
+    opacity: 0;
+    width: 0;
+    height: 0;
 }
 
+.toggle-slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #52301a;
+    transition: 0.3s;
+    border-radius: 26px;
+    border: 2px solid #8b4513;
+}
+
+.toggle-slider:before {
+    position: absolute;
+    content: "";
+    height: 18px;
+    width: 18px;
+    left: 3px;
+    bottom: 2px;
+    background-color: #deb887;
+    transition: 0.3s;
+    border-radius: 50%;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.toggle-switch input:checked + .toggle-slider {
+    background-color: #228b22;
+    border-color: #1f5f1f;
+}
+
+.toggle-switch input:checked + .toggle-slider:before {
+    transform: translateX(24px);
+    background-color: #90ee90;
+}
+
+.toggle-switch input:focus + .toggle-slider {
+    box-shadow: 0 0 1px #228b22;
+}
+
+/* Language Select */
 .setting-section select {
-    padding: 8px 12px;
-    border: 1px solid #8b4513;
-    border-radius: 4px;
+    padding: 10px 15px;
+    border: 2px solid #8b4513;
+    border-radius: 6px;
     background-color: #1a0f08;
     color: #f4f4f4;
-    font-size: 14px;
-    width: 200px;
+    font-size: 15px;
+    width: 100%;
+    max-width: 250px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.setting-section select:hover {
+    border-color: #d2691e;
+    background-color: #2a1810;
+}
+
+.setting-section select:focus {
+    outline: none;
+    border-color: #d2691e;
+    box-shadow: 0 0 0 3px rgba(210, 105, 30, 0.2);
 }
 
 /* Wood button styling för modaler */
