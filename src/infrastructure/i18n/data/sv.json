@@ -46,7 +46,9 @@
     "animations": "Aktivera animationer",
     "audio": "Ljud",
     "volume": "Volym",
-    "sounds": "Aktivera ljudeffekter",
+    "sounds": "Ljudeffekter",
+    "music": "Bakgrundsmusik",
+    "uiSounds": "UI-ljud",
     "reset": "Återställ"
   },
   "highscore": {

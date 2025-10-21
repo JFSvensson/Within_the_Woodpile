@@ -46,7 +46,9 @@
     "animations": "Enable animations",
     "audio": "Audio",
     "volume": "Volume",
-    "sounds": "Enable sound effects",
+    "sounds": "Sound Effects",
+    "music": "Background Music",
+    "uiSounds": "UI Sounds",
     "reset": "Reset"
   },
   "highscore": {
