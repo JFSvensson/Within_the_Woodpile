@@ -7,6 +7,7 @@ import { DEFAULT_CONFIG } from '../../shared/constants/index.js';
 import { WoodPileGenerator } from '../services/WoodPileGenerator.js';
 import { GameRenderer } from '../../presentation/renderers/game/GameRenderer.js';
 import { WoodCollapseAnimator } from '../../presentation/renderers/WoodCollapseAnimator.js';
+import { ScreenShakeManager } from '../../presentation/renderers/ScreenShakeManager.js';
 import { CollapseParticleSystem } from '../../particles/CollapseParticleSystem.js';
 import { I18n } from '../../infrastructure/i18n/I18n.js';
 import { GameInputHandler } from '../../infrastructure/input/GameInputHandler.js';
@@ -24,6 +25,7 @@ export class Game {
   private renderer: GameRenderer;
   private collapseAnimator: WoodCollapseAnimator;
   private particleSystem: CollapseParticleSystem;
+  private screenShake: ScreenShakeManager;
   private i18n: I18n;
   private inputHandler: GameInputHandler;
   private creatureManager: CreatureManager;
@@ -43,6 +45,7 @@ export class Game {
     this.renderer = new GameRenderer(canvas, i18n);
     this.collapseAnimator = new WoodCollapseAnimator();
     this.particleSystem = new CollapseParticleSystem();
+    this.screenShake = new ScreenShakeManager();
     
     // Skapa state manager först
     this.stateManager = new GameStateManager(config);
@@ -99,6 +102,9 @@ export class Game {
       
       // Starta kollaps-animationer för de rasande pinnarna
       this.collapseAnimator.startCollapse(collapsingPieces);
+      
+      // Starta screen shake baserat på antal rasande pinnar
+      this.screenShake.startShake(collapsingPieces.length);
       
       // Skapa partiklar för varje rasande pinne
       collapsingPieces.forEach(piece => {
@@ -183,21 +189,32 @@ export class Game {
   private render(): void {
     const currentHoveredPiece = this.inputHandler.getCurrentHoveredPiece();
     const currentState = this.stateManager.getGameStateReference();
+    const ctx = this.canvas.getContext('2d');
+    
+    if (!ctx) return;
+    
+    // Spara canvas state
+    ctx.save();
+    
+    // Applicera screen shake om aktiv
+    if (this.screenShake.isActive()) {
+      this.screenShake.applyShake(ctx);
+    }
     
     // Rendera normal spel-state
     this.renderer.render(this.woodPieces, currentState, currentHoveredPiece);
     
     // Rendera kollapsande pinnar och partiklar ovanpå
-    const ctx = this.canvas.getContext('2d');
-    if (ctx) {
-      // Rita kollapsande pinnar
-      this.woodPieces
-        .filter(piece => piece.isCollapsing)
-        .forEach(piece => this.collapseAnimator.render(ctx, piece));
-      
-      // Rita partiklar
-      this.particleSystem.render(ctx);
-    }
+    // Rita kollapsande pinnar
+    this.woodPieces
+      .filter(piece => piece.isCollapsing)
+      .forEach(piece => this.collapseAnimator.render(ctx, piece));
+    
+    // Rita partiklar
+    this.particleSystem.render(ctx);
+    
+    // Återställ canvas state
+    ctx.restore();
   }
 
   /**
@@ -248,6 +265,7 @@ export class Game {
     this.stateManager.destroy();
     this.collapseAnimator.destroy();
     this.particleSystem.destroy();
+    this.screenShake.destroy();
   }
 
   /**
