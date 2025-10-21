@@ -28,18 +28,18 @@ export class WoodPieceRenderer extends BaseRenderer {
   drawWoodPieces(woodPieces: WoodPiece[], hoveredPiece?: WoodPiece, affectedPieces: AffectedPiece[] = []): void {
     // Rita alla icke-påverkade pinnar först
     woodPieces
-      .filter(piece => !piece.isRemoved)
+      .filter(piece => !piece.isRemoved && !piece.isCollapsing)
       .filter(piece => piece !== hoveredPiece)
       .filter(piece => !affectedPieces.some(affected => affected.piece.id === piece.id))
       .forEach(piece => this.drawWoodPiece(piece, false, undefined));
     
     // Rita påverkade pinnar med highlighting
     affectedPieces
-      .filter(affected => !affected.piece.isRemoved)
+      .filter(affected => !affected.piece.isRemoved && !affected.piece.isCollapsing)
       .forEach(affected => this.drawWoodPiece(affected.piece, false, affected.prediction));
     
     // Rita hovrad pinne sist (ovanpå allt)
-    if (hoveredPiece && !hoveredPiece.isRemoved) {
+    if (hoveredPiece && !hoveredPiece.isRemoved && !hoveredPiece.isCollapsing) {
       this.drawWoodPiece(hoveredPiece, true, undefined);
     }
   }
