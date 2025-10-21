@@ -10,3 +10,6 @@ export * from './menu/index.js';
 
 // Shared renderers
 export * from './shared/index.js';
+
+// Animation systems
+export { WoodCollapseAnimator } from './WoodCollapseAnimator.js';
