@@ -13,3 +13,4 @@ export * from './shared/index.js';
 
 // Animation systems
 export { WoodCollapseAnimator } from './WoodCollapseAnimator.js';
+export { ScreenShakeManager } from './ScreenShakeManager.js';
