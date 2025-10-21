@@ -9,19 +9,25 @@ const mockCanvas = {
     strokeStyle: '',
     font: '',
     textAlign: '',
+    lineWidth: 1,
+    globalAlpha: 1,
     fillRect: vi.fn(),
+    strokeRect: vi.fn(),
     fillText: vi.fn(),
     beginPath: vi.fn(),
     arc: vi.fn(),
     fill: vi.fn(),
+    stroke: vi.fn(),
     save: vi.fn(),
     restore: vi.fn(),
     translate: vi.fn(),
+    rotate: vi.fn(),
     scale: vi.fn(),
     createLinearGradient: vi.fn(() => ({
       addColorStop: vi.fn()
     })),
-    measureText: vi.fn(() => ({ width: 100 }))
+    measureText: vi.fn(() => ({ width: 100 })),
+    canvas: { width: 800, height: 600 }
   })),
   width: 800,
   height: 600,
