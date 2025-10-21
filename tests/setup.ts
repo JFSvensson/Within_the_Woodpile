@@ -23,6 +23,9 @@ const mockCanvas = {
     translate: vi.fn(),
     rotate: vi.fn(),
     scale: vi.fn(),
+    moveTo: vi.fn(),
+    lineTo: vi.fn(),
+    closePath: vi.fn(),
     createLinearGradient: vi.fn(() => ({
       addColorStop: vi.fn()
     })),
@@ -46,8 +49,8 @@ Object.defineProperty(window, 'HTMLCanvasElement', {
 })
 
 // Mock animationFrame för spelloop-tests
-globalThis.requestAnimationFrame = vi.fn((cb: FrameRequestCallback) => setTimeout(cb, 16))
-globalThis.cancelAnimationFrame = vi.fn()
+globalThis.requestAnimationFrame = vi.fn((cb: FrameRequestCallback) => setTimeout(cb, 16) as unknown as number)
+globalThis.cancelAnimationFrame = vi.fn((id: number) => clearTimeout(id))
 
 // Mock localStorage för inställningar
 const localStorageMock = {
