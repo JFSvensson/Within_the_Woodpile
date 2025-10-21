@@ -64,6 +64,14 @@ describe('Core Game Logic Tests', () => {
             vi.clearAllTimers();
         });
 
+        afterEach(() => {
+            // Stoppa game loop för att undvika "unhandled errors"
+            if (gameLoop && gameLoop.isLoopRunning()) {
+                gameLoop.stop();
+            }
+            vi.clearAllTimers();
+        });
+
         describe('Loop initialization and lifecycle', () => {
             it('should initialize with stopped state', () => {
                 expect(gameLoop.isLoopRunning()).toBe(false);
