@@ -43,6 +43,13 @@ export interface WoodPiece {
   isRemoved: boolean;
   creature?: CreatureType;
   collapseRisk: CollapseRisk;
+  
+  // Animation properties
+  isCollapsing?: boolean;
+  collapseStartTime?: number;
+  collapseVelocity?: { x: number; y: number };
+  collapseRotation?: number;
+  collapseRotationSpeed?: number;
 }
 
 /**
