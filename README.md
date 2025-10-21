@@ -327,8 +327,9 @@ npm run test:coverage # Generera täckningsrapport
 - **Audio tests**: AudioManager, AudioSettings och SoundService
 - **Animation tests**: Fysikbaserade animationer och partikeleffekter
 - **Core game logic tests**: GameLoop och Game orchestration
+- **Collision & Physics tests**: CollisionManager och CollapsePredictionCalculator
 
-#### Test-täckning per område (327 tester totalt, 46.49% coverage)
+#### Test-täckning per område (360 tester totalt, 48.30% coverage)
 - **Core business logic**: 34 tester (HighscoreService, spellogik)
 - **Infrastructure**: 61 tester (Storage, I18n, input, audio-system)
 - **UI-komponenter**: 28 tester (HighscoreModal, MenuButtonManager)
@@ -339,6 +340,7 @@ npm run test:coverage # Generera täckningsrapport
 - **Audio system**: 34 tester (AudioManager, AudioSettings, SoundService)
 - **Animation system**: 40 tester (WoodCollapseAnimator 97%, ScreenShakeManager 99%, CollapseParticleSystem 96%)
 - **Core game logic**: 40 tester (GameLoop 97%, Game 67%)
+- **Collision & Physics**: 33 tester (CollisionManager 100%!, CollapsePredictionCalculator 81%)
 - **Game managers**: 12 tester (CollisionManager, CreatureManager, GameStateManager)
 
 Alla tester använder **TypeScript strict mode** och **Vitest** för modern testmiljö.
