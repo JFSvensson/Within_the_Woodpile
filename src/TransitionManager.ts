@@ -1,4 +1,5 @@
 import { I18n } from './infrastructure/i18n/I18n.js';
+import { ResponsiveManager } from './ResponsiveManager.js';
 
 /**
  * Hanterar smooth övergångar mellan olika applikationstillstånd
@@ -8,9 +9,11 @@ export class TransitionManager {
   private overlayText: HTMLElement;
   private canvas: HTMLCanvasElement;
   private i18n: I18n;
+  private responsiveManager?: ResponsiveManager;
 
-  constructor(i18n: I18n) {
+  constructor(i18n: I18n, responsiveManager?: ResponsiveManager) {
     this.i18n = i18n;
+    this.responsiveManager = responsiveManager;
     this.overlay = document.getElementById('transitionOverlay')!;
     this.overlayText = this.overlay.querySelector('[data-i18n]')!;
     this.canvas = document.getElementById('gameCanvas') as HTMLCanvasElement;
@@ -161,5 +164,59 @@ export class TransitionManager {
     }
     
     document.body.classList.add('menu-mode');
+  }
+
+  /**
+   * Smooth övergång till modal/overlay (för Settings, Instructions etc.)
+   * @param modalElement Det modal-element som ska visas
+   */
+  async transitionToModal(modalElement: HTMLElement): Promise<void> {
+    return new Promise((resolve) => {
+      // Lägg till klasser för animation
+      modalElement.classList.add('modal-entering');
+      
+      // Trigger reflow för att säkerställa animation körs
+      void modalElement.offsetWidth;
+      
+      // Aktivera modal
+      modalElement.classList.add('active');
+      modalElement.classList.remove('modal-entering');
+      
+      // Vänta på CSS transition (snabbare än full screen transitions)
+      setTimeout(() => {
+        resolve();
+      }, 400);
+    });
+  }
+
+  /**
+   * Smooth övergång från modal/overlay
+   * @param modalElement Det modal-element som ska döljas
+   */
+  async transitionFromModal(modalElement: HTMLElement): Promise<void> {
+    return new Promise((resolve) => {
+      // Lägg till exit-animation
+      modalElement.classList.add('modal-exiting');
+      
+      // Vänta på CSS transition
+      setTimeout(() => {
+        modalElement.classList.remove('active', 'modal-exiting');
+        resolve();
+      }, 400);
+    });
+  }
+
+  /**
+   * Cleanup method - frigör resurser och tar bort event listeners
+   */
+  public destroy(): void {
+    // ResponsiveManager har egen destroy om den finns
+    if (this.responsiveManager) {
+      // ResponsiveManager hanterar sin egen cleanup
+    }
+    
+    // Rensa eventuella pågående transitions
+    this.overlay.classList.remove('active');
+    this.canvas.classList.remove('fading');
   }
 }
