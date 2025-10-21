@@ -87,6 +87,64 @@ Komplett highscore-tracking med automatisk integration:
 - **Stödberäkning**: Använder centrum-till-centrum-distans för runda pinnar
 - **Layered rendering**: Visar påverkade pinnar med korrekt z-order
 
+### Kollaps-animationer och effekter 🎬
+När vedstapeln rasar kommer du uppleva:
+
+#### WoodCollapseAnimator - Fysikbaserade fallanimationer
+- **Realistisk gravitation**: 0.5 px/frame² för naturlig acceleration
+- **Max fallhastighet**: 15 px/frame för kontrollerad animation
+- **Dynamisk rotation**: Slumpmässig rotation (-0.15 till 0.15 rad/frame) för organisk känsla
+- **Smooth fade-out**: Gradvis transparency över 1 sekund när veden faller
+- **Individuell animering**: Varje vedpinne animeras separat med unika egenskaper
+
+#### CollapseParticleSystem - Dramatiska partikeleffekter
+- **Intensitetsbaserade partiklar**: 15-50 partiklar beroende på kollapsstorlek
+- **Två partikeltyper**:
+  - 30% träflisor (rektangulära, 3-7px) med brun färgton
+  - 70% damm (cirkulära, 2-5px) med ljusbrun/beige färg
+- **Realistisk fysik**:
+  - Gravitation: 0.3 px/frame² för lätta partiklar
+  - Luftmotstånd: 0.98 för naturlig avklingning
+  - Slumpmässig initial hastighet i alla riktningar
+- **Livscykel**: 1-2 sekunder med gradvis fade-out
+
+#### ScreenShakeManager - Intensitetsbaserad skärmskakning
+- **Dynamisk shake-intensitet**: 
+  - Bas-shake: 5px
+  - +2px per kollapsande vedpinne
+  - Max: 20px för stora kollaps (6+ pinnar)
+- **Adaptiv varaktighet**:
+  - Bas: 250ms
+  - +50ms per vedpinne
+  - Max: 600ms
+- **Smooth avklingning**: Exponentiell decay för professionell känsla
+- **Subtil rotation**: ±0.01 radianer för extra djup
+
+**Användarupplevelse:**
+- 🟢 **Små kollaps (1-2 pinnar)**: Subtil skakning, få partiklar, snabb animation
+- 🟡 **Medelstora kollaps (3-5 pinnar)**: Tydlig skakning, mer partiklar, dramatisk känsla
+- 🔴 **Stora kollaps (6+ pinnar)**: Kraftig skakning, många partiklar, kaotisk och impactfull effekt
+
+### Ljudsystem 🔊
+Komplett AudioManager för immersiv spelupplevelse:
+
+#### AudioManager-funktioner
+- **Master Volume**: Huvudvolymkontroll (0-100%)
+- **Separata kanaler**:
+  - Sound Effects: Spelljud och effekter
+  - Music: Bakgrundsmusik
+  - UI Sounds: Meny- och knappljud
+- **Play/Pause/Stop-kontroller** för musik
+- **Mute-funktionalitet** per kanal
+- **Persistent inställningar** via LocalStorage
+
+#### AudioSettings UI
+- **Modern toggle-design**: iOS-inspirerade switches för varje ljudkanal
+- **Volume slider**: Custom-stylad range input med live-förhandsgranskning
+- **Visual feedback**: Färgkodade toggles (grön = på, grå = av)
+- **Responsiv layout**: Fungerar på alla enheter
+- **Flerspråksstöd**: Alla labels och beskrivningar lokaliserade (sv/en)
+
 ## Teknisk info
 
 ### Utvecklat med
@@ -138,6 +196,12 @@ src/
 │       └── index.ts
 ├── infrastructure/               # Externa integrationer (Clean Architecture)
 │   ├── index.ts                  # Barrel export
+│   ├── audio/                    # Ljudsystem
+│   │   ├── AudioManager.ts       # Huvudklass för ljudhantering
+│   │   ├── AudioSettings.ts      # Persistent ljudinställningar
+│   │   ├── SoundService.ts       # Ljudeffekt-service
+│   │   ├── types.ts              # Audio-typdefinitioner
+│   │   └── index.ts
 │   ├── i18n/
 │   │   ├── I18n.ts               # Internationalisering-klass
 │   │   ├── index.ts
@@ -164,12 +228,14 @@ src/
 │       ├── game/
 │       │   ├── GameRenderer.ts   # Koordinerar all spelrendering
 │       │   ├── WoodPieceRenderer.ts # Runda vedpinnar med textur
+│       │   ├── WoodCollapseAnimator.ts # Fysikbaserade fallanimationer
 │       │   ├── UIRenderer.ts     # Varelser och UI-element
 │       │   └── index.ts
 │       └── menu/
 │           ├── MenuRenderer.ts   # Fullständig menyrendering
 │           ├── LogoRenderer.ts   # Animerad logo med vedstapel
 │           ├── BackgroundRenderer.ts # Skogsglänta med träd
+│           ├── ScreenShakeManager.ts # Skärmskakning för kollaps
 │           └── index.ts
 ├── ui/
 │   ├── MenuButtonManager.ts      # Knappar och interaktion
@@ -180,7 +246,8 @@ src/
 │       ├── StatisticsPanel.ts    # Spelstatistik och översikter
 │       └── index.ts
 └── particles/
-    └── MenuParticleSystem.ts     # Fallande löv-partiklar
+    ├── MenuParticleSystem.ts     # Fallande löv-partiklar
+    └── CollapseParticleSystem.ts # Träflisor och damm vid kollaps
 ```
 
 ### Arkitektur
@@ -242,11 +309,12 @@ npm run build  # Kompilerar och kopierar filer till dist/
 3. Eller använd VS Code Live Server på `dist/index.html`
 
 ### Testning 🧪
-Projektet har omfattande testtäckning med 213 automatiserade tester:
+Projektet har omfattande testtäckning med 247 automatiserade tester:
 
 ```bash
 npm test              # Kör alla tester med Vitest
 npm run test:watch    # Kör tester i watch-mode
+npm run test:coverage # Generera täckningsrapport
 ```
 
 #### Test-arkitektur
@@ -256,15 +324,17 @@ npm run test:watch    # Kör tester i watch-mode
 - **Storage tests**: LocalStorage-persistering och datahantering
 - **I18n tests**: Översättningar och lokalisering
 - **Edge case tests**: Gränsfall och felhantering
+- **Audio tests**: AudioManager, AudioSettings och SoundService
 
 #### Test-täckning per område
 - **Core business logic**: 34 tester (HighscoreService, spellogik)
-- **Infrastructure**: 28 tester (Storage, I18n, input-hantering)
-- **UI-komponenter**: 16 tester (HighscoreModal och sub-komponenter)
+- **Infrastructure**: 61 tester (Storage, I18n, input, audio-system)
+- **UI-komponenter**: 28 tester (HighscoreModal, MenuButtonManager)
 - **Type validation**: 12 tester (Datastrukturer och gränssnitt)
 - **Integration scenarios**: 16 tester (End-to-end flöden)
 - **Edge cases**: 12 tester (Felhantering och gränsfall)
 - **Algorithms**: 8 tester (Kollapsberäkning, generering)
+- **Audio system**: 34 tester (AudioManager, AudioSettings, SoundService)
 
 Alla tester använder **TypeScript strict mode** och **Vitest** för modern testmiljö.
 
@@ -298,6 +368,18 @@ Alla tester använder **TypeScript strict mode** och **Vitest** för modern test
 - [x] **Reaktionstimers** med färgkodade progressbars
 - [x] **Game over-skärm** med restart-funktionalitet
 - [x] **Layered rendering** för korrekt z-order av påverkade pinnar
+- [x] **WoodCollapseAnimator** med fysikbaserade fallanimationer
+- [x] **CollapseParticleSystem** med träflisor och damm-effekter
+- [x] **ScreenShakeManager** med intensitetsbaserad skakning
+- [x] **Complete animation integration** i game loop och rendering pipeline
+
+### Ljudsystem och inställningar 🔊
+- [x] **AudioManager** med master volume och separata kanaler
+- [x] **AudioSettings** med persistent LocalStorage-lagring
+- [x] **SoundService** för ljudeffekt-hantering
+- [x] **Settings-skärm** med moderna toggle switches och volume slider
+- [x] **Flerspråksstöd** för alla ljudinställningar (sv/en)
+- [x] **Visual feedback** med färgkodade toggles och live-förhandsgranskning
 
 ### Teknisk excellens
 - [x] **Clean Architecture** med TypeScript och SOLID-principer
@@ -308,6 +390,10 @@ Alla tester använder **TypeScript strict mode** och **Vitest** för modern test
 - [x] **Responsive canvas** som anpassar sig automatiskt till viewport
 - [x] **Automatiserad byggprocess** med modulär i18n-kopiering
 - [x] **Separation of Concerns** med domain/infrastructure/presentation layers
+- [x] **Modal transition system** med transitionToModal/FromModal för konsistent UX
+- [x] **Physics-based animations** med gravitation, rotation och fade-effekter
+- [x] **Particle system architecture** med återanvändbara effektsystem
+- [x] **Screen shake system** med intensity-based calculations
 
 ### Highscore-system 🏆
 - [x] **Komplett highscore-tracking** med automatisk integration
@@ -324,11 +410,10 @@ Alla tester använder **TypeScript strict mode** och **Vitest** för modern test
 ## Framtida förbättringar
 
 ### Kortsiktigt 🎯
-- [ ] **Animerade vedras-effekter** med partiklar
-- [ ] **Ljudeffekter** och atmosfärisk bakgrundsmusik
-- [ ] **Instruktioner-skärm** från menyn (knapp finns)
-- [ ] **Inställningar-skärm** för volym och grafik (knapp finns)
-- [ ] **Export/import** av highscore-data för backup och delning
+- [ ] **Ljudfiler**: Lägg till faktiska ljudfiler för effekter och musik
+- [ ] **Instruktioner-skärm**: Implementera instruktioner-innehåll (knapp finns)
+- [ ] **Export/import**: Highscore-data backup och delning
+- [ ] **Mer polish**: Finjustera animationstiming och partikeleffekter
 
 ### Långsiktigt 🚀
 - [ ] **Flera nivåer** med olika svårighetsgrader och vedstapel-former
@@ -371,12 +456,28 @@ Projektet genomgick en omfattande modernisering från ursprunglig monolitisk str
 - Förbättrad användarupplevelse med fade-effekter och loading-states
 - Clean separation av transition-logik från state management
 
+#### Fas 6: Visual Effects System ✅
+- Implementerade **WoodCollapseAnimator** med fysikbaserade fallanimationer
+- Skapade **CollapseParticleSystem** för dramatiska träflis- och damm-effekter
+- Integrerade **ScreenShakeManager** för intensitetsbaserad skärmskakning
+- Komplett animation pipeline i Game.ts med update/render-integration
+
+#### Fas 7: Audio System ✅
+- Utvecklade **AudioManager** med master volume och separata kanaler
+- Implementerade **AudioSettings** för persistent ljudinställningar
+- Skapade **SoundService** för ljudeffekt-hantering
+- Byggde modern **Settings UI** med toggle switches och volume slider
+- Fullständig i18n-integration för ljudinställningar (60+ nya strängar)
+
 ### Resultat av Modernisering 📊
 - **48% kodreduktion** i huvudspelklassen (392 → 205 rader)
 - **100% TypeScript strict mode** kompatibilitet
 - **Eliminerat duplicerad kod** genom BaseRenderer-pattern
 - **Professionella övergångar** med TransitionManager (800ms fade-effekter)
 - **Responsiv design** som fungerar på alla enheter med ResponsiveManager
+- **Dramatiska visuella effekter** med physics-based animations, particles och screen shake
+- **Komplett ljudsystem** med AudioManager och persistent inställningar
+- **247 automatiserade tester** med 100% pass rate
 - **Förbättrad testbarhet** genom dependency injection
 - **Enklare vidareutveckling** genom tydlig lagerseparation
 
@@ -407,7 +508,17 @@ Projektet utvecklades och moderniserades genom:
    - Steg 5: UI-komponenter (HighscoreModal, Table, AddScore, Statistics)
    - Steg 6: Menu integration (Highscore-knapp och navigation)
    - Steg 7: Game integration (Automatisk score-tracking och kvalifikation)
-8. **Automatiserad optimering** av imports och byggprocess
+8. **Visual Effects System** genom systematisk implementation:
+   - WoodCollapseAnimator: Physics-based falling animations med gravity och rotation
+   - CollapseParticleSystem: Particle effects med wood chips och dust
+   - ScreenShakeManager: Intensity-based screen shake för impact
+   - Full Game.ts integration: Collision callbacks, update loop, render pipeline
+9. **Audio System** genom arkitekturell design:
+   - AudioManager: Central ljudhantering med master volume och channel controls
+   - AudioSettings: Persistent settings med LocalStorage
+   - SoundService: Sound effect playback service
+   - Settings UI: Modern toggle switches och volume slider med i18n
+10. **Automatiserad optimering** av imports och byggprocess
 
 ### Utökning av spelet
 - **Nya varelser**: Lägg till i [`CreatureType`](src/types/game.ts), uppdatera [`KEY_BINDINGS`](src/shared/constants/keyBindings.ts) och [`UIRenderer`](src/presentation/renderers/game/UIRenderer.ts)
@@ -417,6 +528,10 @@ Projektet utvecklades och moderniserades genom:
 - **Översättningar**: Uppdatera JSON-filerna i [`src/infrastructure/i18n/data/`](src/infrastructure/i18n/data/)
 - **Visuella effekter**: Utöka renderare i [`src/presentation/renderers/`](src/presentation/renderers/) och [`src/particles/`](src/particles/)
 - **Nya renderare**: Skapa klasser som ärver från [`BaseRenderer`](src/presentation/renderers/shared/BaseRenderer.ts)
+- **Animationer**: Utöka [`WoodCollapseAnimator`](src/presentation/renderers/game/WoodCollapseAnimator.ts) eller skapa nya animatörer
+- **Partikeleffekter**: Lägg till nya partikelsystem i [`src/particles/`](src/particles/) baserat på [`CollapseParticleSystem`](src/particles/CollapseParticleSystem.ts)
+- **Skärm-effekter**: Modifiera [`ScreenShakeManager`](src/presentation/renderers/ScreenShakeManager.ts) för nya shake-patterns
+- **Ljudeffekter**: Utöka [`AudioManager`](src/infrastructure/audio/AudioManager.ts) och [`SoundService`](src/infrastructure/audio/SoundService.ts)
 - **Highscore-funktioner**: Utöka [`HighscoreManager`](src/core/managers/HighscoreManager.ts) för ny business logic
 - **UI-komponenter**: Lägg till nya vyer i [`src/ui/highscore/`](src/ui/highscore/) med konsistent design
 - **Storage-utökningar**: Modifiera [`HighscoreStorageService`](src/infrastructure/storage/HighscoreStorageService.ts) för nya dataformat
