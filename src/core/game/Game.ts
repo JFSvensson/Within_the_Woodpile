@@ -6,6 +6,8 @@ import {
 import { DEFAULT_CONFIG } from '../../shared/constants/index.js';
 import { WoodPileGenerator } from '../services/WoodPileGenerator.js';
 import { GameRenderer } from '../../presentation/renderers/game/GameRenderer.js';
+import { WoodCollapseAnimator } from '../../presentation/renderers/WoodCollapseAnimator.js';
+import { CollapseParticleSystem } from '../../particles/CollapseParticleSystem.js';
 import { I18n } from '../../infrastructure/i18n/I18n.js';
 import { GameInputHandler } from '../../infrastructure/input/GameInputHandler.js';
 import { CreatureManager } from '../managers/CreatureManager.js';
@@ -20,6 +22,8 @@ export class Game {
   private config: GameConfig;
   private woodPileGenerator: WoodPileGenerator;
   private renderer: GameRenderer;
+  private collapseAnimator: WoodCollapseAnimator;
+  private particleSystem: CollapseParticleSystem;
   private i18n: I18n;
   private inputHandler: GameInputHandler;
   private creatureManager: CreatureManager;
@@ -37,6 +41,8 @@ export class Game {
     
     this.woodPileGenerator = new WoodPileGenerator(config);
     this.renderer = new GameRenderer(canvas, i18n);
+    this.collapseAnimator = new WoodCollapseAnimator();
+    this.particleSystem = new CollapseParticleSystem();
     
     // Skapa state manager först
     this.stateManager = new GameStateManager(config);
@@ -90,7 +96,17 @@ export class Game {
   private setupCollisionCallbacks(): void {
     this.collisionManager.setOnCollapseDetected((damage, collapsingPieces) => {
       this.stateManager.reduceHealth(damage);
-      // Eventuellt logga kollaps-information för debugging
+      
+      // Starta kollaps-animationer för de rasande pinnarna
+      this.collapseAnimator.startCollapse(collapsingPieces);
+      
+      // Skapa partiklar för varje rasande pinne
+      collapsingPieces.forEach(piece => {
+        const centerX = piece.position.x + piece.size.width / 2;
+        const centerY = piece.position.y + piece.size.height / 2;
+        this.particleSystem.createCollapseParticles(centerX, centerY, collapsingPieces.length);
+      });
+      
       console.log(`Kollaps! ${collapsingPieces.length} pinnar rasade, ${damage} skada`);
     });
   }
@@ -155,6 +171,10 @@ export class Game {
     
     // Uppdatera aktiv varelse
     this.creatureManager.updateActiveCreature(deltaTime);
+    
+    // Uppdatera kollaps-animationer och partiklar
+    this.collapseAnimator.update(deltaTime);
+    this.particleSystem.update(deltaTime);
   }
 
   /**
@@ -163,7 +183,21 @@ export class Game {
   private render(): void {
     const currentHoveredPiece = this.inputHandler.getCurrentHoveredPiece();
     const currentState = this.stateManager.getGameStateReference();
+    
+    // Rendera normal spel-state
     this.renderer.render(this.woodPieces, currentState, currentHoveredPiece);
+    
+    // Rendera kollapsande pinnar och partiklar ovanpå
+    const ctx = this.canvas.getContext('2d');
+    if (ctx) {
+      // Rita kollapsande pinnar
+      this.woodPieces
+        .filter(piece => piece.isCollapsing)
+        .forEach(piece => this.collapseAnimator.render(ctx, piece));
+      
+      // Rita partiklar
+      this.particleSystem.render(ctx);
+    }
   }
 
   /**
@@ -212,6 +246,8 @@ export class Game {
     this.creatureManager.destroy();
     this.collisionManager.destroy();
     this.stateManager.destroy();
+    this.collapseAnimator.destroy();
+    this.particleSystem.destroy();
   }
 
   /**
