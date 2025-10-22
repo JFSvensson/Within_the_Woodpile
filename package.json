@@ -7,9 +7,9 @@
     "dev": "tsc --watch",
     "build": "tsc && xcopy src\\infrastructure\\i18n\\data dist\\i18n\\ /E /I /Y && copy index.html dist\\ && copy styles.css dist\\",
     "serve": "echo 'Öppna dist/index.html i webbläsaren eller använd VS Code Live Server'",
-    "test": "vitest",
+    "test": "vitest --run",
     "test:ui": "vitest --ui",
-    "test:coverage": "vitest --coverage",
+    "test:coverage": "vitest --run --coverage",
     "test:watch": "vitest --watch",
     "test:e2e": "playwright test",
     "test:e2e:ui": "playwright test --ui"
