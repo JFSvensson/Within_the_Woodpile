@@ -15,7 +15,9 @@ export default defineConfig({
         'dist/',
         '**/*.d.ts',
         '**/*.config.*',
-        '**/coverage/**'
+        '**/coverage/**',
+        '**/index.ts',
+        '**/types/**'
       ]
     },
     include: ['tests/**/*.{test,spec}.{js,ts}'],
