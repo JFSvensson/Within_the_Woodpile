@@ -170,12 +170,15 @@ src/
 │   ├── index.ts                  # Barrel export för alla typer
 │   ├── game.ts                   # Spel-relaterade typer
 │   ├── ui.ts                     # UI-komponenter och meny-typer
-│   └── config.ts                 # Konfigurations-typer
+│   ├── config.ts                 # Konfigurations-typer
+│   ├── difficulty.ts             # ✨ Svårighetsgrad och nivå-typer
+│   └── highscore.ts              # Highscore-typer
 ├── shared/                       # Delade konstanter och utilities
 │   └── constants/
 │       ├── index.ts              # Barrel export
 │       ├── gameConfig.ts         # DEFAULT_CONFIG och spelkonfiguration
-│       └── keyBindings.ts        # Tangentbindningar för varelser
+│       ├── keyBindings.ts        # Tangentbindningar för varelser
+│       └── difficultyConfig.ts   # ✨ Svårighetsgrad-konfigurationer och nivåprogression
 ├── core/                         # Kärnlogik och domän (Clean Architecture)
 │   ├── index.ts                  # Barrel export
 │   ├── game/
@@ -187,6 +190,7 @@ src/
 │   │   ├── CreatureManager.ts    # Varelse-hantering och spawning
 │   │   ├── GameStateManager.ts   # Spelstatus och poäng
 │   │   ├── HighscoreManager.ts   # Högsta nivå highscore-manager med i18n
+│   │   ├── LevelManager.ts       # ✨ Nivåprogression och svårighetsgrad-hantering
 │   │   └── index.ts
 │   └── services/
 │       ├── CollapsePredictionCalculator.ts # Intelligent kollapsförutsägelse
@@ -309,7 +313,7 @@ npm run build  # Kompilerar och kopierar filer till dist/
 3. Eller använd VS Code Live Server på `dist/index.html`
 
 ### Testning 🧪
-Projektet har omfattande testtäckning med **1287 automatiserade tester** och **85.61% code coverage** (85%-målet uppnått! 🎉🎊):
+Projektet har omfattande testtäckning med **1325 automatiserade tester** och **86.24% code coverage** (85%-målet uppnått! 🎉🎊):
 
 ```bash
 npm test              # Kör alla tester med Vitest
@@ -334,7 +338,7 @@ npm run test:coverage # Generera täckningsrapport
 - **Rendering tests**: GameRenderer, WoodPieceRenderer, UIRenderer
 - **Input tests**: Mouse clicks, hover effects, keyboard reactions
 
-#### Test-täckning per område (1287 tester totalt, 85.61% coverage)
+#### Test-täckning per område (1325 tester totalt, 86.24% coverage)
 - **Particle Systems**: 100 tester (MenuParticleSystem 100%!, CollapseParticleSystem 100%! - träflisor, damm, fysik, livscykel)
 - **Base Rendering**: 49 tester (BaseRenderer 100%! - canvas operations, text measurement, context management)
 - **State Management**: 30 tester (AppStateManager 100%! - state transitions, callback system, menu/game states)
@@ -353,12 +357,25 @@ npm run test:coverage # Generera täckningsrapport
 - **Animation system**: 40 tester (WoodCollapseAnimator 97%, ScreenShakeManager 99%, CollapseParticleSystem 100%!)
 - **Core game logic**: 40 tester (GameLoop 97%, Game 81.78%)
 - **Collision & Physics**: 33 tester (CollisionManager 100%!, CollapsePredictionCalculator 81%)
-- **Game managers**: 59 tester (GameStateManager 100%!, CreatureManager 100%!)
+- **Game managers**: 97 tester (GameStateManager 100%!, CreatureManager 100%!, LevelManager 100%! ✨)
 - **Storage Layer**: 87 tester (LocalStorageService 100%!, GameDataRepository 100%!)
 
 Alla tester använder **TypeScript strict mode** och **Vitest** för modern testmiljö.
 
 #### Senaste Test-achievements 🏆
+
+**Fas 9: Level System & Difficulty** ✨ NYTT! (Session: +38 tester, +0.63% coverage)
+- ✅ **LevelManager**: 38 tester → 100% statement coverage, 94.59% branch coverage
+  - Difficulty system: 5 svårighetsgrader med kompletta modifiers
+  - Level progression: 10 nivåer med dynamisk skalning
+  - Speed bonus calculation: Time-based rewards
+  - Event system: LEVEL_START, LEVEL_COMPLETE, DIFFICULTY_CHANGE
+  - Score calculations: Difficulty multipliers (Easy 0.8x → Nightmare 2.5x)
+- 🎯 **Nya typer**: DifficultyLevel enum, LevelInfo, LevelProgress, DifficultyModifiers
+- 📊 **Nya konstanter**: DIFFICULTY_CONFIGS, LEVEL_PROGRESSION (10 nivåer)
+- 🌍 **I18n-stöd**: 50+ nya översättningssträngar för level och difficulty
+- 📖 **Dokumentation**: Komplett guide i docs/LEVEL-SYSTEM-GUIDE.md
+
 **Fas 8: Storage & Audio Excellence** (Session: +307 tester, +9.42% coverage)
 - ✅ **LocalStorageService**: 37 tester → 100% coverage
   - JSON parsing/stringifying, error handling, type safety
@@ -384,10 +401,10 @@ Alla tester använder **TypeScript strict mode** och **Vitest** för modern test
   - Convenience methods för common sounds
 
 **Test Quality Metrics:**
-- **Statement Coverage**: 85.61%
-- **Branch Coverage**: 93.31% (exceptional!)
-- **Function Coverage**: 96.54% (outstanding!)
-- **100% Pass Rate**: Alla 1287 tester passar konsekvent
+- **Statement Coverage**: 86.24%
+- **Branch Coverage**: 93.34% (exceptional!)
+- **Function Coverage**: 96.69% (outstanding!)
+- **100% Pass Rate**: Alla 1325 tester passar konsekvent
 
 ## Implementerat ✅
 
@@ -472,7 +489,16 @@ Alla tester använder **TypeScript strict mode** och **Vitest** för modern test
 - [ ] **Resterande test-coverage**: Nå 90%+ med I18n och WoodPileGenerator tester
 
 ### Långsiktigt 🚀
-- [ ] **Flera nivåer** med olika svårighetsgrader och vedstapel-former
+- [x] **Flera nivåer med olika svårighetsgrader** ✨ NYTT!
+  - 🎯 **5 svårighetsgrader**: Easy, Normal, Hard, Expert, Nightmare
+  - 📊 **10 progressiva nivåer** med ökande komplexitet
+  - ⚡ **Speed bonus-system** för snabba genomföranden
+  - 🎮 **Dynamic difficulty modifiers**: Hälsa, reaktionstid, varelsespawn, poängmultiplikator
+  - 📈 **Level progression**: 15-42 vedpinnar, 5-14 lager höjd
+  - 🏆 **Score multipliers**: Easy 0.8x → Nightmare 2.5x
+  - ⏱️ **Reaktionstid**: Easy 3s → Nightmare 0.75s
+  - 💚 **Starting health**: Easy 150 → Nightmare 50
+  - 🎨 **Färgkodade svårighetsgrader**: Grön (Easy) → Lila (Nightmare)
 - [ ] **Olika vedtyper** (gran, björk, ek) med olika egenskaper
 - [ ] **Progressive Web App (PWA)** för mobila enheter
 - [ ] **Procedurellt genererade utmaningar** med varierande layouts
@@ -533,10 +559,11 @@ Projektet genomgick en omfattande modernisering från ursprunglig monolitisk str
 - **Responsiv design** som fungerar på alla enheter med ResponsiveManager
 - **Dramatiska visuella effekter** med physics-based animations, particles och screen shake
 - **Komplett ljudsystem** med AudioManager och persistent inställningar
-- **1287 automatiserade tester** med 100% pass rate och **85.61% code coverage** 🎉
-- **Exceptional test quality**: 93.31% branch coverage, 96.54% function coverage
+- **1325 automatiserade tester** med 100% pass rate och **86.24% code coverage** 🎉
+- **Exceptional test quality**: 93.34% branch coverage, 96.69% function coverage
 - **Förbättrad testbarhet** genom dependency injection
 - **Enklare vidareutveckling** genom tydlig lagerseparation
+- **Nivåsystem med 5 svårighetsgrader** och 10 progressiva nivåer ✨ NYTT!
 
 ### Backward Compatibility 🔄
 - Gamla filsökvägar har re-exports för gradvis migration
@@ -592,6 +619,12 @@ Projektet utvecklades och moderniserades genom:
 - **Highscore-funktioner**: Utöka [`HighscoreManager`](src/core/managers/HighscoreManager.ts) för ny business logic
 - **UI-komponenter**: Lägg till nya vyer i [`src/ui/highscore/`](src/ui/highscore/) med konsistent design
 - **Storage-utökningar**: Modifiera [`HighscoreStorageService`](src/infrastructure/storage/HighscoreStorageService.ts) för nya dataformat
+- **Nivåer och svårighet**: ✨ NYTT!
+  - Använd [`LevelManager`](src/core/managers/LevelManager.ts) för nivåprogression
+  - Konfigurera svårighetsgrader i [`difficultyConfig.ts`](src/shared/constants/difficultyConfig.ts)
+  - Lägg till nya nivåer i `LEVEL_PROGRESSION`-arrayen
+  - Justera difficulty modifiers för balansering
+  - Implementera level-baserad UI med i18n-stöd (`level.*` och `difficulty.*` nycklar)
 
 ### Debug-funktioner
 I utvecklarläge finns globala debug-funktioner:
