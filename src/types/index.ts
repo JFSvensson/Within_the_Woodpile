@@ -40,6 +40,18 @@ export type {
   GameConfig
 } from './config.js';
 
+// Difficulty och Level-typer
+export type {
+  DifficultyModifiers,
+  LevelInfo,
+  LevelProgress,
+  LevelEvent
+} from './difficulty.js';
+
+export {
+  DifficultyLevel
+} from './difficulty.js';
+
 // Highscore-typer
 export type {
   HighscoreEntry,
