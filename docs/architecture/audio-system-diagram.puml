@@ -1,0 +1,304 @@
+@startuml Within_the_Woodpile_Audio_Architecture
+
+!define AUDIO #E8EAF6
+!define INFRASTRUCTURE #E1F5FE
+!define DOMAIN #E8F5E8
+
+skinparam packageStyle rectangle
+skinparam defaultFontSize 9
+skinparam classBackgroundColor White
+skinparam classBorderColor #555
+skinparam packageBackgroundColor transparent
+
+title Audio System Architecture
+
+' ==================== AUDIO SYSTEM ====================
+package "Audio Infrastructure" AUDIO {
+    class AudioManager {
+        -audioSettings: AudioSettings
+        -soundService: SoundService
+        -isInitialized: boolean
+        -soundAssets: Map<string, AudioAsset>
+        
+        +initialize(): Promise<void>
+        +playSound(event, config?): Promise<void>
+        +playBackgroundMusic(event): Promise<void>
+        +stopBackgroundMusic(): void
+        +updateSettings(settings): void
+        +getSettings(): AudioSettingsData
+        +resetSettings(): void
+        +pauseAll(): void
+        +resumeAll(): void
+        +destroy(): void
+        
+        **Convenience Methods:**
+        +playUIClick(): void
+        +playUIHover(): void
+        +playWoodPickup(): void
+        +playWoodCollapse(): void
+        +playCreatureAppear(): void
+        +playCreatureSuccess(): void
+        +playCreatureFail(): void
+        
+        -setupDefaultSoundAssets(): void
+    }
+    
+    class AudioSettings {
+        -masterVolume: number
+        -soundsEnabled: boolean
+        -musicEnabled: boolean
+        -uiSoundsEnabled: boolean
+        -listeners: Function[]
+        
+        **Volume Management:**
+        +getMasterVolume(): number
+        +setMasterVolume(volume: number): void
+        +getEffectiveVolume(): number
+        +getEffectiveMusicVolume(): number
+        +getEffectiveUIVolume(): number
+        
+        **Toggle Settings:**
+        +areSoundsEnabled(): boolean
+        +setSoundsEnabled(enabled: boolean): void
+        +isMusicEnabled(): boolean
+        +setMusicEnabled(enabled: boolean): void
+        +areUISoundsEnabled(): boolean
+        +setUISoundsEnabled(enabled: boolean): void
+        
+        **Persistence & Listeners:**
+        +resetToDefaults(): void
+        +getSettings(): AudioSettingsData
+        +addChangeListener(listener): void
+        +removeChangeListener(listener): void
+        
+        -loadFromLocalStorage(): void
+        -saveToLocalStorage(): void
+        -notifyListeners(): void
+    }
+    
+    class SoundService {
+        -audioSettings: AudioSettings
+        -audioCache: Map<string, HTMLAudioElement>
+        -playingSounds: Map<string, PlayingSoundInfo>
+        -loadingPromises: Map<string, Promise>
+        -maxSimultaneousSounds: number
+        -audioContext: AudioContext?
+        
+        **Sound Loading:**
+        +loadSound(asset: AudioAsset): Promise<HTMLAudioElement>
+        +preloadSounds(assets: AudioAsset[]): Promise<void>
+        
+        **Sound Playback:**
+        +playSound(soundId, config?): Promise<string?>
+        +stopSound(playId: string): void
+        +stopSoundsByCategory(category): void
+        +stopAllSounds(): void
+        
+        **Lifecycle:**
+        +destroy(): void
+        +getStatus(): StatusInfo
+        
+        -createAudioElement(asset): Promise<HTMLAudioElement>
+        -applyConfig(audio, config): void
+        -getEffectiveVolumeForCategory(category): number
+        -stopOldestSound(): void
+        -updateAllPlayingSoundsVolume(): void
+    }
+    
+    enum SoundEvent {
+        **UI Sounds**
+        UI_CLICK
+        UI_HOVER
+        UI_OPEN_MODAL
+        UI_CLOSE_MODAL
+        
+        **Game Sounds**
+        WOOD_PICKUP
+        WOOD_COLLAPSE
+        WOOD_HOVER
+        
+        **Creature Sounds**
+        CREATURE_APPEAR
+        CREATURE_SUCCESS
+        CREATURE_FAIL
+        SPIDER_SCURRY
+        WASP_BUZZ
+        HEDGEHOG_RUSTLE
+        GHOST_WHISPER
+        PUMPKIN_ROLL
+        
+        **Background Music**
+        MENU_MUSIC
+        GAME_MUSIC
+        GAME_OVER_MUSIC
+        
+        **Game Events**
+        HEALTH_LOW
+        LEVEL_COMPLETE
+        SCORE_MILESTONE
+    }
+    
+    enum AudioCategory {
+        MUSIC
+        SFX
+        UI
+        AMBIENT
+    }
+    
+    interface AudioAsset {
+        +id: string
+        +url: string
+        +category: AudioCategory
+        +volume?: number
+        +loop?: boolean
+    }
+    
+    interface SoundConfig {
+        +volume?: number
+        +loop?: boolean
+        +playbackRate?: number
+        +fadeIn?: boolean
+        +fadeInDuration?: number
+    }
+    
+    interface PlayingSoundInfo {
+        +id: string
+        +audio: HTMLAudioElement
+        +category: AudioCategory
+        +startTime: number
+        +config: SoundConfig
+    }
+    
+    interface AudioSettingsData {
+        +masterVolume: number
+        +soundsEnabled: boolean
+        +musicEnabled: boolean
+        +uiSoundsEnabled: boolean
+    }
+}
+
+' ==================== BROWSER API ====================
+package "Browser APIs" {
+    interface HTMLAudioElement {
+        +src: string
+        +volume: number
+        +loop: boolean
+        +play(): Promise<void>
+        +pause(): void
+        +load(): void
+    }
+    
+    interface AudioContext {
+        +createMediaElementSource()
+        +createGain()
+        +destination
+    }
+    
+    interface LocalStorage {
+        +getItem(key): string?
+        +setItem(key, value): void
+    }
+}
+
+' ==================== INTEGRATION POINTS ====================
+package "Application Integration" {
+    class Main {
+        -audioManager: AudioManager
+        
+        +initializeApp(): void
+        +startGameFromMenu(): void
+        +showSettings(): void
+    }
+    
+    class Game {
+        **Audio Integration Points:**
+        - Wood pickup → playWoodPickup()
+        - Collapse → playWoodCollapse()
+        - Creature spawn → playCreatureAppear()
+        - Reaction success → playCreatureSuccess()
+        - Reaction fail → playCreatureFail()
+        - Low health → playSound(HEALTH_LOW)
+    }
+    
+    class SettingsModal {
+        **Audio Controls:**
+        - Master volume slider
+        - Sound effects toggle
+        - Music toggle
+        - UI sounds toggle
+        - Preview sounds on change
+    }
+}
+
+' ==================== RELATIONSHIPS ====================
+
+AudioManager *-- AudioSettings : manages
+AudioManager *-- SoundService : uses
+AudioManager ..> SoundEvent : defines events
+AudioManager ..> AudioAsset : configures
+
+AudioSettings ..> AudioSettingsData : returns
+AudioSettings ..> LocalStorage : persists to
+
+SoundService *-- AudioSettings : observes
+SoundService ..> AudioAsset : loads
+SoundService ..> SoundConfig : applies
+SoundService ..> PlayingSoundInfo : tracks
+SoundService ..> HTMLAudioElement : creates
+SoundService ..> AudioContext : uses
+SoundService ..> AudioCategory : categorizes
+
+Main --> AudioManager : initializes & uses
+Game ..> AudioManager : calls for game events
+SettingsModal --> AudioManager : controls settings
+
+' ==================== NOTES ====================
+
+note right of AudioManager
+  **Responsibilities:**
+  - Central audio coordination
+  - Asset registration
+  - Convenience methods for common sounds
+  - Settings management delegation
+  - Graceful degradation (works without audio files)
+end note
+
+note right of AudioSettings
+  **Responsibilities:**
+  - Volume management (master + category-specific)
+  - Enable/disable toggles
+  - LocalStorage persistence
+  - Change notification (observer pattern)
+  - Effective volume calculation
+end note
+
+note right of SoundService
+  **Responsibilities:**
+  - Low-level audio playback
+  - Asset loading & caching
+  - Simultaneous sound limiting
+  - Volume application (category-aware)
+  - Web Audio API integration
+  - Sound lifecycle management
+end note
+
+note bottom of SoundEvent
+  **Design:**
+  - Enum for type safety
+  - Hierarchical naming (category.event)
+  - Easy to extend
+  - Used as asset IDs in AudioManager
+end note
+
+note as AudioFlow
+  **Audio Data Flow:**
+  1. Main initializes AudioManager
+  2. AudioManager sets up assets
+  3. Game calls convenience methods
+  4. AudioManager translates to SoundEvent
+  5. SoundService loads & plays audio
+  6. AudioSettings provides volume/enable state
+  7. Changes persist to LocalStorage
+end note
+
+@enduml

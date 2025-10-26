@@ -1,0 +1,362 @@
+@startuml Within_the_Woodpile_Highscore_System
+
+!define DOMAIN #E8F5E8
+!define INFRASTRUCTURE #E1F5FE
+!define UI #FFECB3
+
+skinparam packageStyle rectangle
+skinparam defaultFontSize 9
+skinparam classBackgroundColor White
+skinparam classBorderColor #555
+skinparam packageBackgroundColor transparent
+
+title Highscore System Architecture
+
+' ==================== DOMAIN LAYER ====================
+package "Domain Layer (Core)" DOMAIN {
+    class HighscoreManager {
+        -service: HighscoreService
+        -i18nService: HighscoreI18nService
+        
+        **Score Management:**
+        +getTopScores(limit: number): Promise<HighscoreEntry[]>
+        +addScore(entry: HighscoreEntry): Promise<void>
+        +isHighScore(score: number): Promise<boolean>
+        +clearAllScores(): Promise<void>
+        
+        **Formatting & Display:**
+        +formatScore(entry: HighscoreEntry): string
+        +formatDuration(seconds: number): string
+        +formatPlayerName(name: string): string
+        +getScoreRank(score: number): Promise<number>
+        
+        **Statistics:**
+        +getStatistics(): Promise<HighscoreStatistics>
+        +getAverageScore(): Promise<number>
+        +getTotalGamesPlayed(): Promise<number>
+    }
+    
+    class HighscoreService {
+        -storageService: HighscoreStorageService
+        -maxEntries: number = 100
+        
+        **CRUD Operations:**
+        +addScore(entry: HighscoreEntry): Promise<void>
+        +getTopScores(limit: number): Promise<HighscoreEntry[]>
+        +getAllScores(): Promise<HighscoreEntry[]>
+        +deleteScore(id: string): Promise<void>
+        +clearAllScores(): Promise<void>
+        
+        **Queries:**
+        +isHighScore(score: number): Promise<boolean>
+        +getScoreRank(score: number): Promise<number>
+        +getScoresByDateRange(start, end): Promise<HighscoreEntry[]>
+        
+        **Statistics:**
+        +getScoreStats(): Promise<ScoreStatistics>
+        +getAverageScore(): Promise<number>
+        +getHighestScore(): Promise<number>
+        +getTotalGamesPlayed(): Promise<number>
+        
+        -sortScores(scores: HighscoreEntry[]): HighscoreEntry[]
+        -generateId(): string
+        -validateEntry(entry: HighscoreEntry): boolean
+    }
+    
+    class HighscoreI18nService {
+        -i18n: I18n
+        
+        **Formatting:**
+        +formatDuration(seconds: number): string
+        +formatScore(score: number): string
+        +formatLevel(level: number): string
+        +formatDate(timestamp: number): string
+        +formatRank(rank: number): string
+        
+        **Labels:**
+        +getColumnLabel(column: string): string
+        +getStatisticLabel(stat: string): string
+        +getCreatureLabel(type: CreatureType): string
+        
+        **Messages:**
+        +getCongratuationsMessage(rank: number): string
+        +getNewHighscoreMessage(): string
+    }
+    
+    interface HighscoreEntry {
+        +id: string
+        +playerName: string
+        +score: number
+        +level: number
+        +playDuration: number
+        +timestamp: number
+        +difficulty?: string
+        +woodPiecesRemoved?: number
+        +creaturesEncountered?: number
+    }
+    
+    interface ScoreStatistics {
+        +totalGames: number
+        +averageScore: number
+        +highestScore: number
+        +lowestScore: number
+        +averageDuration: number
+        +averageLevel: number
+        +topPlayers: string[]
+    }
+}
+
+' ==================== INFRASTRUCTURE LAYER ====================
+package "Infrastructure Layer" INFRASTRUCTURE {
+    class HighscoreStorageService {
+        -storage: LocalStorageService
+        -storageKey: string = 'woodpile.highscores'
+        
+        **Storage Operations:**
+        +saveScores(scores: HighscoreEntry[]): Promise<void>
+        +loadScores(): Promise<HighscoreEntry[]>
+        +clearScores(): Promise<void>
+        +exportScores(): Promise<string>
+        +importScores(data: string): Promise<void>
+        
+        **Backup & Migration:**
+        +createBackup(): Promise<string>
+        +restoreBackup(backup: string): Promise<void>
+        +migrateOldFormat(): Promise<void>
+        
+        -serialize(scores: HighscoreEntry[]): string
+        -deserialize(data: string): HighscoreEntry[]
+        -validate(scores: HighscoreEntry[]): boolean
+    }
+    
+    class LocalStorageService {
+        +save(key: string, data: any): Promise<void>
+        +load(key: string): Promise<any>
+        +remove(key: string): Promise<void>
+        +clear(): Promise<void>
+        +getKeys(): Promise<string[]>
+        +exists(key: string): Promise<boolean>
+    }
+    
+    class I18n {
+        +translate(key: string): string
+        +getCurrentLanguage(): string
+    }
+}
+
+' ==================== UI COMPONENTS ====================
+package "UI Components" UI {
+    class HighscoreModal {
+        -manager: HighscoreManager
+        -i18n: I18n
+        -overlay: HTMLElement
+        -table: HighscoreTable
+        -statistics: StatisticsPanel
+        -addScoreDialog: AddScoreDialog
+        -isVisible: boolean
+        
+        **Display Methods:**
+        +show(): void
+        +hide(): void
+        +showAddScoreDialog(score, level, duration): Promise<void>
+        +refresh(): Promise<void>
+        
+        **Event Handlers:**
+        -onCloseClick(): void
+        -onClearScoresClick(): Promise<void>
+        -onExportClick(): void
+        -onViewStatsToggle(): void
+        
+        -createOverlay(): HTMLElement
+        -setupEventListeners(): void
+        -updateContent(): Promise<void>
+    }
+    
+    class HighscoreTable {
+        -container: HTMLElement
+        -i18n: I18n
+        -currentSort: string
+        -sortDirection: 'asc' | 'desc'
+        
+        **Rendering:**
+        +render(scores: HighscoreEntry[]): void
+        +highlight(scoreId: string): void
+        +clear(): void
+        
+        **Sorting:**
+        +sortBy(column: string): void
+        +toggleSortDirection(): void
+        
+        **Filtering:**
+        +filterByDateRange(start, end): void
+        +filterByMinScore(minScore: number): void
+        
+        -createTableHeader(): HTMLElement
+        -createTableRow(entry, rank): HTMLElement
+        -formatCellValue(entry, column): string
+    }
+    
+    class StatisticsPanel {
+        -container: HTMLElement
+        -i18n: I18n
+        
+        **Display:**
+        +render(stats: ScoreStatistics): void
+        +show(): void
+        +hide(): void
+        +toggle(): void
+        
+        **Charts (Future):**
+        +renderScoreDistribution(data): void
+        +renderProgressOverTime(data): void
+        
+        -createStatCard(label, value, icon): HTMLElement
+    }
+    
+    class AddScoreDialog {
+        -overlay: HTMLElement
+        -i18n: I18n
+        -score: number
+        -level: number
+        -duration: number
+        -resolveCallback?: Function
+        
+        **Lifecycle:**
+        +show(score, level, duration): Promise<string?>
+        +hide(): void
+        +cancel(): void
+        
+        **Validation:**
+        -validatePlayerName(name: string): boolean
+        -sanitizeInput(input: string): string
+        
+        **UI:**
+        -createDialogContent(): HTMLElement
+        -setupEventListeners(): void
+        -updatePreview(): void
+    }
+}
+
+' ==================== APPLICATION ====================
+package "Application" {
+    class Main {
+        -highscoreManager: HighscoreManager
+        -highscoreModal: HighscoreModal
+        
+        +initializeApp(): void
+        +handleGameOver(): void
+        +showHighscore(): void
+    }
+    
+    class Game {
+        -onGameEnd?: Function
+        
+        +onGameEnd(callback): void
+    }
+}
+
+' ==================== BROWSER API ====================
+package "Browser APIs" {
+    interface LocalStorage {
+        +getItem(key): string?
+        +setItem(key, value): void
+        +removeItem(key): void
+        +clear(): void
+    }
+}
+
+' ==================== RELATIONSHIPS ====================
+
+' Domain relationships
+HighscoreManager *-- HighscoreService : uses
+HighscoreManager *-- HighscoreI18nService : uses
+HighscoreService *-- HighscoreStorageService : uses
+HighscoreI18nService ..> I18n : uses
+
+HighscoreService ..> HighscoreEntry : manages
+HighscoreService ..> ScoreStatistics : calculates
+
+' Infrastructure relationships
+HighscoreStorageService *-- LocalStorageService : uses
+LocalStorageService ..> LocalStorage : wraps
+
+' UI relationships
+HighscoreModal *-- HighscoreTable : composes
+HighscoreModal *-- StatisticsPanel : composes
+HighscoreModal *-- AddScoreDialog : composes
+HighscoreModal *-- HighscoreManager : uses
+HighscoreModal ..> I18n : uses
+
+HighscoreTable ..> HighscoreEntry : displays
+StatisticsPanel ..> ScoreStatistics : displays
+
+' Application relationships
+Main --> HighscoreManager : initializes
+Main --> HighscoreModal : shows
+Game ..> Main : notifies game over
+
+' ==================== NOTES ====================
+
+note right of HighscoreManager
+  **Facade Pattern:**
+  - Simplifies access to highscore subsystem
+  - Coordinates between service and i18n
+  - Provides high-level operations
+  - Used by UI and application layer
+end note
+
+note right of HighscoreService
+  **Repository Pattern:**
+  - Handles all score data operations
+  - Implements business rules (max 100 entries)
+  - Sorting, filtering, statistics
+  - Independent of storage implementation
+end note
+
+note right of HighscoreStorageService
+  **Adapter Pattern:**
+  - Abstracts localStorage access
+  - Serialization/deserialization
+  - Data migration support
+  - Easy to swap storage backend
+end note
+
+note right of HighscoreModal
+  **Composite Pattern:**
+  - Orchestrates multiple UI components
+  - Manages dialog lifecycle
+  - Handles user interactions
+  - Updates from manager
+end note
+
+note bottom of HighscoreEntry
+  **Data Structure:**
+  - Immutable after creation
+  - Unique ID for tracking
+  - Timestamp for sorting/filtering
+  - Optional extended stats
+end note
+
+note as DataFlow
+  **Highscore Data Flow:**
+  
+  **Adding Score:**
+  1. Game ends → Main.handleGameOver()
+  2. Main checks isHighScore()
+  3. Shows AddScoreDialog
+  4. User enters name
+  5. HighscoreManager.addScore()
+  6. Service validates & sorts
+  7. Storage persists to localStorage
+  8. Modal refreshes & highlights
+  
+  **Viewing Scores:**
+  1. User clicks Highscore button
+  2. Main.showHighscore()
+  3. Modal requests top scores
+  4. Manager formats with i18n
+  5. Table renders with sorting
+  6. Statistics panel shows stats
+end note
+
+@enduml

@@ -1,0 +1,148 @@
+@startuml Within_the_Woodpile_Presentation
+
+!define PRESENTATION #FFF9C4
+
+skinparam packageStyle rectangle
+skinparam defaultFontSize 10
+skinparam classBackgroundColor White
+skinparam classBorderColor #555
+skinparam packageBackgroundColor transparent
+skinparam linetype ortho
+skinparam dpi 150
+
+title Presentation Layer - Rendering & Visual Effects
+
+' ==================== BASE ====================
+package "Base Renderers" PRESENTATION {
+    abstract class BaseRenderer {
+        #canvas: HTMLCanvasElement
+        #ctx: CanvasRenderingContext2D
+        __
+        +constructor(canvas)
+        #clearCanvas(): void
+        #setupContext(): void
+        #renderTextWithShadow(text, x, y, color): void
+        +{abstract} render(): void
+    }
+}
+
+' ==================== GAME RENDERERS ====================
+package "Game Renderers" PRESENTATION {
+    class GameRenderer {
+        -collapseCalculator: CollapsePredictionCalculator
+        -woodPieceRenderer: WoodPieceRenderer
+        -uiRenderer: UIRenderer
+        -i18n: I18n
+        __
+        +render(pieces, state, hovered?): void
+        +updateI18n(i18n): void
+        +updateCanvasSize(width, height): void
+    }
+    
+    class WoodPieceRenderer {
+        +render(pieces, hovered?, affected?): void
+        -drawWoodPiece(piece, isHovered, isAffected): void
+        -drawWoodTexture(x, y, radius): void
+        -drawCreatureHint(piece): void
+    }
+    
+    class UIRenderer {
+        -i18n: I18n
+        __
+        +render(state): void
+        +drawActiveCreature(creature): void
+        +drawGameOverOverlay(): void
+        +updateI18n(i18n): void
+    }
+}
+
+' ==================== MENU RENDERERS ====================
+package "Menu Renderers" PRESENTATION {
+    class MenuRenderer {
+        -i18n: I18n
+        -logoRenderer: LogoRenderer
+        -backgroundRenderer: BackgroundRenderer
+        -particleSystem: MenuParticleSystem
+        -buttonManager: MenuButtonManager
+        __
+        +render(): void
+        +handleClick(pos): boolean
+        +handleMouseMove(pos): void
+        +destroy(): void
+    }
+    
+    class LogoRenderer {
+        +render(animationTime): void
+    }
+    
+    class BackgroundRenderer {
+        +render(animationTime): void
+    }
+}
+
+' ==================== EFFECTS ====================
+package "Visual Effects" PRESENTATION {
+    class WoodCollapseAnimator {
+        -activeAnimations: Map<string, Animation>
+        __
+        +startCollapseAnimation(pieces): void
+        +update(deltaTime): void
+        +render(ctx): void
+        +isAnimating(): boolean
+    }
+    
+    class ScreenShakeManager {
+        -intensity: number
+        -duration: number
+        -currentTime: number
+        __
+        +trigger(intensity, duration): void
+        +update(deltaTime): void
+        +getOffset(): {x, y}
+        +isActive(): boolean
+    }
+    
+    class CollapseParticleSystem {
+        -particles: Particle[]
+        __
+        +createCollapseEffect(pieces): void
+        +update(deltaTime): void
+        +render(): void
+    }
+    
+    class MenuParticleSystem {
+        -particles: Particle[]
+        __
+        +update(deltaTime): void
+        +render(): void
+    }
+}
+
+' ==================== RELATIONSHIPS ====================
+BaseRenderer <|-- GameRenderer
+BaseRenderer <|-- WoodPieceRenderer
+BaseRenderer <|-- UIRenderer
+BaseRenderer <|-- MenuRenderer
+BaseRenderer <|-- LogoRenderer
+BaseRenderer <|-- BackgroundRenderer
+
+GameRenderer *-- WoodPieceRenderer
+GameRenderer *-- UIRenderer
+
+MenuRenderer *-- LogoRenderer
+MenuRenderer *-- BackgroundRenderer
+MenuRenderer *-- MenuParticleSystem
+
+note right of BaseRenderer
+  **Template Method Pattern**
+  Provides common rendering utilities
+  All renderers extend this
+end note
+
+note bottom of GameRenderer
+  **Composite Pattern**
+  Orchestrates multiple sub-renderers
+  Delegates wood & UI rendering
+end note
+
+@enduml

@@ -1,16 +1,19 @@
-@startuml Within_the_Woodpile_Clean_Architecture
+@startuml Within_the_Woodpile_Class_Diagram
 
 !define DOMAIN #E8F5E8
 !define INFRASTRUCTURE #E1F5FE
 !define PRESENTATION #FFF9C4
 !define SHARED #FCE4EC
+!define PARTICLES #F3E5F5
+!define UI #FFECB3
 
 ' Layout optimizations
 skinparam packageStyle rectangle
-skinparam defaultFontSize 10
+skinparam defaultFontSize 9
 skinparam classBackgroundColor White
 skinparam classBorderColor Black
 skinparam packageBackgroundColor transparent
+skinparam linetype ortho
 
 ' === SHARED LAYER ===
 package "Shared Layer" SHARED {

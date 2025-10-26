@@ -1,0 +1,114 @@
+@startuml Within_the_Woodpile_Infrastructure
+
+!define INFRASTRUCTURE #E1F5FE
+
+skinparam packageStyle rectangle
+skinparam defaultFontSize 10
+skinparam classBackgroundColor White
+skinparam classBorderColor #555
+skinparam packageBackgroundColor transparent
+skinparam linetype ortho
+skinparam dpi 150
+
+title Infrastructure Layer - External Systems Integration
+
+' ==================== I18N ====================
+package "I18n Module" INFRASTRUCTURE {
+    class I18n {
+        -currentLanguage: string
+        -translations: Map<string, any>
+        __
+        +initialize(): Promise<void>
+        +loadLanguage(lang): Promise<void>
+        +translate(key): string
+        +getCurrentLanguage(): string
+        +updateUI(): void
+    }
+}
+
+' ==================== INPUT ====================
+package "Input Module" INFRASTRUCTURE {
+    interface InputHandler {
+        +setupEventListeners(): void
+        +cleanup(): void
+    }
+    
+    class GameInputHandler {
+        -canvas: HTMLCanvasElement
+        -callbacks: GameInputCallbacks
+        __
+        +setOnWoodPieceClick(callback): void
+        +setOnSuccessfulCreatureReaction(callback): void
+        +setOnGameRestart(callback): void
+        +cleanup(): void
+    }
+    
+    interface GameInputCallbacks {
+        +onWoodPieceClick?: Function
+        +onSuccessfulCreatureReaction?: Function
+        +onGameRestart?: Function
+    }
+}
+
+' ==================== STORAGE ====================
+package "Storage Module" INFRASTRUCTURE {
+    interface StorageService {
+        +save(key, data): Promise<void>
+        +load(key): Promise<any>
+        +remove(key): Promise<void>
+    }
+    
+    class LocalStorageService {
+        +save(key, data): Promise<void>
+        +load(key): Promise<any>
+        +remove(key): Promise<void>
+    }
+    
+    class HighscoreStorageService {
+        -storage: LocalStorageService
+        -key: string
+        __
+        +saveScores(scores): Promise<void>
+        +loadScores(): Promise<Entry[]>
+        +clearScores(): Promise<void>
+    }
+    
+    class GameDataRepository {
+        -storageService: StorageService
+        __
+        +saveGameState(state): Promise<void>
+        +loadGameState(): Promise<State?>
+        +saveSettings(settings): Promise<void>
+        +loadSettings(): Promise<any>
+    }
+}
+
+' ==================== RELATIONSHIPS ====================
+InputHandler <|.. GameInputHandler
+StorageService <|.. LocalStorageService
+HighscoreStorageService *-- LocalStorageService
+GameDataRepository *-- StorageService
+
+note right of I18n
+  **Internationalization**
+  - Manages translations (sv, en)
+  - Loads from JSON files
+  - Persists language choice
+  - Updates UI dynamically
+end note
+
+note right of GameInputHandler
+  **Input Abstraction**
+  - Handles mouse & keyboard
+  - Translates DOM events to game events
+  - Callback-based architecture
+end note
+
+note bottom of LocalStorageService
+  **Storage Abstraction**
+  - Wraps browser localStorage
+  - Promise-based API
+  - Easy to swap implementation
+end note
+
+@enduml

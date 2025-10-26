@@ -1,0 +1,274 @@
+@startuml Within_the_Woodpile_Components_2025
+
+!define DOMAIN #E8F5E8
+!define INFRASTRUCTURE #E1F5FE
+!define PRESENTATION #FFF9C4
+!define SHARED #FCE4EC
+!define PARTICLES #F3E5F5
+!define UI #FFECB3
+!define AUDIO #E8EAF6
+
+skinparam packageStyle rectangle
+skinparam defaultFontSize 9
+skinparam componentBackgroundColor White
+skinparam componentBorderColor #555
+skinparam packageBackgroundColor transparent
+skinparam linetype ortho
+
+' ==================== BROWSER ENVIRONMENT ====================
+package "Browser Environment" {
+    [HTML Canvas] as Canvas
+    [Local Storage] as Storage
+    [Event System] as Events
+    [Web Audio API] as WebAudio
+}
+
+' ==================== APPLICATION LAYER ====================
+package "Application Layer" {
+    [Main Application] as Main
+    [App State Manager] as AppState
+    [Transition Manager] as Transition
+    [Responsive Manager] as Responsive
+}
+
+' ==================== SHARED LAYER ====================
+package "Shared Layer" SHARED {
+    package "Types" {
+        [Game Types] as GameTypes
+        [UI Types] as UITypes
+        [Highscore Types] as HighscoreTypes
+        [Difficulty Types] as DifficultyTypes
+        [Config Types] as ConfigTypes
+    }
+    
+    package "Constants" {
+        [Game Config] as GameConfig
+        [Key Bindings] as KeyBindings
+        [Difficulty Config] as DifficultyConfig
+    }
+}
+
+' ==================== DOMAIN LAYER ====================
+package "Domain Layer (Core)" DOMAIN {
+    package "Game Module" {
+        [Game Controller] as Game
+        [Game Loop] as GameLoop
+    }
+    
+    package "Managers" {
+        [Game State Manager] as StateManager
+        [Creature Manager] as CreatureManager
+        [Collision Manager] as CollisionManager
+        [Level Manager] as LevelManager
+        [Highscore Manager] as HighscoreManager
+    }
+    
+    package "Services" {
+        [Wood Pile Generator] as WoodGenerator
+        [Collapse Calculator] as CollapseCalculator
+        [Highscore Service] as HighscoreService
+        [Highscore I18n Service] as HighscoreI18nService
+    }
+}
+
+' ==================== INFRASTRUCTURE LAYER ====================
+package "Infrastructure Layer" INFRASTRUCTURE {
+    package "I18n" {
+        [I18n Service] as I18n
+        [Language Data (sv.json)] as LangSv
+        [Language Data (en.json)] as LangEn
+    }
+    
+    package "Input" {
+        [Game Input Handler] as InputHandler
+        [Input Interfaces] as InputInterfaces
+    }
+    
+    package "Storage" {
+        [Local Storage Service] as LocalStorage
+        [Highscore Storage Service] as HighscoreStorage
+        [Game Data Repository] as GameDataRepo
+        [Storage Interfaces] as StorageInterfaces
+    }
+    
+    package "Audio" AUDIO {
+        [Audio Manager] as AudioManager
+        [Audio Settings] as AudioSettings
+        [Sound Service] as SoundService
+        [Audio Types] as AudioTypes
+    }
+}
+
+' ==================== PRESENTATION LAYER ====================
+package "Presentation Layer" PRESENTATION {
+    package "Shared Renderers" {
+        [Base Renderer] as BaseRenderer
+    }
+    
+    package "Game Renderers" {
+        [Game Renderer] as GameRenderer
+        [Wood Piece Renderer] as WoodRenderer
+        [UI Renderer] as UIRenderer
+        [Collapse Animator] as CollapseAnimator
+        [Screen Shake Manager] as ScreenShake
+    }
+    
+    package "Menu Renderers" {
+        [Menu Renderer] as MenuRenderer
+        [Logo Renderer] as LogoRenderer
+        [Background Renderer] as BackgroundRenderer
+    }
+}
+
+' ==================== PARTICLES ====================
+package "Particles" PARTICLES {
+    [Collapse Particle System] as CollapseParticles
+    [Menu Particle System] as MenuParticles
+}
+
+' ==================== UI COMPONENTS ====================
+package "UI Components" UI {
+    [Highscore Modal] as HighscoreModal
+    [Highscore Table] as HighscoreTable
+    [Statistics Panel] as StatisticsPanel
+    [Add Score Dialog] as AddScoreDialog
+    [Menu Button Manager] as MenuButtonManager
+}
+
+' ==================== DEPENDENCIES (Clean Architecture) ====================
+
+' Application Layer orchestrates everything
+Main --> Game : creates & manages
+Main --> MenuRenderer : uses
+Main --> AppState : uses
+Main --> Transition : uses
+Main --> Responsive : uses
+Main --> AudioManager : uses
+Main --> HighscoreModal : uses
+Main --> HighscoreManager : uses
+Main --> I18n : uses
+
+AppState --> Main : notifies state changes
+Transition --> I18n : uses
+Transition --> Responsive : uses
+
+' Game Module - Core orchestration
+Game --> GameLoop : uses
+Game --> StateManager : uses
+Game --> CreatureManager : uses
+Game --> CollisionManager : uses
+Game --> WoodGenerator : uses
+Game --> GameRenderer : uses
+Game --> InputHandler : uses
+Game --> CollapseAnimator : uses
+Game --> CollapseParticles : uses
+Game --> ScreenShake : uses
+Game --> I18n : uses
+
+' Managers dependencies
+StateManager --> GameTypes : uses
+CreatureManager --> GameTypes : uses
+CollisionManager --> WoodGenerator : uses
+LevelManager --> DifficultyConfig : uses
+HighscoreManager --> HighscoreService : uses
+HighscoreManager --> HighscoreI18nService : uses
+
+' Services dependencies
+WoodGenerator --> GameConfig : uses
+WoodGenerator --> GameTypes : uses
+CollapseCalculator --> GameTypes : uses
+HighscoreService --> HighscoreStorage : uses
+HighscoreI18nService --> I18n : uses
+
+' Infrastructure dependencies
+InputHandler --> InputInterfaces : implements
+InputHandler --> Events : listens to
+I18n --> LangSv : loads
+I18n --> LangEn : loads
+I18n --> Storage : persists preferences
+
+LocalStorage --> Storage : uses
+LocalStorage --> StorageInterfaces : implements
+HighscoreStorage --> LocalStorage : uses
+GameDataRepo --> LocalStorage : uses
+
+AudioManager --> AudioSettings : uses
+AudioManager --> SoundService : uses
+AudioManager --> AudioTypes : uses
+SoundService --> AudioSettings : uses
+SoundService --> WebAudio : uses
+
+' Presentation dependencies
+GameRenderer --> BaseRenderer : extends
+WoodRenderer --> BaseRenderer : extends
+UIRenderer --> BaseRenderer : extends
+MenuRenderer --> BaseRenderer : extends
+LogoRenderer --> BaseRenderer : extends
+BackgroundRenderer --> BaseRenderer : extends
+
+GameRenderer --> WoodRenderer : composes
+GameRenderer --> UIRenderer : composes
+GameRenderer --> CollapseCalculator : uses
+GameRenderer --> I18n : uses
+
+MenuRenderer --> LogoRenderer : uses
+MenuRenderer --> BackgroundRenderer : uses
+MenuRenderer --> MenuParticles : uses
+MenuRenderer --> MenuButtonManager : uses
+MenuRenderer --> I18n : uses
+
+CollapseAnimator --> Canvas : renders to
+ScreenShake --> Canvas : affects
+
+' Particles
+CollapseParticles --> Canvas : renders to
+MenuParticles --> Canvas : renders to
+
+' UI Components
+HighscoreModal --> HighscoreTable : composes
+HighscoreModal --> StatisticsPanel : composes
+HighscoreModal --> AddScoreDialog : composes
+HighscoreModal --> HighscoreManager : uses
+HighscoreModal --> I18n : uses
+
+MenuButtonManager --> Canvas : renders to
+
+' Rendering to Canvas
+GameRenderer --> Canvas : renders to
+MenuRenderer --> Canvas : renders to
+
+' ==================== CLEAN ARCHITECTURE LAYERS ====================
+
+note right of Domain
+  **Domain Layer (Core)**
+  - Pure business logic
+  - No external dependencies
+  - Defines interfaces
+  - Independent of frameworks
+end note
+
+note right of Infrastructure
+  **Infrastructure Layer**
+  - Implements domain interfaces
+  - Handles external systems
+  - Browser APIs
+  - Storage, I18n, Input, Audio
+end note
+
+note right of Presentation
+  **Presentation Layer**
+  - Rendering logic
+  - Canvas manipulation
+  - Visual effects
+  - Depends on Domain & Infrastructure
+end note
+
+note right of Main
+  **Application Layer**
+  - Entry point
+  - Orchestrates all layers
+  - Dependency injection
+  - State management
+end note
+
+@enduml

@@ -1,0 +1,172 @@
+@startuml Within_the_Woodpile_Core_Domain
+
+!define DOMAIN #E8F5E8
+
+skinparam packageStyle rectangle
+skinparam defaultFontSize 10
+skinparam classBackgroundColor White
+skinparam classBorderColor #555
+skinparam packageBackgroundColor transparent
+skinparam linetype ortho
+skinparam dpi 150
+
+title Domain Layer (Core) - Business Logic
+
+' ==================== GAME MODULE ====================
+package "Game Module" DOMAIN {
+    class Game {
+        -canvas: HTMLCanvasElement
+        -config: GameConfig
+        -woodPileGenerator: WoodPileGenerator
+        -renderer: GameRenderer
+        -stateManager: GameStateManager
+        -creatureManager: CreatureManager
+        -collisionManager: CollisionManager
+        -gameLoop: GameLoop
+        -woodPieces: WoodPiece[]
+        __
+        +constructor(canvas, i18n, config)
+        +start(): void
+        +pause(): void
+        +resume(): void
+        +destroy(): void
+        +onScore(callback): void
+        +onHealth(callback): void
+        +onGameEnd(callback): void
+    }
+    
+    class GameLoop {
+        -isRunning: boolean
+        -isPaused: boolean
+        -lastFrameTime: number
+        __
+        +start(): void
+        +stop(): void
+        +pause(): void
+        +resume(): void
+        +setUpdateCallback(callback): void
+        +setRenderCallback(callback): void
+    }
+}
+
+' ==================== MANAGERS ====================
+package "Managers" DOMAIN {
+    class GameStateManager {
+        -state: GameState
+        -onScoreUpdate?: Function
+        -onHealthUpdate?: Function
+        -onGameEnd?: Function
+        __
+        +getState(): GameState
+        +addScore(points): void
+        +reduceHealth(damage): void
+        +setLevel(level): void
+        +setGameOver(): void
+        +reset(): void
+    }
+    
+    class CreatureManager {
+        -activeCreature?: ActiveCreature
+        -onScoreUpdate?: Function
+        -onHealthUpdate?: Function
+        __
+        +spawnCreature(piece): ActiveCreature?
+        +handleSuccessfulReaction(): void
+        +handleFailedReaction(): void
+        +updateCreature(deltaTime): boolean
+        +getActiveCreature(): ActiveCreature?
+        +clearCreature(): void
+    }
+    
+    class CollisionManager {
+        -config: GameConfig
+        -woodPileGenerator: WoodPileGenerator
+        __
+        +getWoodPieceAtPosition(pos, pieces): WoodPiece?
+        +isPointInCircle(point, center, radius): boolean
+    }
+    
+    class LevelManager {
+        -currentLevel: number
+        -scoreThresholds: number[]
+        __
+        +calculateLevel(score): number
+        +getLevelConfig(level): LevelConfig
+        +getNextLevelScore(currentScore): number
+    }
+    
+    class HighscoreManager {
+        -service: HighscoreService
+        -i18nService: HighscoreI18nService
+        __
+        +getTopScores(limit): Promise<Entry[]>
+        +addScore(entry): Promise<void>
+        +isHighScore(score): Promise<boolean>
+        +formatScore(entry): string
+    }
+}
+
+' ==================== SERVICES ====================
+package "Services" DOMAIN {
+    class WoodPileGenerator {
+        -config: GameConfig
+        __
+        +generateWoodPile(): WoodPiece[]
+        +updateCollapseRisks(pieces): WoodPiece[]
+        +findCollapsingPieces(removed, all): WoodPiece[]
+        +calculateCollapseRisk(piece, all): CollapseRisk
+    }
+    
+    class CollapsePredictionCalculator {
+        -canvasHeight: number
+        __
+        +calculateAffectedPieces(target, all): WoodPiece[]
+        +isOnGround(piece): boolean
+        +findSupportingPieces(piece, all): WoodPiece[]
+    }
+    
+    class HighscoreService {
+        -storageService: HighscoreStorageService
+        -maxEntries: number
+        __
+        +addScore(entry): Promise<void>
+        +getTopScores(limit): Promise<Entry[]>
+        +clearAllScores(): Promise<void>
+        +isHighScore(score): Promise<boolean>
+        +getScoreStats(): Promise<Stats>
+    }
+    
+    class HighscoreI18nService {
+        -i18n: I18n
+        __
+        +formatDuration(seconds): string
+        +formatScore(score): string
+        +formatLevel(level): string
+        +getCreatureLabel(type): string
+    }
+}
+
+' ==================== RELATIONSHIPS ====================
+Game *-- GameLoop
+Game *-- GameStateManager
+Game *-- CreatureManager
+Game *-- CollisionManager
+Game *-- WoodPileGenerator
+
+HighscoreManager *-- HighscoreService
+HighscoreManager *-- HighscoreI18nService
+
+note right of Game
+  **Game Controller**
+  Orchestrates all game subsystems
+  Delegates to specialized managers
+  Owns the game loop
+end note
+
+note bottom of GameStateManager
+  **Single Source of Truth**
+  All game state changes go through here
+  Notifies observers via callbacks
+end note
+
+@enduml

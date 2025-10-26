@@ -1,0 +1,415 @@
+@startuml Within_the_Woodpile_DataFlow_2025
+
+!define DOMAIN #E8F5E8
+!define INFRASTRUCTURE #E1F5FE
+!define PRESENTATION #FFF9C4
+!define SHARED #FCE4EC
+
+skinparam sequenceMessageAlign center
+skinparam maxMessageSize 100
+skinparam participantPadding 15
+skinparam boxPadding 10
+skinparam defaultFontSize 9
+
+actor Player
+
+box "Browser Environment"
+    participant Canvas
+    participant Storage
+    participant WebAudio
+end box
+
+box "Application Layer"
+    participant "Main App" as Main
+    participant "App State" as AppState
+    participant "Transition\nManager" as Transition
+end box
+
+box "Infrastructure Layer" INFRASTRUCTURE
+    participant "I18n" as I18n
+    participant "Input\nHandler" as Input
+    participant "Audio\nManager" as Audio
+    participant "Highscore\nStorage" as HStorage
+end box
+
+box "Domain Layer (Core)" DOMAIN
+    participant "Game" as Game
+    participant "State\nManager" as StateManager
+    participant "Creature\nManager" as CreatureManager
+    participant "Wood\nGenerator" as WoodGen
+    participant "Highscore\nManager" as HManager
+end box
+
+box "Presentation Layer" PRESENTATION
+    participant "Menu\nRenderer" as MenuRenderer
+    participant "Game\nRenderer" as GameRenderer
+    participant "Highscore\nModal" as HModal
+end box
+
+== Application Initialization ==
+
+Player -> Main : Open App
+activate Main
+
+Main -> I18n : initialize()
+activate I18n
+I18n -> Storage : Load saved language
+Storage --> I18n : Language preference
+I18n -> I18n : Load translations
+I18n --> Main : Ready
+deactivate I18n
+
+Main -> Audio : initialize()
+activate Audio
+Audio -> Audio : Setup AudioSettings
+Audio -> Audio : Setup SoundService
+Audio -> WebAudio : Preload critical sounds
+WebAudio --> Audio : Sounds loaded
+Audio --> Main : Ready
+deactivate Audio
+
+Main -> AppState : Initialize (MAIN_MENU)
+activate AppState
+AppState --> Main : State = MAIN_MENU
+deactivate AppState
+
+Main -> MenuRenderer : Create menu renderer
+activate MenuRenderer
+MenuRenderer -> Canvas : Render menu
+Canvas --> Player : Show menu
+deactivate MenuRenderer
+
+Main -> HManager : Initialize highscore system
+activate HManager
+HManager -> HStorage : Load saved scores
+HStorage -> Storage : Read scores
+Storage --> HStorage : Saved data
+HStorage --> HManager : Highscore list
+deactivate HManager
+
+Main --> Player : App ready
+deactivate Main
+
+== Menu Interaction ==
+
+Player -> Input : Click "Play"
+activate Input
+Input -> Audio : playUIClick()
+activate Audio
+Audio -> WebAudio : Play click sound
+deactivate Audio
+
+Input -> MenuRenderer : Handle click
+activate MenuRenderer
+MenuRenderer -> AppState : startGame()
+activate AppState
+AppState -> Main : State changed (GAME)
+deactivate AppState
+deactivate MenuRenderer
+
+== Game Start Transition ==
+
+Main -> Transition : transitionToGame()
+activate Transition
+Transition -> Canvas : Fade out menu
+Transition --> Main : Transition complete
+deactivate Transition
+
+Main -> Game : Create game instance
+activate Game
+
+Game -> WoodGen : generateWoodPile()
+activate WoodGen
+WoodGen -> WoodGen : Create wood pieces
+WoodGen -> WoodGen : Assign creatures
+WoodGen --> Game : WoodPiece[]
+deactivate WoodGen
+
+Game -> StateManager : Initialize state
+activate StateManager
+StateManager -> StateManager : score = 0, health = 100
+StateManager --> Game : GameState
+deactivate StateManager
+
+Game -> GameRenderer : Create renderer
+activate GameRenderer
+GameRenderer --> Game : Renderer ready
+deactivate GameRenderer
+
+Game -> Input : Setup event listeners
+activate Input
+Input --> Game : Listeners active
+deactivate Input
+
+Game --> Main : Game ready
+Main -> Audio : playBackgroundMusic(GAME_MUSIC)
+activate Audio
+Audio -> WebAudio : Play music loop
+deactivate Audio
+
+Main -> Canvas : Show game
+Canvas --> Player : Display game
+deactivate Game
+
+== Game Loop - Wood Piece Click ==
+
+Player -> Input : Click wood piece
+activate Input
+Input -> Game : onWoodPieceClick(piece)
+activate Game
+
+Game -> CreatureManager : spawnCreature(piece)?
+activate CreatureManager
+
+alt Creature spawned
+    CreatureManager -> StateManager : getState()
+    StateManager --> CreatureManager : Current state
+    CreatureManager -> CreatureManager : Create ActiveCreature
+    CreatureManager --> Game : ActiveCreature
+    
+    Game -> Audio : playCreatureAppear()
+    activate Audio
+    Audio -> WebAudio : Play sound
+    deactivate Audio
+    
+    Game -> GameRenderer : render(with creature)
+    activate GameRenderer
+    GameRenderer -> Canvas : Draw creature UI
+    Canvas --> Player : Show creature
+    deactivate GameRenderer
+else No creature
+    CreatureManager --> Game : null
+    deactivate CreatureManager
+    
+    Game -> StateManager : addScore(points)
+    activate StateManager
+    StateManager -> StateManager : score += points
+    StateManager -> Main : onScoreUpdate(score)
+    Main -> Canvas : Update score display
+    deactivate StateManager
+    
+    Game -> Audio : playWoodPickup()
+    activate Audio
+    Audio -> WebAudio : Play sound
+    deactivate Audio
+    
+    Game -> WoodGen : findCollapsingPieces()
+    activate WoodGen
+    WoodGen -> WoodGen : Calculate physics
+    WoodGen --> Game : Collapsing pieces
+    deactivate WoodGen
+    
+    alt Collapse detected
+        Game -> StateManager : reduceHealth(damage)
+        activate StateManager
+        StateManager -> StateManager : health -= damage
+        StateManager -> Main : onHealthUpdate(health)
+        Main -> Canvas : Update health display
+        deactivate StateManager
+        
+        Game -> Audio : playWoodCollapse()
+        activate Audio
+        Audio -> WebAudio : Play sound
+        deactivate Audio
+    end
+end
+
+Game -> GameRenderer : render()
+activate GameRenderer
+GameRenderer -> Canvas : Draw updated game
+Canvas --> Player : Show changes
+deactivate GameRenderer
+
+deactivate Game
+deactivate Input
+
+== Creature Reaction ==
+
+Player -> Input : Press reaction key
+activate Input
+Input -> CreatureManager : handleSuccessfulReaction()
+activate CreatureManager
+
+CreatureManager -> StateManager : addScore(bonus)
+activate StateManager
+StateManager --> CreatureManager : Updated
+deactivate StateManager
+
+CreatureManager -> Audio : playCreatureSuccess()
+activate Audio
+Audio -> WebAudio : Play success sound
+deactivate Audio
+
+CreatureManager -> CreatureManager : clearCreature()
+CreatureManager --> Input : Success
+deactivate CreatureManager
+deactivate Input
+
+== Language Change ==
+
+Player -> Main : Change language (Settings)
+activate Main
+
+Main -> I18n : loadLanguage(newLang)
+activate I18n
+I18n -> I18n : Load translation file
+I18n -> Storage : Save preference
+I18n -> I18n : updateUI()
+I18n --> Main : Language updated
+deactivate I18n
+
+Main -> GameRenderer : updateI18n(i18n)
+activate GameRenderer
+GameRenderer --> Main : Updated
+deactivate GameRenderer
+
+Main -> MenuRenderer : updateI18n(i18n)
+activate MenuRenderer
+MenuRenderer --> Main : Updated
+deactivate MenuRenderer
+
+Main -> Canvas : Re-render UI
+Canvas --> Player : Show new language
+deactivate Main
+
+== Game Over ==
+
+StateManager -> StateManager : health <= 0
+StateManager -> Game : onGameEnd()
+activate Game
+
+Game -> Audio : stopBackgroundMusic()
+activate Audio
+Audio -> WebAudio : Stop music
+deactivate Audio
+
+Game -> Audio : playBackgroundMusic(GAME_OVER_MUSIC)
+Audio -> WebAudio : Play game over music
+deactivate Audio
+
+Game -> Main : gameOver(score, level, duration)
+deactivate Game
+
+activate Main
+Main -> HManager : isHighScore(score)
+activate HManager
+HManager -> HStorage : getTopScores()
+activate HStorage
+HStorage -> Storage : Load scores
+Storage --> HStorage : Saved data
+HStorage --> HManager : Score list
+deactivate HStorage
+HManager --> Main : isHighScore: true
+deactivate HManager
+
+alt Is Highscore
+    Main -> HModal : showAddScoreDialog(score, level, duration)
+    activate HModal
+    HModal -> Canvas : Show dialog
+    Canvas --> Player : Enter name
+    Player -> HModal : Submit name
+    
+    HModal -> HManager : addScore(entry)
+    activate HManager
+    HManager -> HStorage : saveScores(updated)
+    activate HStorage
+    HStorage -> Storage : Persist data
+    deactivate HStorage
+    HManager --> HModal : Saved
+    deactivate HManager
+    
+    HModal -> HModal : hide()
+    HModal --> Main : Dialog closed
+    deactivate HModal
+end
+
+Main -> Transition : transitionToMenu()
+activate Transition
+Transition -> Canvas : Fade out game
+Transition --> Main : Transition complete
+deactivate Transition
+
+Main -> AppState : returnToMainMenu()
+activate AppState
+AppState --> Main : State = MAIN_MENU
+deactivate AppState
+
+Main -> MenuRenderer : render()
+activate MenuRenderer
+MenuRenderer -> Canvas : Draw menu
+Canvas --> Player : Show menu
+deactivate MenuRenderer
+
+Main -> Audio : playBackgroundMusic(MENU_MUSIC)
+activate Audio
+Audio -> WebAudio : Play menu music
+deactivate Audio
+
+deactivate Main
+
+== View Highscores ==
+
+Player -> Main : Click Highscore button
+activate Main
+
+Main -> HModal : show()
+activate HModal
+
+HModal -> HManager : getTopScores(10)
+activate HManager
+HManager -> HStorage : loadScores()
+activate HStorage
+HStorage -> Storage : Read data
+Storage --> HStorage : Saved scores
+HStorage --> HManager : Top 10
+deactivate HStorage
+HManager --> HModal : Formatted scores
+deactivate HManager
+
+HModal -> Canvas : Display highscore modal
+Canvas --> Player : Show scores & statistics
+
+Player -> HModal : Close modal
+HModal -> HModal : hide()
+HModal --> Main : Modal closed
+deactivate HModal
+deactivate Main
+
+== Settings & Audio ==
+
+Player -> Main : Adjust volume (Settings)
+activate Main
+
+Main -> Audio : updateSettings({masterVolume: 0.5})
+activate Audio
+Audio -> Audio : AudioSettings.setMasterVolume(0.5)
+Audio -> Storage : Persist setting
+Audio --> Main : Settings updated
+deactivate Audio
+
+Main -> Canvas : Update UI slider
+Canvas --> Player : Show new volume
+deactivate Main
+
+note over Domain
+  **Clean Architecture Principle**
+  Domain layer (Core) has NO
+  dependencies on outer layers.
+  All data flows inward.
+end note
+
+note over Infrastructure
+  **Infrastructure Layer**
+  Implements domain interfaces.
+  Handles browser APIs, storage,
+  audio, i18n, input events.
+end note
+
+note over Presentation
+  **Presentation Layer**
+  Handles all rendering logic.
+  Depends on domain use cases
+  and infrastructure services.
+end note
+
+@enduml

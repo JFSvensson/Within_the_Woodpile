@@ -1,0 +1,177 @@
+@startuml Within_the_Woodpile_Types
+
+!define TYPES #B2DFDB
+
+skinparam packageStyle rectangle
+skinparam defaultFontSize 10
+skinparam classBackgroundColor White
+skinparam classBorderColor #555
+skinparam packageBackgroundColor transparent
+skinparam linetype ortho
+skinparam dpi 150
+
+title Shared Types, Enums & Interfaces
+
+' ==================== CORE TYPES ====================
+package "Core Types" TYPES {
+    interface Position {
+        +x: number
+        +y: number
+    }
+    
+    interface WoodPiece {
+        +id: string
+        +position: Position
+        +radius: number
+        +hasCreature: boolean
+        +creatureType?: CreatureType
+        +angle: number
+        +color?: string
+    }
+    
+    interface GameState {
+        +score: number
+        +level: number
+        +gameOver: boolean
+        +creatures: Map<string, CreatureType>
+    }
+}
+
+' ==================== ENUMS ====================
+package "Enumerations" TYPES {
+    enum CreatureType {
+        SPIDER
+        WORM
+        BEETLE
+        CENTIPEDE
+        SNAIL
+    }
+    
+    enum GameMode {
+        MENU
+        PLAYING
+        GAME_OVER
+        PAUSED
+    }
+    
+    enum AppState {
+        MENU
+        GAME
+        SETTINGS
+        INSTRUCTIONS
+        HIGHSCORE
+    }
+    
+    enum Language {
+        EN = "en"
+        SV = "sv"
+    }
+    
+    enum AudioCategory {
+        MASTER = "master"
+        MUSIC = "music"
+        SFX = "sfx"
+    }
+    
+    enum SoundEvent {
+        WOOD_REMOVE
+        WOOD_HOVER
+        CREATURE_FOUND
+        CREATURE_ANGRY
+        COLLAPSE_START
+        GAME_OVER
+        LEVEL_UP
+        MENU_HOVER
+        MENU_CLICK
+        BUTTON_HOVER
+        BUTTON_CLICK
+        MODAL_OPEN
+        MODAL_CLOSE
+        ' ... 13 more events
+    }
+}
+
+' ==================== HIGHSCORE ====================
+package "Highscore Types" TYPES {
+    interface HighscoreEntry {
+        +id: string
+        +playerName: string
+        +score: number
+        +level: number
+        +date: number
+    }
+    
+    interface Statistics {
+        +totalGames: number
+        +highestScore: number
+        +averageScore: number
+        +highestLevel: number
+    }
+}
+
+' ==================== AUDIO ====================
+package "Audio Types" TYPES {
+    interface AudioConfig {
+        +soundEvent: SoundEvent
+        +volume?: number
+        +loop?: boolean
+        +category?: AudioCategory
+    }
+    
+    interface VolumeSettings {
+        +master: number
+        +music: number
+        +sfx: number
+    }
+}
+
+' ==================== RENDERING ====================
+package "Rendering Types" TYPES {
+    interface MenuButton {
+        +x: number
+        +y: number
+        +width: number
+        +height: number
+        +text: string
+        +action: string
+        +hovered: boolean
+    }
+    
+    interface Particle {
+        +position: Position
+        +velocity: Position
+        +life: number
+        +maxLife: number
+        +size: number
+        +color: string
+    }
+}
+
+' ==================== RELATIONSHIPS ====================
+WoodPiece *-- Position
+WoodPiece *-- CreatureType
+
+HighscoreEntry -- Statistics : aggregated
+
+AudioConfig *-- SoundEvent
+AudioConfig *-- AudioCategory
+
+note right of WoodPiece
+  **Core Data Structure**
+  Represents physical wood pieces
+  in the pile
+end note
+
+note bottom of HighscoreEntry
+  **Persistence Model**
+  Stored in localStorage
+  Immutable after creation
+end note
+
+note left of SoundEvent
+  **26 Total Events**
+  Covers all game interactions
+  Mapped to audio files
+end note
+
+@enduml

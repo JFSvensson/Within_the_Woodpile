@@ -1,0 +1,141 @@
+@startuml Within_the_Woodpile_UI
+
+!define UI #E1BEE7
+
+skinparam packageStyle rectangle
+skinparam defaultFontSize 10
+skinparam classBackgroundColor White
+skinparam classBorderColor #555
+skinparam packageBackgroundColor transparent
+skinparam linetype ortho
+skinparam dpi 150
+
+title UI Components - Highscore & Menu Interface
+
+' ==================== MENU ====================
+package "Menu Components" UI {
+    class MenuButtonManager {
+        -buttons: MenuButton[]
+        -i18n: I18n
+        -hoveredButton: MenuButton | null
+        __
+        +constructor(i18n)
+        +getButtons(): MenuButton[]
+        +updateI18n(i18n): void
+        +handleClick(pos): string | null
+        +handleMouseMove(pos): void
+        +render(ctx): void
+    }
+}
+
+' ==================== HIGHSCORE ====================
+package "Highscore Components" UI {
+    class HighscoreModal {
+        -modal: HTMLElement
+        -table: HighscoreTable
+        -statisticsPanel: StatisticsPanel
+        -i18n: I18n
+        -onClose: () => void
+        __
+        +constructor(i18n, onClose)
+        +show(): void
+        +hide(): void
+        +updateI18n(i18n): void
+        -setupDOM(): void
+        -attachEventListeners(): void
+        +destroy(): void
+    }
+    
+    class HighscoreTable {
+        -container: HTMLElement
+        -entries: HighscoreEntry[]
+        -i18n: I18n
+        -onDelete: (id) => void
+        __
+        +constructor(i18n, onDelete)
+        +render(entries): void
+        +updateI18n(i18n): void
+        +destroy(): void
+        -createTableRow(entry, rank): HTMLElement
+    }
+    
+    class StatisticsPanel {
+        -container: HTMLElement
+        -stats: Statistics
+        -i18n: I18n
+        __
+        +constructor(i18n)
+        +render(stats): void
+        +updateI18n(i18n): void
+        +destroy(): void
+    }
+    
+    class AddScoreDialog {
+        -modal: HTMLElement
+        -score: number
+        -i18n: I18n
+        -onSave: (name) => void
+        -onCancel: () => void
+        __
+        +constructor(score, i18n, onSave, onCancel)
+        +show(): void
+        +hide(): void
+        +updateI18n(i18n): void
+        -setupDOM(): void
+        -attachEventListeners(): void
+        +destroy(): void
+    }
+}
+
+' ==================== SETTINGS ====================
+package "Settings Components" UI {
+    class SettingsModal {
+        -modal: HTMLElement
+        -i18n: I18n
+        -onClose: () => void
+        __
+        +constructor(i18n, onClose)
+        +show(): void
+        +hide(): void
+        +updateI18n(i18n): void
+        -setupDOM(): void
+        +destroy(): void
+    }
+    
+    class InstructionsModal {
+        -modal: HTMLElement
+        -i18n: I18n
+        -onClose: () => void
+        __
+        +constructor(i18n, onClose)
+        +show(): void
+        +hide(): void
+        +updateI18n(i18n): void
+        -setupDOM(): void
+        +destroy(): void
+    }
+}
+
+' ==================== RELATIONSHIPS ====================
+HighscoreModal *-- HighscoreTable
+HighscoreModal *-- StatisticsPanel
+
+note right of HighscoreModal
+  **Container Component**
+  Manages table and statistics
+  Handles close/open lifecycle
+end note
+
+note bottom of AddScoreDialog
+  **Form Component**
+  Prompts user for name entry
+  Validates and submits score
+end note
+
+note left of MenuButtonManager
+  **Interactive Component**
+  Manages menu buttons
+  Handles hover/click states
+end note
+
+@enduml

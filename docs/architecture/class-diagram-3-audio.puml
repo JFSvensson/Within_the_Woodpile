@@ -1,0 +1,155 @@
+@startuml Within_the_Woodpile_Audio_System
+
+!define AUDIO #E8EAF6
+
+skinparam packageStyle rectangle
+skinparam defaultFontSize 10
+skinparam classBackgroundColor White
+skinparam classBorderColor #555
+skinparam packageBackgroundColor transparent
+skinparam linetype ortho
+skinparam dpi 150
+
+title Audio System (Infrastructure)
+
+' ==================== AUDIO ====================
+package "Audio System" AUDIO {
+    class AudioManager {
+        -audioSettings: AudioSettings
+        -soundService: SoundService
+        -isInitialized: boolean
+        -soundAssets: Map<string, AudioAsset>
+        __
+        **Lifecycle:**
+        +initialize(): Promise<void>
+        +destroy(): void
+        __
+        **Playback:**
+        +playSound(event, config?): Promise<void>
+        +playBackgroundMusic(event): Promise<void>
+        +stopBackgroundMusic(): void
+        __
+        **Settings:**
+        +updateSettings(settings): void
+        +getSettings(): AudioSettingsData
+        +resetSettings(): void
+        __
+        **Convenience:**
+        +playUIClick(): void
+        +playUIHover(): void
+        +playWoodPickup(): void
+        +playCreatureAppear(): void
+    }
+    
+    class AudioSettings {
+        -masterVolume: number
+        -soundsEnabled: boolean
+        -musicEnabled: boolean
+        -uiSoundsEnabled: boolean
+        -listeners: Function[]
+        __
+        +getMasterVolume(): number
+        +setMasterVolume(volume): void
+        +areSoundsEnabled(): boolean
+        +setSoundsEnabled(enabled): void
+        +isMusicEnabled(): boolean
+        +setMusicEnabled(enabled): void
+        +getEffectiveVolume(): number
+        +resetToDefaults(): void
+        +addChangeListener(listener): void
+    }
+    
+    class SoundService {
+        -audioSettings: AudioSettings
+        -audioCache: Map<string, HTMLAudioElement>
+        -playingSounds: Map<string, PlayingSoundInfo>
+        -audioContext: AudioContext?
+        __
+        +loadSound(asset): Promise<HTMLAudioElement>
+        +playSound(soundId, config?): Promise<string?>
+        +stopSound(playId): void
+        +stopAllSounds(): void
+        +preloadSounds(assets): Promise<void>
+        +destroy(): void
+    }
+}
+
+' ==================== ENUMS & INTERFACES ====================
+package "Audio Types" AUDIO {
+    enum SoundEvent {
+        **UI Sounds**
+        UI_CLICK
+        UI_HOVER
+        UI_OPEN_MODAL
+        UI_CLOSE_MODAL
+        __
+        **Game Sounds**
+        WOOD_PICKUP
+        WOOD_COLLAPSE
+        __
+        **Creatures**
+        CREATURE_APPEAR
+        CREATURE_SUCCESS
+        CREATURE_FAIL
+        __
+        **Music**
+        MENU_MUSIC
+        GAME_MUSIC
+        GAME_OVER_MUSIC
+    }
+    
+    enum AudioCategory {
+        MUSIC
+        SFX
+        UI
+        AMBIENT
+    }
+    
+    interface AudioAsset {
+        +id: string
+        +url: string
+        +category: AudioCategory
+        +volume?: number
+        +loop?: boolean
+    }
+    
+    interface SoundConfig {
+        +volume?: number
+        +loop?: boolean
+        +playbackRate?: number
+    }
+}
+
+' ==================== RELATIONSHIPS ====================
+AudioManager *-- AudioSettings
+AudioManager *-- SoundService
+AudioManager ..> SoundEvent
+AudioManager ..> AudioAsset
+
+SoundService *-- AudioSettings
+SoundService ..> AudioAsset
+SoundService ..> SoundConfig
+SoundService ..> AudioCategory
+
+note right of AudioManager
+  **Facade Pattern**
+  Simplifies audio system access
+  Registers 26 sound assets
+  Graceful degradation
+end note
+
+note right of AudioSettings
+  **Observer Pattern**
+  Persists to localStorage
+  Notifies listeners on change
+  Category-specific volumes
+end note
+
+note bottom of SoundService
+  **Low-level Playback**
+  Caching & preloading
+  Web Audio API integration
+  Limits simultaneous sounds
+end note
+
+@enduml
