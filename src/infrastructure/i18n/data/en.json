@@ -51,6 +51,56 @@
     "uiSounds": "UI Sounds",
     "reset": "Reset"
   },
+  "difficulty": {
+    "title": "Difficulty",
+    "select": "Select difficulty",
+    "easy": {
+      "name": "Easy",
+      "description": "Perfect for beginners. More health, longer reaction time and fewer creatures."
+    },
+    "normal": {
+      "name": "Normal",
+      "description": "Balanced experience. Recommended for most players."
+    },
+    "hard": {
+      "name": "Hard",
+      "description": "For experienced players. Less health, more creatures and shorter reaction time."
+    },
+    "expert": {
+      "name": "Expert",
+      "description": "Extremely challenging. Very short reaction time and many dangerous creatures."
+    },
+    "nightmare": {
+      "name": "Nightmare",
+      "description": "For the bravest. Minimal health, very short reaction time and many simultaneous creatures."
+    },
+    "modifiers": {
+      "health": "Health: {value}%",
+      "reactionTime": "Reaction time: {value}s",
+      "creatures": "Creatures: {value}x",
+      "scoreBonus": "Score bonus: {value}x"
+    }
+  },
+  "level": {
+    "title": "Level {number}",
+    "current": "Level",
+    "progress": "Progress",
+    "complete": "Level Complete!",
+    "failed": "Level Failed",
+    "starting": "Starting level {number}...",
+    "speedBonus": "Speed Bonus",
+    "nextLevel": "Next Level",
+    "finalLevel": "Final level!",
+    "allLevelsComplete": "All levels complete!",
+    "congratulations": "Congratulations!",
+    "completedIn": "Completed in {time}s",
+    "woodRemaining": "{count} wood remaining",
+    "stats": {
+      "woodCollected": "Wood collected: {current}/{total}",
+      "timeElapsed": "Time: {time}s",
+      "bonusEarned": "Bonus: +{points}p"
+    }
+  },
   "highscore": {
     "title": {
       "main": "High Scores",

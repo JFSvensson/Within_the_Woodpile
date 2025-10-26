@@ -51,6 +51,56 @@
     "uiSounds": "UI-ljud",
     "reset": "Återställ"
   },
+  "difficulty": {
+    "title": "Svårighetsgrad",
+    "select": "Välj svårighetsgrad",
+    "easy": {
+      "name": "Lätt",
+      "description": "Perfekt för nybörjare. Mer hälsa, längre reaktionstid och färre varelser."
+    },
+    "normal": {
+      "name": "Normal",
+      "description": "Balanserad upplevelse. Rekommenderad för de flesta spelare."
+    },
+    "hard": {
+      "name": "Svår",
+      "description": "För erfarna spelare. Mindre hälsa, fler varelser och kortare reaktionstid."
+    },
+    "expert": {
+      "name": "Expert",
+      "description": "Extremt utmanande. Mycket kort reaktionstid och många farliga varelser."
+    },
+    "nightmare": {
+      "name": "Mardröm",
+      "description": "För de modigaste. Minimal hälsa, väldigt kort reaktionstid och många simultana varelser."
+    },
+    "modifiers": {
+      "health": "Hälsa: {value}%",
+      "reactionTime": "Reaktionstid: {value}s",
+      "creatures": "Varelser: {value}x",
+      "scoreBonus": "Poäng-bonus: {value}x"
+    }
+  },
+  "level": {
+    "title": "Nivå {number}",
+    "current": "Nivå",
+    "progress": "Framsteg",
+    "complete": "Nivå klar!",
+    "failed": "Nivå misslyckad",
+    "starting": "Startar nivå {number}...",
+    "speedBonus": "Hastighetsbonus",
+    "nextLevel": "Nästa nivå",
+    "finalLevel": "Sista nivån!",
+    "allLevelsComplete": "Alla nivåer klara!",
+    "congratulations": "Grattis!",
+    "completedIn": "Klarad på {time}s",
+    "woodRemaining": "{count} ved kvar",
+    "stats": {
+      "woodCollected": "Ved plockad: {current}/{total}",
+      "timeElapsed": "Tid: {time}s",
+      "bonusEarned": "Bonus: +{points}p"
+    }
+  },
   "highscore": {
     "title": {
       "main": "Bästa resultat",
