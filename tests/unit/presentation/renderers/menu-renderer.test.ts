@@ -38,6 +38,18 @@ vi.mock('../../../../src/ui/MenuButtonManager.js', () => ({
     }))
 }));
 
+vi.mock('../../../../src/ui/DifficultySelector.js', () => ({
+    DifficultySelector: vi.fn().mockImplementation(() => ({
+        render: vi.fn(),
+        handleClick: vi.fn().mockReturnValue(false),
+        handleMouseMove: vi.fn(),
+        setDifficulty: vi.fn(),
+        getSelectedDifficulty: vi.fn().mockReturnValue('normal'),
+        setOnDifficultyChange: vi.fn(),
+        destroy: vi.fn()
+    }))
+}));
+
 // Helper to create mock canvas context
 function createMockCanvasContext() {
     return {
@@ -132,6 +144,7 @@ describe('MenuRenderer', () => {
             const backgroundRenderer = (renderer as any).backgroundRenderer;
             const particleSystem = (renderer as any).particleSystem;
             const logoRenderer = (renderer as any).logoRenderer;
+            const difficultySelector = (renderer as any).difficultySelector;
             const buttonManager = (renderer as any).buttonManager;
 
             renderer.render();
@@ -140,6 +153,7 @@ describe('MenuRenderer', () => {
             expect(particleSystem.update).toHaveBeenCalled();
             expect(particleSystem.render).toHaveBeenCalled();
             expect(logoRenderer.render).toHaveBeenCalled();
+            expect(difficultySelector.render).toHaveBeenCalled();
             expect(buttonManager.render).toHaveBeenCalled();
         });
 
