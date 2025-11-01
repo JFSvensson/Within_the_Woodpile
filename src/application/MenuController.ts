@@ -32,6 +32,22 @@ export class MenuController {
         this.setupMenuCallbacks();
         this.setupMenuEventListeners();
         this.setupKeyboardNavigation();
+        this.setupDifficultySelector();
+    }
+
+    /**
+     * Sätter upp difficulty selector
+     */
+    private setupDifficultySelector(): void {
+        // Sätt initial difficulty
+        this.menuRenderer.setDifficulty(this.selectedDifficulty);
+        
+        // Lyssna på ändringar
+        this.menuRenderer.setOnDifficultyChange((difficulty: DifficultyLevel) => {
+            this.selectedDifficulty = difficulty;
+            this.audioManager?.playUIClick();
+            console.log(`Difficulty changed to: ${difficulty}`);
+        });
     }
 
     /**
