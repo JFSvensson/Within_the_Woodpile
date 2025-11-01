@@ -101,6 +101,17 @@
       "bonusEarned": "Bonus: +{points}p"
     }
   },
+  "levelComplete": {
+    "title": "Level Complete!",
+    "score": "Score",
+    "time": "Time",
+    "speedBonus": "Speed Bonus",
+    "nextLevel": "Next Level",
+    "allComplete": "All levels complete!",
+    "continue": "Continue",
+    "finish": "Finish",
+    "quit": "Quit to Menu"
+  },
   "highscore": {
     "title": {
       "main": "High Scores",

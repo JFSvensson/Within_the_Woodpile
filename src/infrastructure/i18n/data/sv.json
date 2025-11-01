@@ -101,6 +101,17 @@
       "bonusEarned": "Bonus: +{points}p"
     }
   },
+  "levelComplete": {
+    "title": "Nivå klar!",
+    "score": "Poäng",
+    "time": "Tid",
+    "speedBonus": "Hastighetsbonus",
+    "nextLevel": "Nästa nivå",
+    "allComplete": "Alla nivåer klarade!",
+    "continue": "Fortsätt",
+    "finish": "Avsluta",
+    "quit": "Avsluta till meny"
+  },
   "highscore": {
     "title": {
       "main": "Bästa resultat",
