@@ -6,7 +6,7 @@ import { TransitionManager } from './TransitionManager.js';
 import { ResponsiveManager } from './ResponsiveManager.js';
 import { AudioManager, SoundEvent } from './infrastructure/audio/index.js';
 import { DEFAULT_CONFIG } from './shared/constants/index.js';
-import { MenuState } from './types/index.js';
+import { MenuState, DifficultyLevel } from './types/index.js';
 import { HighscoreModal } from './ui/highscore/HighscoreModal.js';
 import { HighscoreManager } from './core/managers/HighscoreManager.js';
 import { HighscoreService } from './core/services/HighscoreService.js';
@@ -32,6 +32,7 @@ let highscoreManager: HighscoreManager;
 // Game session variabler för highscore tracking
 let gameStartTime: number | null = null;
 let currentLevel: number = 1;
+let selectedDifficulty: DifficultyLevel = DifficultyLevel.NORMAL;
 
 /**
  * Menyens renderingsloop (bara när vi är i menyläge)
@@ -65,8 +66,8 @@ async function startGameFromMenu(): Promise<void> {
         // Smooth övergång till spel
         await transitionManager.transitionToGame();
 
-        // Skapa nytt spelobjekt
-        game = new Game(canvas, i18n, DEFAULT_CONFIG);
+        // Skapa nytt spelobjekt med vald difficulty
+        game = new Game(canvas, i18n, DEFAULT_CONFIG, selectedDifficulty, 1);
         
         // Spåra spelstart för highscore
         gameStartTime = Date.now();
@@ -76,9 +77,13 @@ async function startGameFromMenu(): Promise<void> {
         game.onScore((score: number) => updateGameStats(score, undefined));
         game.onHealth((health: number) => updateGameStats(undefined, health));
         game.onGameEnd(handleGameOver);
+        game.setOnLevelComplete(handleLevelComplete);
         
-        // Initiera UI
-        updateGameStats(0, 100);
+        // Initiera UI med level info
+        const levelManager = game.getLevelManager();
+        const levelInfo = levelManager.getCurrentLevelInfo();
+        currentLevel = levelInfo.levelNumber;
+        updateGameStats(0, levelManager.getStartingHealth());
         
         // Byt till spelläge
         appStateManager.startGame();
@@ -86,7 +91,7 @@ async function startGameFromMenu(): Promise<void> {
         // Starta spelmusik
         audioManager?.playBackgroundMusic(SoundEvent.GAME_MUSIC);
         
-        console.log('Game started from menu');
+        console.log(`Game started - Difficulty: ${selectedDifficulty}, Level: ${currentLevel}`);
     } catch (error) {
         console.error('Failed to start game:', error);
         
@@ -528,6 +533,126 @@ function calculateLevelFromScore(score: number): number {
 }
 
 /**
+ * Hanterar level complete event
+ */
+async function handleLevelComplete(levelData: any): Promise<void> {
+    console.log('Level complete!', levelData);
+    
+    // Spela level complete ljud
+    audioManager?.playSound(SoundEvent.LEVEL_UP);
+    
+    // Visa level complete modal
+    await showLevelCompleteModal(levelData);
+}
+
+/**
+ * Visar level complete modal
+ */
+async function showLevelCompleteModal(levelData: any): Promise<void> {
+    const overlay = createOverlay('level-complete-overlay');
+    
+    const { levelNumber, speedBonus, totalScore, completionTime, nextLevel } = levelData;
+    
+    const content = `
+        <div class="modal-content level-complete">
+            <div class="modal-header">
+                <h2 data-i18n="levelComplete.title">Level ${levelNumber} Klart!</h2>
+            </div>
+            <div class="modal-body">
+                <div class="level-stats">
+                    <div class="stat-item">
+                        <span class="stat-label" data-i18n="levelComplete.score">Poäng:</span>
+                        <span class="stat-value">${totalScore}</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label" data-i18n="levelComplete.time">Tid:</span>
+                        <span class="stat-value">${completionTime}s</span>
+                    </div>
+                    <div class="stat-item highlight">
+                        <span class="stat-label" data-i18n="levelComplete.speedBonus">Speed Bonus:</span>
+                        <span class="stat-value">+${speedBonus}</span>
+                    </div>
+                </div>
+                
+                ${nextLevel ? `
+                    <div class="next-level-info">
+                        <p data-i18n="levelComplete.nextLevel">Nästa nivå: ${nextLevel}</p>
+                    </div>
+                ` : `
+                    <div class="congratulations">
+                        <h3 data-i18n="levelComplete.allComplete">🎉 Alla nivåer klarade! 🎉</h3>
+                    </div>
+                `}
+            </div>
+            <div class="modal-footer">
+                ${nextLevel ? `
+                    <button class="wood-button primary" onclick="continueToNextLevel()" data-i18n="levelComplete.continue">Fortsätt</button>
+                ` : `
+                    <button class="wood-button primary" onclick="finishGame()" data-i18n="levelComplete.finish">Avsluta</button>
+                `}
+                <button class="wood-button" onclick="quitToMenu()" data-i18n="levelComplete.quit">Avsluta till meny</button>
+            </div>
+        </div>
+    `;
+    
+    overlay.innerHTML = content;
+    document.body.appendChild(overlay);
+    
+    // Uppdatera översättningar
+    i18n.updateUI();
+    
+    // Använd TransitionManager för smooth entrance
+    await transitionManager?.transitionToModal(overlay);
+}
+
+/**
+ * Fortsätter till nästa level
+ */
+function continueToNextLevel(): void {
+    audioManager?.playUIClick();
+    
+    // Stäng modal
+    closeOverlay('level-complete-overlay');
+    
+    // Starta nästa level
+    if (game) {
+        game.startNextLevel();
+        
+        // Uppdatera current level tracking
+        const levelManager = game.getLevelManager();
+        currentLevel = levelManager.getCurrentLevel();
+        
+        console.log(`Starting level ${currentLevel}`);
+    }
+}
+
+/**
+ * Avslutar spelet efter att ha klarat alla levels
+ */
+async function finishGame(): Promise<void> {
+    audioManager?.playUIClick();
+    
+    // Stäng level complete modal
+    closeOverlay('level-complete-overlay');
+    
+    // Behandla som game over för highscore
+    await handleGameOver();
+}
+
+/**
+ * Går tillbaka till menyn från level complete
+ */
+async function quitToMenu(): Promise<void> {
+    audioManager?.playUIClick();
+    
+    // Stäng level complete modal
+    closeOverlay('level-complete-overlay');
+    
+    // Gå till meny
+    await performGameOverTransition();
+}
+
+/**
  * Hanterar när spelet tar slut
  */
 async function handleGameOver(): Promise<void> {
@@ -960,3 +1085,6 @@ window.addEventListener('beforeunload', cleanup);
 (window as any).setVolume = setVolume;
 (window as any).toggleSounds = toggleSounds;
 (window as any).resetSettings = resetSettings;
+(window as any).continueToNextLevel = continueToNextLevel;
+(window as any).finishGame = finishGame;
+(window as any).quitToMenu = quitToMenu;
