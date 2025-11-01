@@ -723,3 +723,67 @@ select:focus {
         font-size: 13px;
     }
 }
+
+/* Level Complete Modal Styles */
+.level-complete .modal-body {
+    text-align: center;
+}
+
+.level-stats {
+    margin: 30px 0;
+    padding: 20px;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 8px;
+}
+
+.stat-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px;
+    margin: 8px 0;
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 4px;
+}
+
+.stat-item.highlight {
+    background: rgba(76, 175, 80, 0.2);
+    border: 2px solid #4CAF50;
+}
+
+.stat-label {
+    font-size: 16px;
+    color: #d4b896;
+}
+
+.stat-value {
+    font-size: 24px;
+    font-weight: bold;
+    color: #fff;
+}
+
+.stat-item.highlight .stat-value {
+    color: #4CAF50;
+}
+
+.next-level-info {
+    margin: 20px 0;
+    padding: 15px;
+    background: rgba(33, 150, 243, 0.1);
+    border-radius: 8px;
+    font-size: 18px;
+}
+
+.congratulations {
+    margin: 20px 0;
+    padding: 20px;
+    background: linear-gradient(135deg, rgba(255, 215, 0, 0.1), rgba(255, 165, 0, 0.1));
+    border-radius: 8px;
+    border: 2px solid #FFD700;
+}
+
+.congratulations h3 {
+    font-size: 24px;
+    margin: 0;
+    color: #FFD700;
+}
