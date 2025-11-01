@@ -539,7 +539,7 @@ async function handleLevelComplete(levelData: any): Promise<void> {
     console.log('Level complete!', levelData);
     
     // Spela level complete ljud
-    audioManager?.playSound(SoundEvent.LEVEL_UP);
+    audioManager?.playSound(SoundEvent.LEVEL_COMPLETE);
     
     // Visa level complete modal
     await showLevelCompleteModal(levelData);
