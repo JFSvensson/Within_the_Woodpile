@@ -1,9 +1,10 @@
 import { I18n } from '../../../infrastructure/i18n/I18n.js';
-import { Position } from '../../../types/index.js';
+import { Position, DifficultyLevel } from '../../../types/index.js';
 import { LogoRenderer } from './LogoRenderer.js';
 import { MenuParticleSystem } from '../../../particles/MenuParticleSystem.js';
 import { BackgroundRenderer } from './BackgroundRenderer.js';
 import { MenuButtonManager } from '../../../ui/MenuButtonManager.js';
+import { DifficultySelector } from '../../../ui/DifficultySelector.js';
 import { BaseRenderer } from '../shared/BaseRenderer.js';
 
 /**
@@ -16,6 +17,7 @@ export class MenuRenderer extends BaseRenderer {
     private particleSystem: MenuParticleSystem;
     private backgroundRenderer: BackgroundRenderer;
     private buttonManager: MenuButtonManager;
+    private difficultySelector: DifficultySelector;
     private animationTime: number = 0;
 
     constructor(canvas: HTMLCanvasElement, i18n: I18n) {
@@ -25,6 +27,7 @@ export class MenuRenderer extends BaseRenderer {
         this.particleSystem = new MenuParticleSystem(canvas);
         this.backgroundRenderer = new BackgroundRenderer(canvas);
         this.buttonManager = new MenuButtonManager(this.ctx, canvas, i18n);
+        this.difficultySelector = new DifficultySelector(this.ctx, canvas, i18n);
     }
 
     /**
@@ -37,6 +40,7 @@ export class MenuRenderer extends BaseRenderer {
         this.particleSystem.update();
         this.particleSystem.render();
         this.logoRenderer.render(this.animationTime);
+        this.difficultySelector.render();
         this.buttonManager.render(this.animationTime);
         this.renderFooter();
     }
@@ -61,6 +65,12 @@ export class MenuRenderer extends BaseRenderer {
      * Hanterar musklick på knappar
      */
     public handleClick(x: number, y: number): boolean {
+        // Kolla difficulty selector först
+        if (this.difficultySelector.handleClick(x, y)) {
+            return true;
+        }
+        
+        // Annars kolla knappar
         return this.buttonManager.handleClick(x, y);
     }
 
@@ -68,6 +78,7 @@ export class MenuRenderer extends BaseRenderer {
      * Hanterar mushover för knappar
      */
     public handleMouseMove(x: number, y: number): void {
+        this.difficultySelector.handleMouseMove(x, y);
         this.buttonManager.handleMouseMove(x, y);
     }
 
@@ -124,10 +135,32 @@ export class MenuRenderer extends BaseRenderer {
     }
 
     /**
+     * Hämtar vald difficulty
+     */
+    public getSelectedDifficulty(): DifficultyLevel {
+        return this.difficultySelector.getSelectedDifficulty();
+    }
+
+    /**
+     * Sätter difficulty
+     */
+    public setDifficulty(difficulty: DifficultyLevel): void {
+        this.difficultySelector.setDifficulty(difficulty);
+    }
+
+    /**
+     * Sätter callback för när difficulty ändras
+     */
+    public setOnDifficultyChange(callback: (difficulty: DifficultyLevel) => void): void {
+        this.difficultySelector.setOnDifficultyChange(callback);
+    }
+
+    /**
      * Rensa resurser
      */
     public destroy(): void {
         this.buttonManager.destroy();
         this.particleSystem.destroy();
+        this.difficultySelector.destroy();
     }
 }
