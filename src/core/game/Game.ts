@@ -1,7 +1,8 @@
 import { 
   WoodPiece, 
   GameState, 
-  GameConfig
+  GameConfig,
+  DifficultyLevel
 } from '../../types/index.js';
 import { DEFAULT_CONFIG } from '../../shared/constants/index.js';
 import { WoodPileGenerator } from '../services/WoodPileGenerator.js';
@@ -14,6 +15,7 @@ import { GameInputHandler } from '../../infrastructure/input/GameInputHandler.js
 import { CreatureManager } from '../managers/CreatureManager.js';
 import { CollisionManager } from '../managers/CollisionManager.js';
 import { GameStateManager } from '../managers/GameStateManager.js';
+import { LevelManager } from '../managers/LevelManager.js';
 import { GameLoop } from './GameLoop.js';
 
 /**
@@ -31,32 +33,46 @@ export class Game {
   private creatureManager: CreatureManager;
   private collisionManager: CollisionManager;
   private stateManager: GameStateManager;
+  private levelManager: LevelManager;
   private gameLoop: GameLoop;
   
   private woodPieces: WoodPiece[] = [];
   private canvas: HTMLCanvasElement;
+  private onLevelComplete?: (levelData: any) => void;
 
-  constructor(canvas: HTMLCanvasElement, i18n: I18n, config: GameConfig = DEFAULT_CONFIG) {
+  constructor(
+    canvas: HTMLCanvasElement, 
+    i18n: I18n, 
+    config: GameConfig = DEFAULT_CONFIG,
+    difficulty: DifficultyLevel = DifficultyLevel.NORMAL,
+    startingLevel: number = 1
+  ) {
     this.canvas = canvas;
-    this.config = config;
     this.i18n = i18n;
     
-    this.woodPileGenerator = new WoodPileGenerator(config);
+    // Skapa LevelManager först
+    this.levelManager = new LevelManager(difficulty, startingLevel);
+    
+    // Applicera difficulty modifiers på config
+    this.config = this.levelManager.applyDifficultyToConfig(config);
+    
+    this.woodPileGenerator = new WoodPileGenerator(this.config);
     this.renderer = new GameRenderer(canvas, i18n);
     this.collapseAnimator = new WoodCollapseAnimator();
     this.particleSystem = new CollapseParticleSystem();
     this.screenShake = new ScreenShakeManager();
     
-    // Skapa state manager först
-    this.stateManager = new GameStateManager(config);
+    // Skapa state manager med level-aware starting health
+    const startingHealth = this.levelManager.getStartingHealth();
+    this.stateManager = new GameStateManager({ ...config, healthPenalty: startingHealth });
     
     // Skapa GameLoop manager
     this.gameLoop = new GameLoop();
     
     // Skapa managers med state-referens
     this.inputHandler = new GameInputHandler(canvas, this.woodPieces, this.stateManager.getGameStateReference());
-    this.creatureManager = new CreatureManager(config, this.stateManager.getGameStateReference());
-    this.collisionManager = new CollisionManager(config, this.woodPileGenerator);
+    this.creatureManager = new CreatureManager(this.config, this.stateManager.getGameStateReference());
+    this.collisionManager = new CollisionManager(this.config, this.woodPileGenerator);
     
     // Sätt upp callbacks
     this.setupInputCallbacks();
@@ -64,6 +80,7 @@ export class Game {
     this.setupCollisionCallbacks();
     this.setupStateCallbacks();
     this.setupGameLoopCallbacks();
+    this.setupLevelCallbacks();
     
     this.initializeGame();
   }
@@ -72,7 +89,13 @@ export class Game {
    * Initialiserar spelet
    */
   private initializeGame(): void {
+    // Generera vedstapel baserat på current level info
+    const levelInfo = this.levelManager.getCurrentLevelInfo();
     this.woodPieces = this.woodPileGenerator.generateWoodPile();
+    
+    // Starta level tracking
+    this.levelManager.startLevel();
+    
     this.gameLoop.start();
   }
 
@@ -134,6 +157,27 @@ export class Game {
   }
 
   /**
+   * Sätter upp callbacks för level manager
+   */
+  private setupLevelCallbacks(): void {
+    this.levelManager.on('LEVEL_COMPLETE', (event) => {
+      console.log('Level complete!', event);
+      
+      // Pausa spelet
+      this.gameLoop.pause();
+      
+      // Notifiera main.ts via callback
+      if (this.onLevelComplete) {
+        this.onLevelComplete(event.data);
+      }
+    });
+    
+    this.levelManager.on('LEVEL_START', (event) => {
+      console.log('Level started:', event);
+    });
+  }
+
+  /**
    * Tar bort vedpinne och hanterar konsekvenser
    */
   private removeWoodPiece(piece: WoodPiece): void {
@@ -147,10 +191,20 @@ export class Game {
     piece.isRemoved = true;
     
     // Lägg till poäng via state manager
-    this.stateManager.addScore(this.config.pointsPerWood);
+    const basePoints = this.config.pointsPerWood;
+    const pointsWithDifficulty = this.levelManager.calculateScoreWithDifficulty(basePoints);
+    this.stateManager.addScore(pointsWithDifficulty);
+    
+    // Registrera ved-plockning med level manager
+    this.levelManager.onWoodCollected(pointsWithDifficulty);
     
     // Hantera kollaps och uppdatera rasrisker
     this.woodPieces = this.collisionManager.handlePotentialCollapse(piece, this.woodPieces);
+    
+    // Kontrollera om nivån är klar
+    if (this.levelManager.isLevelComplete()) {
+      this.handleLevelComplete();
+    }
   }
 
   /**
@@ -158,8 +212,20 @@ export class Game {
    */
   private restartGame(): void {
     this.stateManager.restartGame();
+    this.levelManager.reset();
     this.woodPieces = this.woodPileGenerator.generateWoodPile();
     this.creatureManager.clearActiveCreature();
+    this.levelManager.startLevel();
+  }
+
+  /**
+   * Hanterar level complete
+   */
+  private handleLevelComplete(): void {
+    const result = this.levelManager.completeLevel();
+    console.log('Level completed!', result);
+    
+    // Level complete-eventet triggas automatiskt via levelManager callback
   }
 
   /**
@@ -273,5 +339,38 @@ export class Game {
    */
   public getGameState(): GameState {
     return this.stateManager.getGameState();
+  }
+
+  /**
+   * Hämtar level manager för level information
+   */
+  public getLevelManager(): LevelManager {
+    return this.levelManager;
+  }
+
+  /**
+   * Sätter callback för level complete
+   */
+  public setOnLevelComplete(callback: (levelData: any) => void): void {
+    this.onLevelComplete = callback;
+  }
+
+  /**
+   * Startar nästa nivå
+   */
+  public startNextLevel(): void {
+    if (this.levelManager.hasNextLevel()) {
+      // Generera ny vedstapel för nästa nivå
+      const levelInfo = this.levelManager.getCurrentLevelInfo();
+      this.woodPieces = this.woodPileGenerator.generateWoodPile();
+      
+      // Starta level tracking
+      this.levelManager.startLevel();
+      
+      // Återuppta game loop
+      this.gameLoop.resume();
+      
+      console.log(`Starting level ${levelInfo.levelNumber}`);
+    }
   }
 }
