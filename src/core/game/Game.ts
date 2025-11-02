@@ -349,6 +349,17 @@ export class Game {
   }
 
   /**
+   * Hämtar level progress information
+   */
+  public getLevelProgress(): { woodRemaining: number; totalWood: number; progress: number } {
+    const totalWood = this.levelManager.getCurrentLevelInfo().woodPieceCount;
+    const woodRemaining = this.woodPieces.length;
+    const progress = totalWood > 0 ? (totalWood - woodRemaining) / totalWood : 0;
+    
+    return { woodRemaining, totalWood, progress };
+  }
+
+  /**
    * Sätter callback för level complete
    */
   public setOnLevelComplete(callback: (levelData: any) => void): void {
