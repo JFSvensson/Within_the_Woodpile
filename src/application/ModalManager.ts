@@ -2,6 +2,7 @@ import { I18n } from '../infrastructure/i18n/I18n.js';
 import { AudioManager, SoundEvent } from '../infrastructure/audio/index.js';
 import { TransitionManager } from '../TransitionManager.js';
 import { HighscoreManager } from '../core/managers/HighscoreManager.js';
+import { BASE_TIME_FOR_BONUS } from '../shared/constants/difficultyConfig.js';
 import { HighscoreModal } from '../ui/highscore/HighscoreModal.js';
 
 /**
@@ -247,6 +248,11 @@ export class ModalManager {
         
         const { levelNumber, speedBonus, totalScore, completionTime, nextLevel } = levelData;
         
+        // Beräkna om speed bonus gavs
+        const timeLimit = BASE_TIME_FOR_BONUS;
+        const wasQuick = completionTime < timeLimit;
+        const timeDiff = timeLimit - completionTime;
+        
         const content = `
             <div class="modal-content level-complete">
                 <div class="modal-header">
@@ -258,23 +264,40 @@ export class ModalManager {
                             <span class="stat-label" data-i18n="levelComplete.score">Poäng:</span>
                             <span class="stat-value">${totalScore}</span>
                         </div>
-                        <div class="stat-item">
+                        <div class="stat-item ${wasQuick ? 'quick-time' : ''}">
                             <span class="stat-label" data-i18n="levelComplete.time">Tid:</span>
                             <span class="stat-value">${completionTime}s</span>
+                            ${wasQuick ? '<span class="quick-badge">⚡ SNABB!</span>' : ''}
                         </div>
-                        <div class="stat-item highlight">
+                        <div class="stat-item highlight ${speedBonus > 0 ? 'bonus-earned' : 'no-bonus'}">
                             <span class="stat-label" data-i18n="levelComplete.speedBonus">Speed Bonus:</span>
-                            <span class="stat-value">+${speedBonus}</span>
+                            <span class="stat-value ${speedBonus > 0 ? 'positive' : ''}">+${speedBonus}</span>
                         </div>
                     </div>
                     
+                    ${speedBonus > 0 ? `
+                        <div class="bonus-explanation">
+                            <p class="bonus-text">
+                                🎯 Du klarade nivån ${timeDiff}s under tidsgränsen (${timeLimit}s)!
+                            </p>
+                            <p class="bonus-formula">
+                                ${timeDiff}s × 5 poäng/s = <strong>+${speedBonus} bonus</strong>
+                            </p>
+                        </div>
+                    ` : `
+                        <div class="bonus-explanation no-bonus-msg">
+                            <p>⏱️ Klarade på ${completionTime}s (gräns: ${timeLimit}s för bonus)</p>
+                        </div>
+                    `}
+                    
                     ${nextLevel ? `
                         <div class="next-level-info">
-                            <p data-i18n="levelComplete.nextLevel">Nästa nivå: ${nextLevel}</p>
+                            <p data-i18n="levelComplete.nextLevel">Nästa nivå: <strong>${nextLevel}</strong></p>
                         </div>
                     ` : `
                         <div class="congratulations">
                             <h3 data-i18n="levelComplete.allComplete">🎉 Alla nivåer klarade! 🎉</h3>
+                            <p class="final-score">Total poäng: <strong>${totalScore}</strong></p>
                         </div>
                     `}
                 </div>
