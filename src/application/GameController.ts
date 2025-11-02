@@ -88,6 +88,36 @@ export class GameController {
         this.currentLevel = levelInfo.levelNumber;
         
         this.updateGameStats(0, levelManager.getStartingHealth());
+        this.updateLevelInfo(levelInfo.levelNumber, levelInfo.difficulty);
+    }
+
+    /**
+     * Uppdaterar level och difficulty i UI
+     */
+    private updateLevelInfo(level: number, difficulty: DifficultyLevel): void {
+        // Uppdatera level
+        const levelElement = document.getElementById('level');
+        if (levelElement) {
+            levelElement.textContent = level.toString();
+        }
+        
+        // Uppdatera difficulty med översättning
+        const difficultyElement = document.getElementById('difficulty');
+        if (difficultyElement) {
+            const difficultyName = this.i18n.translate(`difficulty.${difficulty}.name`);
+            difficultyElement.textContent = difficultyName;
+            
+            // Sätt färg baserat på difficulty
+            const colors: Record<DifficultyLevel, string> = {
+                [DifficultyLevel.EASY]: '#4CAF50',
+                [DifficultyLevel.NORMAL]: '#2196F3',
+                [DifficultyLevel.HARD]: '#FF9800',
+                [DifficultyLevel.EXPERT]: '#F44336',
+                [DifficultyLevel.NIGHTMARE]: '#9C27B0'
+            };
+            difficultyElement.style.color = colors[difficulty];
+            difficultyElement.style.fontWeight = 'bold';
+        }
     }
 
     /**
@@ -134,6 +164,10 @@ export class GameController {
         
         const levelManager = this.game.getLevelManager();
         this.currentLevel = levelManager.getCurrentLevel();
+        const levelInfo = levelManager.getCurrentLevelInfo();
+        
+        // Uppdatera UI med ny level info
+        this.updateLevelInfo(levelInfo.levelNumber, levelInfo.difficulty);
         
         console.log(`Starting level ${this.currentLevel}`);
     }
