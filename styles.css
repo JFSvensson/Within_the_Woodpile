@@ -134,10 +134,31 @@ body.menu-mode .instructions {
     min-width: 120px;
     text-align: center;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.info-item:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5);
 }
 
 .info-item strong {
     color: #d2691e;
+}
+
+/* Special styling för level och difficulty */
+#level, #difficulty {
+    font-size: 1.1em;
+    transition: color 0.3s ease, transform 0.3s ease;
+}
+
+#level {
+    color: #4CAF50;
+}
+
+/* Difficulty färg sätts dynamiskt i koden */
+#difficulty {
+    text-shadow: 0 0 10px currentColor;
 }
 
 /* Game canvas */
