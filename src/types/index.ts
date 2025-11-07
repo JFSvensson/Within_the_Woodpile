@@ -20,6 +20,17 @@ export {
   CreatureType
 } from './game.js';
 
+// Wood types
+export type {
+  WoodTypeProperties
+} from './wood.js';
+
+export {
+  WoodType,
+  WOOD_TYPE_CONFIG,
+  selectRandomWoodType
+} from './wood.js';
+
 // UI-relaterade typer
 export type {
   MenuButton,
