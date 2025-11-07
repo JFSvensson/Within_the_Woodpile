@@ -43,6 +43,7 @@ export interface WoodPiece {
   isRemoved: boolean;
   creature?: CreatureType;
   collapseRisk: CollapseRisk;
+  woodType?: string; // WoodType - optional för bakåtkompatibilitet
   
   // Animation properties
   isCollapsing?: boolean;
