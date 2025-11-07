@@ -2,7 +2,9 @@ import {
   WoodPiece, 
   CollapsePrediction,
   AffectedPiece,
-  CreatureType
+  CreatureType,
+  WoodType,
+  WOOD_TYPE_CONFIG
 } from '../../../types/index.js';
 import { BaseRenderer } from '../shared/BaseRenderer.js';
 
@@ -48,13 +50,19 @@ export class WoodPieceRenderer extends BaseRenderer {
    * Rita en enskild vedpinne
    */
   drawWoodPiece(piece: WoodPiece, isHovered: boolean, prediction?: CollapsePrediction): void {
-    const { position, size } = piece;
+    const { position, size, woodType } = piece;
     const radius = Math.min(size.width, size.height) / 2;
     const centerX = position.x + size.width / 2;
     const centerY = position.y + size.height / 2;
     
-    // Rita rund vedpinne
-    this.ctx.fillStyle = '#8b4513';
+    // Hämta wood type config
+    const typeConfig = woodType && WOOD_TYPE_CONFIG[woodType as WoodType] 
+      ? WOOD_TYPE_CONFIG[woodType as WoodType] 
+      : WOOD_TYPE_CONFIG[WoodType.NORMAL];
+    
+    // Rita rund vedpinne med färg baserat på typ
+    const baseColor = this.getWoodColor(woodType as WoodType);
+    this.ctx.fillStyle = baseColor;
     this.ctx.beginPath();
     this.ctx.arc(centerX, centerY, radius - 1, 0, 2 * Math.PI);
     this.ctx.fill();
@@ -62,10 +70,18 @@ export class WoodPieceRenderer extends BaseRenderer {
     // Rita vedtextur
     this.drawWoodTextureCircular(centerX, centerY, radius);
     
+    // Rita special wood visual (emoji/icon)
+    if (woodType && woodType !== WoodType.NORMAL) {
+      this.drawWoodTypeIcon(centerX, centerY, typeConfig.visual);
+    }
+    
     // Rita ram baserat på status
     if (isHovered) {
-      // Hover-ram (vit/gul)
-      this.ctx.strokeStyle = '#FFFF00';
+      // Hover-ram (använd wood type färg om special)
+      const hoverColor = woodType && woodType !== WoodType.NORMAL 
+        ? typeConfig.highlightColor 
+        : '#FFFF00';
+      this.ctx.strokeStyle = hoverColor;
       this.ctx.lineWidth = 3;
       this.ctx.beginPath();
       this.ctx.arc(centerX, centerY, radius + 2, 0, 2 * Math.PI);
@@ -79,6 +95,40 @@ export class WoodPieceRenderer extends BaseRenderer {
       // Påverkan-ram med färgkodning
       this.drawPredictionBorder(centerX, centerY, radius, prediction);
     }
+  }
+
+  /**
+   * Hämtar färg för wood type
+   */
+  private getWoodColor(woodType?: WoodType): string {
+    if (!woodType || woodType === WoodType.NORMAL) {
+      return '#8b4513'; // Normal brun
+    }
+    
+    switch (woodType) {
+      case WoodType.GOLDEN:
+        return '#DAA520'; // Guldbrun
+      case WoodType.CURSED:
+        return '#4A148C'; // Mörklila
+      case WoodType.FRAGILE:
+        return '#D84315'; // Rödaktig
+      case WoodType.BONUS:
+        return '#388E3C'; // Grön
+      default:
+        return '#8b4513';
+    }
+  }
+
+  /**
+   * Ritar wood type icon/emoji
+   */
+  private drawWoodTypeIcon(x: number, y: number, visual: string): void {
+    this.ctx.save();
+    this.ctx.font = '20px Arial';
+    this.ctx.textAlign = 'center';
+    this.ctx.textBaseline = 'middle';
+    this.ctx.fillText(visual, x, y);
+    this.ctx.restore();
   }
 
   /**
