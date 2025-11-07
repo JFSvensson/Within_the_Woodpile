@@ -1,4 +1,13 @@
-import { WoodPiece, Position, Size, CreatureType, CollapseRisk, GameConfig } from '../../types/index.js';
+import { 
+  WoodPiece, 
+  Position, 
+  Size, 
+  CreatureType, 
+  CollapseRisk, 
+  GameConfig,
+  WoodType,
+  selectRandomWoodType
+} from '../../types/index.js';
 
 /**
  * Genererar vedstaplar med varelser och beräknar rasrisker
@@ -55,7 +64,8 @@ export class WoodPileGenerator {
       size: this.createSize(),
       isRemoved: false,
       creature: this.assignCreature(),
-      collapseRisk: CollapseRisk.NONE // Beräknas senare
+      collapseRisk: CollapseRisk.NONE, // Beräknas senare
+      woodType: selectRandomWoodType() // Slumpmässig wood type
     };
   }
 
