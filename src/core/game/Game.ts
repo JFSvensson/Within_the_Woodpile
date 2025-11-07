@@ -2,7 +2,9 @@ import {
   WoodPiece, 
   GameState, 
   GameConfig,
-  DifficultyLevel
+  DifficultyLevel,
+  WoodType,
+  WOOD_TYPE_CONFIG
 } from '../../types/index.js';
 import { DEFAULT_CONFIG } from '../../shared/constants/index.js';
 import { WoodPileGenerator } from '../services/WoodPileGenerator.js';
@@ -187,19 +189,39 @@ export class Game {
       return;
     }
     
+    // Hämta wood type config
+    const woodType = (piece.woodType as WoodType) || WoodType.NORMAL;
+    const typeConfig = WOOD_TYPE_CONFIG[woodType];
+    
     // Ta bort vedpinnen
     piece.isRemoved = true;
     
-    // Lägg till poäng via state manager
+    // Lägg till poäng med wood type multiplier
     const basePoints = this.config.pointsPerWood;
     const pointsWithDifficulty = this.levelManager.calculateScoreWithDifficulty(basePoints);
-    this.stateManager.addScore(pointsWithDifficulty);
+    const finalPoints = Math.floor(pointsWithDifficulty * typeConfig.scoreMultiplier);
+    this.stateManager.addScore(finalPoints);
+    
+    // Applicera health effect (om någon)
+    if (typeConfig.healthEffect !== 0) {
+      if (typeConfig.healthEffect > 0) {
+        // Bonus wood - öka hälsa (använd negativ damage)
+        this.stateManager.reduceHealth(-typeConfig.healthEffect);
+      } else {
+        // Cursed wood - ta skada
+        this.stateManager.reduceHealth(Math.abs(typeConfig.healthEffect));
+      }
+    }
     
     // Registrera ved-plockning med level manager
-    this.levelManager.onWoodCollected(pointsWithDifficulty);
+    this.levelManager.onWoodCollected(finalPoints);
     
-    // Hantera kollaps och uppdatera rasrisker
-    this.woodPieces = this.collisionManager.handlePotentialCollapse(piece, this.woodPieces);
+    // Hantera kollaps med wood type multiplier
+    this.woodPieces = this.collisionManager.handlePotentialCollapse(
+      piece, 
+      this.woodPieces,
+      typeConfig.collapseRiskMultiplier
+    );
     
     // Kontrollera om nivån är klar
     if (this.levelManager.isLevelComplete()) {
