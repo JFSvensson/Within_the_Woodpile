@@ -5,6 +5,28 @@
   "woodCollected": "wood collected",
   "controls": "🕷️ SPACE | 🐝 ESCAPE | 🦔 S | 👻 L | 🎃 R",
   "language": "Language",
+  "wood": {
+    "normal": {
+      "name": "Normal Wood",
+      "description": "Standard wood piece"
+    },
+    "golden": {
+      "name": "Golden Wood",
+      "description": "✨ Double points!"
+    },
+    "cursed": {
+      "name": "Cursed Wood",
+      "description": "💀 More points but costs health"
+    },
+    "fragile": {
+      "name": "Fragile Wood",
+      "description": "🍂 Extra sensitive - high collapse risk"
+    },
+    "bonus": {
+      "name": "Bonus Wood",
+      "description": "💚 Restores health"
+    }
+  },
   "spider": "Spider",
   "wasp": "Wasp",
   "hedgehog": "Hedgehog",

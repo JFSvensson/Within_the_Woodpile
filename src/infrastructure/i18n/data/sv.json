@@ -5,6 +5,28 @@
   "woodCollected": "ved plockad",
   "controls": "🕷️ MELLANSLAG | 🐝 ESCAPE | 🦔 S | 👻 L | 🎃 R",
   "language": "Språk",
+  "wood": {
+    "normal": {
+      "name": "Normal Ved",
+      "description": "Standard vedpinne"
+    },
+    "golden": {
+      "name": "Gyllene Ved",
+      "description": "✨ Dubbla poäng!"
+    },
+    "cursed": {
+      "name": "Förbannad Ved",
+      "description": "💀 Mer poäng men kostar hälsa"
+    },
+    "fragile": {
+      "name": "Skör Ved",
+      "description": "🍂 Extra känslig - hög kollapsrisk"
+    },
+    "bonus": {
+      "name": "Bonus Ved",
+      "description": "💚 Återställer hälsa"
+    }
+  },
   "spider": "Spindel",
   "wasp": "Geting",
   "hedgehog": "Igelkott",
