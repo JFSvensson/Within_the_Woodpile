@@ -23,7 +23,11 @@ export class CollisionManager {
      * @param woodPieces Alla vedpinnar i stapeln
      * @returns Uppdaterad array med vedpinnar (med uppdaterade kollapsrisker)
      */
-    public handlePotentialCollapse(removedPiece: WoodPiece, woodPieces: WoodPiece[]): WoodPiece[] {
+    public handlePotentialCollapse(
+        removedPiece: WoodPiece, 
+        woodPieces: WoodPiece[],
+        collapseMultiplier: number = 1.0
+    ): WoodPiece[] {
         // Hitta vilka pinnar som kommer att kollapsa
         const collapsingPieces = this.woodPileGenerator.findCollapsingPieces(
             removedPiece, 
@@ -34,8 +38,9 @@ export class CollisionManager {
             // Markera som borttagna
             collapsingPieces.forEach(piece => piece.isRemoved = true);
             
-            // Beräkna skada baserat på antal rasande pinnar
-            const damage = collapsingPieces.length * this.config.collapseDamage;
+            // Beräkna skada baserat på antal rasande pinnar och multiplier
+            const baseDamage = collapsingPieces.length * this.config.collapseDamage;
+            const damage = Math.floor(baseDamage * collapseMultiplier);
             
             // Trigga kollaps-event
             this.onCollapseDetected?.(damage, collapsingPieces);
