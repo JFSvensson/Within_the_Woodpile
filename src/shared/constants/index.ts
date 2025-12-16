@@ -11,3 +11,4 @@ export {
     SPEED_BONUS_PER_SECOND,
     BASE_TIME_FOR_BONUS
 } from './difficultyConfig.js';
+export { APP_VERSION } from './version.js';
