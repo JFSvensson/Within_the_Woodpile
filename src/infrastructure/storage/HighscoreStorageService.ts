@@ -8,6 +8,7 @@ import type {
 } from '../../types/index.js'
 import { HighscoreError } from '../../types/index.js'
 import type { StorageService } from './interfaces.js'
+import { APP_VERSION } from '../../shared/constants/index.js'
 
 /**
  * Storage service för highscore-systemet
@@ -115,7 +116,7 @@ export class HighscoreStorageService implements IHighscoreRepository {
       return {
         version: '1.0',
         exportDate: new Date(),
-        gameVersion: '0.1.0', // TODO: Hämta från config
+        gameVersion: APP_VERSION,
         entries: highscores.entries
       }
     } catch (error) {
