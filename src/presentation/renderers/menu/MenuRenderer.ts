@@ -156,6 +156,17 @@ export class MenuRenderer extends BaseRenderer {
     }
 
     /**
+     * Aktivera/avaktivera partiklar
+     */
+    public setParticlesEnabled(enabled: boolean): void {
+        if (enabled) {
+            this.particleSystem.setParticleCount(20); // Standard antal
+        } else {
+            this.particleSystem.setParticleCount(0); // Inga partiklar
+        }
+    }
+
+    /**
      * Rensa resurser
      */
     public destroy(): void {
