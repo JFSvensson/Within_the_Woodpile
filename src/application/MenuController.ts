@@ -29,6 +29,10 @@ export class MenuController {
         private highscoreManager: HighscoreManager
     ) {
         this.menuRenderer = new MenuRenderer(canvas, i18n);
+        
+        // Koppla MenuRenderer till ModalManager för partikel-kontroll
+        this.modalManager.setMenuRenderer(this.menuRenderer);
+        
         this.setupMenuCallbacks();
         this.setupMenuEventListeners();
         this.setupKeyboardNavigation();
