@@ -15,10 +15,22 @@ export class GameInputHandler implements InputHandler {
 
     private currentHoveredPiece?: WoodPiece;
 
+    // Spara bundna event handlers som properties för korrekt cleanup
+    private boundHandleCanvasClick: (event: MouseEvent) => void;
+    private boundHandleMouseMove: (event: MouseEvent) => void;
+    private boundHandleMouseLeave: () => void;
+    private boundHandleKeyPress: (event: KeyboardEvent) => void;
+
     constructor(canvas: HTMLCanvasElement, woodPieces: WoodPiece[], gameState: GameState) {
         this.canvas = canvas;
         this.woodPieces = woodPieces;
         this.gameState = gameState;
+        
+        // Bind alla event handlers en gång i konstruktorn
+        this.boundHandleCanvasClick = this.handleCanvasClick.bind(this);
+        this.boundHandleMouseMove = this.handleMouseMove.bind(this);
+        this.boundHandleMouseLeave = this.handleMouseLeave.bind(this);
+        this.boundHandleKeyPress = this.handleKeyPress.bind(this);
         
         this.setupEventListeners();
     }
@@ -27,13 +39,13 @@ export class GameInputHandler implements InputHandler {
      * Sätter upp alla event listeners för input
      */
     public setupEventListeners(): void {
-        // Musinteraktion
-        this.canvas.addEventListener('click', this.handleCanvasClick.bind(this));
-        this.canvas.addEventListener('mousemove', this.handleMouseMove.bind(this));
-        this.canvas.addEventListener('mouseleave', this.handleMouseLeave.bind(this));
+        // Musinteraktion - använd de sparade bundna funktionerna
+        this.canvas.addEventListener('click', this.boundHandleCanvasClick);
+        this.canvas.addEventListener('mousemove', this.boundHandleMouseMove);
+        this.canvas.addEventListener('mouseleave', this.boundHandleMouseLeave);
         
         // Tangentbordsinput för varelsereaktioner
-        document.addEventListener('keydown', this.handleKeyPress.bind(this));
+        document.addEventListener('keydown', this.boundHandleKeyPress);
     }
 
     /**
@@ -171,10 +183,11 @@ export class GameInputHandler implements InputHandler {
      * Implementerar InputHandler cleanup
      */
     public cleanup(): void {
-        this.canvas.removeEventListener('click', this.handleCanvasClick);
-        this.canvas.removeEventListener('mousemove', this.handleMouseMove);
-        this.canvas.removeEventListener('mouseleave', this.handleMouseLeave);
-        document.removeEventListener('keydown', this.handleKeyPress);
+        // Använd de sparade bundna funktionerna för korrekt borttagning
+        this.canvas.removeEventListener('click', this.boundHandleCanvasClick);
+        this.canvas.removeEventListener('mousemove', this.boundHandleMouseMove);
+        this.canvas.removeEventListener('mouseleave', this.boundHandleMouseLeave);
+        document.removeEventListener('keydown', this.boundHandleKeyPress);
     }
 
     /**
