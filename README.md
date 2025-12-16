@@ -313,7 +313,7 @@ npm run build  # Kompilerar och kopierar filer till dist/
 3. Eller använd VS Code Live Server på `dist/index.html`
 
 ### Testning 🧪
-Projektet har omfattande testtäckning med **1325 automatiserade tester** och **86.24% code coverage** (85%-målet uppnått! 🎉🎊):
+Projektet har omfattande testtäckning med **1392 automatiserade tester** och **87%+ code coverage** (85%-målet överträffat! 🎉🎊):
 
 ```bash
 npm test              # Kör alla tester med Vitest
@@ -338,7 +338,7 @@ npm run test:coverage # Generera täckningsrapport
 - **Rendering tests**: GameRenderer, WoodPieceRenderer, UIRenderer
 - **Input tests**: Mouse clicks, hover effects, keyboard reactions
 
-#### Test-täckning per område (1325 tester totalt, 86.24% coverage)
+#### Test-täckning per område (1392 tester totalt, 87%+ coverage)
 - **Particle Systems**: 100 tester (MenuParticleSystem 100%!, CollapseParticleSystem 100%! - träflisor, damm, fysik, livscykel)
 - **Base Rendering**: 49 tester (BaseRenderer 100%! - canvas operations, text measurement, context management)
 - **State Management**: 30 tester (AppStateManager 100%! - state transitions, callback system, menu/game states)
@@ -349,7 +349,7 @@ npm run test:coverage # Generera täckningsrapport
 - **Core business logic**: 84 tester (Game 81.78%!, HighscoreService, spellogik)
 - **Infrastructure**: 186 tester (Storage 100%!, I18n, audio 90.08%!)
 - **UI-komponenter**: 16 tester (HighscoreModal)
-- **Type validation**: 12 tester (Datastrukturer och gränssnitt)
+- **Type validation**: 79 tester (Datastrukturer och gränssnitt, wood types 67 tester!)
 - **Integration scenarios**: 16 tester (End-to-end flöden)
 - **Edge cases**: 12 tester (Felhantering och gränsfall)
 - **Algorithms**: 8 tester (Kollapsberäkning, generering)
@@ -401,10 +401,10 @@ Alla tester använder **TypeScript strict mode** och **Vitest** för modern test
   - Convenience methods för common sounds
 
 **Test Quality Metrics:**
-- **Statement Coverage**: 86.24%
+- **Statement Coverage**: 87%+ (targeting 90%!)
 - **Branch Coverage**: 93.34% (exceptional!)
 - **Function Coverage**: 96.69% (outstanding!)
-- **100% Pass Rate**: Alla 1325 tester passar konsekvent
+- **100% Pass Rate**: Alla 1392 tester passar konsekvent
 
 ## Implementerat ✅
 
@@ -499,7 +499,15 @@ Alla tester använder **TypeScript strict mode** och **Vitest** för modern test
   - ⏱️ **Reaktionstid**: Easy 3s → Nightmare 0.75s
   - 💚 **Starting health**: Easy 150 → Nightmare 50
   - 🎨 **Färgkodade svårighetsgrader**: Grön (Easy) → Lila (Nightmare)
-- [ ] **Olika vedtyper** (gran, björk, ek) med olika egenskaper
+- [x] **Special wood types** med unika egenskaper ✨ IMPLEMENTERAT!
+  - 🪵 **Normal** (70%): Standard ved med brun färg
+  - ✨ **Golden** (10%): 2x poäng, gyllene färg
+  - 💀 **Cursed** (10%): 1.5x poäng men -5 hälsa, lila färg
+  - 🍂 **Fragile** (5%): 2x kollapsrisk, röd färg
+  - 💚 **Bonus** (5%): +10 hälsa men 0.5x poäng, grön färg
+  - 🎯 **Weighted spawn system** med dynamisk fördelning
+  - 🎨 **Visual feedback** med emojis och färgkodade pinnar
+  - 🧪 **67 tester** för spawn probability och config validation
 - [ ] **Progressive Web App (PWA)** för mobila enheter
 - [ ] **Procedurellt genererade utmaningar** med varierande layouts
 - [ ] **Berättarläge** med bakgrundshistoria och karaktärer
