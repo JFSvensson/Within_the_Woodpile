@@ -7,6 +7,7 @@ import {
   WOOD_TYPE_CONFIG
 } from '../../types/index.js';
 import { DEFAULT_CONFIG } from '../../shared/constants/index.js';
+import { visualSettings } from '../../shared/VisualSettings.js';
 import { WoodPileGenerator } from '../services/WoodPileGenerator.js';
 import { GameRenderer } from '../../presentation/renderers/game/GameRenderer.js';
 import { WoodCollapseAnimator } from '../../presentation/renderers/WoodCollapseAnimator.js';
@@ -125,18 +126,22 @@ export class Game {
     this.collisionManager.setOnCollapseDetected((damage, collapsingPieces) => {
       this.stateManager.reduceHealth(damage);
       
-      // Starta kollaps-animationer för de rasande pinnarna
-      this.collapseAnimator.startCollapse(collapsingPieces);
+      // Starta kollaps-animationer för de rasande pinnarna (om animationer är aktiverade)
+      if (visualSettings.areAnimationsEnabled()) {
+        this.collapseAnimator.startCollapse(collapsingPieces);
+        
+        // Starta screen shake baserat på antal rasande pinnar
+        this.screenShake.startShake(collapsingPieces.length);
+      }
       
-      // Starta screen shake baserat på antal rasande pinnar
-      this.screenShake.startShake(collapsingPieces.length);
-      
-      // Skapa partiklar för varje rasande pinne
-      collapsingPieces.forEach(piece => {
-        const centerX = piece.position.x + piece.size.width / 2;
-        const centerY = piece.position.y + piece.size.height / 2;
-        this.particleSystem.createCollapseParticles(centerX, centerY, collapsingPieces.length);
-      });
+      // Skapa partiklar för varje rasande pinne (om partiklar är aktiverade)
+      if (visualSettings.areParticlesEnabled()) {
+        collapsingPieces.forEach(piece => {
+          const centerX = piece.position.x + piece.size.width / 2;
+          const centerY = piece.position.y + piece.size.height / 2;
+          this.particleSystem.createCollapseParticles(centerX, centerY, collapsingPieces.length);
+        });
+      }
       
       console.log(`Kollaps! ${collapsingPieces.length} pinnar rasade, ${damage} skada`);
     });
@@ -284,22 +289,26 @@ export class Game {
     // Spara canvas state
     ctx.save();
     
-    // Applicera screen shake om aktiv
-    if (this.screenShake.isActive()) {
+    // Applicera screen shake om aktiv och animationer aktiverade
+    if (visualSettings.areAnimationsEnabled() && this.screenShake.isActive()) {
       this.screenShake.applyShake(ctx);
     }
     
     // Rendera normal spel-state
     this.renderer.render(this.woodPieces, currentState, currentHoveredPiece);
     
-    // Rendera kollapsande pinnar och partiklar ovanpå
-    // Rita kollapsande pinnar
-    this.woodPieces
-      .filter(piece => piece.isCollapsing)
-      .forEach(piece => this.collapseAnimator.render(ctx, piece));
+    // Rendera kollapsande pinnar och partiklar ovanpå (om aktiverade)
+    if (visualSettings.areAnimationsEnabled()) {
+      // Rita kollapsande pinnar
+      this.woodPieces
+        .filter(piece => piece.isCollapsing)
+        .forEach(piece => this.collapseAnimator.render(ctx, piece));
+    }
     
-    // Rita partiklar
-    this.particleSystem.render(ctx);
+    // Rita partiklar om aktiverade
+    if (visualSettings.areParticlesEnabled()) {
+      this.particleSystem.render(ctx);
+    }
     
     // Återställ canvas state
     ctx.restore();
