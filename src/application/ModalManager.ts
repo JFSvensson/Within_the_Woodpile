@@ -4,6 +4,7 @@ import { TransitionManager } from '../TransitionManager.js';
 import { HighscoreManager } from '../core/managers/HighscoreManager.js';
 import { BASE_TIME_FOR_BONUS } from '../shared/constants/difficultyConfig.js';
 import { HighscoreModal } from '../ui/highscore/HighscoreModal.js';
+import { visualSettings } from '../shared/VisualSettings.js';
 
 /**
  * Hanterar alla modaler i applikationen
@@ -11,6 +12,7 @@ import { HighscoreModal } from '../ui/highscore/HighscoreModal.js';
  */
 export class ModalManager {
     private highscoreModal?: HighscoreModal;
+    private menuRenderer?: any; // Referens till MenuRenderer för partikel-kontroll
 
     constructor(
         private i18n: I18n,
@@ -19,6 +21,13 @@ export class ModalManager {
     ) {
         // Exponera modal-funktioner globalt för HTML onclick
         this.exposeGlobalFunctions();
+    }
+
+    /**
+     * Sätter referens till MenuRenderer för att kunna kontrollera partiklar
+     */
+    public setMenuRenderer(menuRenderer: any): void {
+        this.menuRenderer = menuRenderer;
     }
 
     /**
@@ -430,12 +439,17 @@ export class ModalManager {
 
     toggleParticles(enabled: boolean): void {
         console.log('Particles:', enabled ? 'enabled' : 'disabled');
-        // TODO: Implementera partikel-toggle i particle system
+        visualSettings.setParticlesEnabled(enabled);
+        
+        // Uppdatera partikel-antal i MenuRenderer om tillgänglig
+        if (this.menuRenderer && typeof this.menuRenderer.setParticlesEnabled === 'function') {
+            this.menuRenderer.setParticlesEnabled(enabled);
+        }
     }
 
     toggleAnimations(enabled: boolean): void {
         console.log('Animations:', enabled ? 'enabled' : 'disabled');
-        // TODO: Implementera animation-toggle
+        visualSettings.setAnimationsEnabled(enabled);
     }
 
     setVolume(value: string): void {
