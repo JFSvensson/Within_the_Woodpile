@@ -313,7 +313,7 @@ npm run build  # Kompilerar och kopierar filer till dist/
 3. Eller använd VS Code Live Server på `dist/index.html`
 
 ### Testning 🧪
-Projektet har omfattande testtäckning med **1392 automatiserade tester** och **87%+ code coverage** (85%-målet överträffat! 🎉🎊):
+Projektet har omfattande testtäckning med **1420 automatiserade tester** och **90%+ code coverage** (90%-målet uppnått! 🎉🎊):
 
 ```bash
 npm test              # Kör alla tester med Vitest
