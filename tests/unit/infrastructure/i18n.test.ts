@@ -166,4 +166,111 @@ describe('I18n', () => {
       expect(instructionsSpan?.textContent).toBe('📚 Instruktioner')
     })
   })
+
+  describe('Edge Cases and Fallback Logic', () => {
+    it('should fallback to Swedish when loading non-existent language', async () => {
+      const mockFetch = vi.mocked(globalThis.fetch)
+      
+      // First call fails (non-existent language), second succeeds (Swedish fallback)
+      mockFetch
+        .mockResolvedValueOnce({
+          ok: false,
+          status: 404
+        } as Response)
+        .mockResolvedValueOnce({
+          ok: true,
+          json: async () => ({ menu: { start: 'Starta spel' } })
+        } as Response)
+
+      await i18n.loadLanguage('xx')
+
+      expect(mockFetch).toHaveBeenCalledTimes(2)
+      expect(mockFetch).toHaveBeenCalledWith('i18n/xx.json')
+      expect(mockFetch).toHaveBeenCalledWith('i18n/sv.json')
+      expect(i18n.getCurrentLanguage()).toBe('sv')
+    })
+
+    it('should return original key when translation not found in nested path', () => {
+      // Manually set translations for this test
+      ;(i18n as any).translations = {
+        menu: {
+          start: 'Starta'
+        }
+      }
+
+      const result = i18n.translate('menu.nonexistent.deeply.nested')
+      expect(result).toBe('menu.nonexistent.deeply.nested')
+    })
+
+    it('should return key when translation value is not a string', () => {
+      ;(i18n as any).translations = {
+        menu: {
+          items: ['item1', 'item2'] // Array instead of string
+        }
+      }
+
+      const result = i18n.translate('menu.items')
+      expect(result).toBe('menu.items')
+    })
+
+    it('should handle empty translation key gracefully', () => {
+      ;(i18n as any).translations = { menu: { start: 'Start' } }
+
+      const result = i18n.translate('')
+      expect(result).toBe('')
+    })
+
+    it('should handle single-level keys correctly', () => {
+      ;(i18n as any).translations = {
+        title: 'Within the Woodpile'
+      }
+
+      const result = i18n.translate('title')
+      expect(result).toBe('Within the Woodpile')
+    })
+
+    it('should handle deeply nested keys with multiple levels', () => {
+      ;(i18n as any).translations = {
+        game: {
+          ui: {
+            messages: {
+              level: {
+                complete: 'Nivå klar!'
+              }
+            }
+          }
+        }
+      }
+
+      const result = i18n.translate('game.ui.messages.level.complete')
+      expect(result).toBe('Nivå klar!')
+    })
+
+    it('should set language to sv when fallback to Swedish succeeds even if initial fails', async () => {
+      const mockFetch = vi.mocked(globalThis.fetch)
+      
+      // First call fails (fr), second succeeds (sv)
+      mockFetch
+        .mockResolvedValueOnce({
+          ok: false,
+          status: 404
+        } as Response)
+        .mockResolvedValueOnce({
+          ok: true,
+          json: async () => ({ menu: { start: 'Starta spel' } })
+        } as Response)
+
+      await i18n.loadLanguage('fr')
+
+      // Should fallback to Swedish successfully
+      expect(i18n.getCurrentLanguage()).toBe('sv')
+    })
+
+    it('should return default sv when nothing saved in localStorage', () => {
+      const mockGetItem = vi.mocked(globalThis.localStorage.getItem)
+      mockGetItem.mockReturnValue(null)
+      
+      expect(i18n.getSavedLanguage()).toBe('sv')
+    })
+  })
 })
