@@ -57,22 +57,22 @@ describe('CollapseParticleSystem', () => {
             system.createCollapseParticles(100, 100, 1);
 
             const count = system.getActiveCount();
-            expect(count).toBeGreaterThanOrEqual(15);
-            expect(count).toBeLessThanOrEqual(50);
+            expect(count).toBeGreaterThanOrEqual(20);
+            expect(count).toBeLessThanOrEqual(60);
         });
 
         it('should create particles with intensity 10', () => {
             system.createCollapseParticles(100, 100, 10);
 
             const count = system.getActiveCount();
-            expect(count).toBeGreaterThanOrEqual(15);
-            expect(count).toBeLessThanOrEqual(50);
+            expect(count).toBeGreaterThanOrEqual(20);
+            expect(count).toBeLessThanOrEqual(60);
         });
 
-        it('should limit maximum particles to 50', () => {
+        it('should limit maximum particles to 60', () => {
             system.createCollapseParticles(100, 100, 100);
 
-            expect(system.getActiveCount()).toBeLessThanOrEqual(50);
+            expect(system.getActiveCount()).toBeLessThanOrEqual(60);
         });
 
         it('should create particles at different positions', () => {
@@ -536,8 +536,8 @@ describe('CollapseParticleSystem', () => {
         it('should handle very high intensity', () => {
             system.createCollapseParticles(100, 100, 1000);
 
-            // Should cap at 50 particles
-            expect(system.getActiveCount()).toBe(50);
+            // Should cap at 60 particles
+            expect(system.getActiveCount()).toBe(60);
         });
 
         it('should handle negative intensity', () => {
