@@ -119,8 +119,8 @@ describe('Animation System Tests', () => {
                 animator.startCollapse(mockPieces);
                 
                 mockPieces.forEach(piece => {
-                    expect(piece.collapseRotationSpeed).toBeGreaterThanOrEqual(-0.15);
-                    expect(piece.collapseRotationSpeed).toBeLessThanOrEqual(0.15);
+                    expect(piece.collapseRotationSpeed).toBeGreaterThanOrEqual(-0.18);
+                    expect(piece.collapseRotationSpeed).toBeLessThanOrEqual(0.18);
                 });
             });
 
@@ -132,8 +132,8 @@ describe('Animation System Tests', () => {
                 const startTime = performance.now();
                 animator.startCollapse(mockPieces);
                 
-                // Simulera 1100ms (över ANIMATION_DURATION på 1000ms)
-                vi.spyOn(performance, 'now').mockReturnValue(startTime + 1100);
+                // Simulera 1300ms (över ANIMATION_DURATION på 1200ms)
+                vi.spyOn(performance, 'now').mockReturnValue(startTime + 1300);
                 
                 animator.update(16);
                 
@@ -185,8 +185,8 @@ describe('Animation System Tests', () => {
                 const startTime = performance.now();
                 animator.startCollapse(mockPieces);
                 
-                // Simulera att animationen är klar
-                vi.spyOn(performance, 'now').mockReturnValue(startTime + 1100);
+                // Simulera att animationen är klar (1200ms + lite extra)
+                vi.spyOn(performance, 'now').mockReturnValue(startTime + 1300);
                 animator.update(16);
                 
                 expect(callback).toHaveBeenCalledWith(piece);
@@ -262,13 +262,13 @@ describe('Animation System Tests', () => {
 
         describe('Intensity calculations', () => {
             it('should calculate shake intensity based on collapse count', () => {
-                // 1 piece: 5 + 1*2 = 7px
+                // 1 piece: 6 + 1*2.5 = 8.5px
                 shakeManager.startShake(1);
                 expect(shakeManager.isActive()).toBe(true);
                 
                 const intensity1 = shakeManager.getCurrentIntensity();
                 expect(intensity1).toBeGreaterThan(0);
-                expect(intensity1).toBeLessThanOrEqual(7);
+                expect(intensity1).toBeLessThanOrEqual(8.5);
             });
 
             it('should increase intensity with more collapsing pieces', () => {
@@ -284,25 +284,25 @@ describe('Animation System Tests', () => {
                 expect(intensity2).toBeGreaterThan(intensity1);
             });
 
-            it('should cap shake at maximum 20px', () => {
-                // 10 pieces skulle ge 5 + 10*2 = 25px, men max är 20
+            it('should cap shake at maximum 25px', () => {
+                // 10 pieces skulle ge 6 + 10*2.5 = 31px, men max är 25
                 shakeManager.startShake(10);
                 
                 const intensity = shakeManager.getCurrentIntensity();
-                expect(intensity).toBeLessThanOrEqual(20);
+                expect(intensity).toBeLessThanOrEqual(25);
             });
 
-            it('should cap duration at maximum 600ms', () => {
+            it('should cap duration at maximum 800ms', () => {
                 // Starta shake med många pieces
                 const startTime = performance.now();
                 shakeManager.startShake(20);
                 
-                // Simulera 700ms
-                vi.spyOn(performance, 'now').mockReturnValue(startTime + 700);
+                // Simulera 900ms
+                vi.spyOn(performance, 'now').mockReturnValue(startTime + 900);
                 
                 const offset = shakeManager.update();
                 
-                // Efter 700ms (över max 600ms) ska shake vara stoppad
+                // Efter 900ms (över max 800ms) ska shake vara stoppad
                 expect(offset.x).toBe(0);
                 expect(offset.y).toBe(0);
                 expect(shakeManager.isActive()).toBe(false);
@@ -360,12 +360,12 @@ describe('Animation System Tests', () => {
 
             it('should complete shake after duration expires', () => {
                 const startTime = performance.now();
-                shakeManager.startShake(2); // Duration: 250 + 2*50 = 350ms
+                shakeManager.startShake(2); // Duration: 300 + 2*60 = 420ms
                 
                 expect(shakeManager.isActive()).toBe(true);
                 
-                // Simulera 400ms (över duration)
-                vi.spyOn(performance, 'now').mockReturnValue(startTime + 400);
+                // Simulera 500ms (över duration)
+                vi.spyOn(performance, 'now').mockReturnValue(startTime + 500);
                 shakeManager.update();
                 
                 expect(shakeManager.isActive()).toBe(false);
@@ -612,5 +612,6 @@ function createMockWoodPieces(count: number): WoodPiece[] {
         position: { x: 100 + i * 70, y: 100 },
         size: { width: 60, height: 20 },
         isCollapsing: false,
+        woodType: 'normal' as any,
     } as WoodPiece));
 }
