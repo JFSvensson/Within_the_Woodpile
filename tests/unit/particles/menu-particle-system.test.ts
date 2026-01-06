@@ -38,8 +38,8 @@ describe('MenuParticleSystem Tests', () => {
             expect(system).toBeDefined();
         });
 
-        it('should initialize with 20 particles', () => {
-            expect(system.getParticleCount()).toBe(20);
+        it('should initialize with 25 particles', () => {
+            expect(system.getParticleCount()).toBe(25);
         });
 
         it('should create particles with random positions', () => {
@@ -49,7 +49,7 @@ describe('MenuParticleSystem Tests', () => {
 
         it('should reinitialize particles when called', () => {
             system.initialize();
-            expect(system.getParticleCount()).toBe(20);
+            expect(system.getParticleCount()).toBe(25);
         });
     });
 
@@ -89,16 +89,16 @@ describe('MenuParticleSystem Tests', () => {
         it('should render all particles', () => {
             system.render();
             
-            // 20 partiklar * (save + translate + rotate + fillText + restore)
-            expect(ctx.save).toHaveBeenCalledTimes(20);
-            expect(ctx.restore).toHaveBeenCalledTimes(20);
+            // 25 partiklar * (save + translate + rotate + fillText + restore)
+            expect(ctx.save).toHaveBeenCalledTimes(25);
+            expect(ctx.restore).toHaveBeenCalledTimes(25);
         });
 
         it('should render particles with emoji', () => {
             system.render();
             
             // Varje partikel ritas med fillText
-            expect(ctx.fillText).toHaveBeenCalledTimes(20);
+            expect(ctx.fillText).toHaveBeenCalledTimes(25);
             
             // Verifiera att emoji används (🍂 eller 🍃)
             const calls = vi.mocked(ctx.fillText).mock.calls;
@@ -112,14 +112,14 @@ describe('MenuParticleSystem Tests', () => {
             system.render();
             
             // Varje partikel roteras
-            expect(ctx.rotate).toHaveBeenCalledTimes(20);
+            expect(ctx.rotate).toHaveBeenCalledTimes(25);
         });
 
         it('should translate to particle position', () => {
             system.render();
             
             // Varje partikel flyttas till sin position
-            expect(ctx.translate).toHaveBeenCalledTimes(20);
+            expect(ctx.translate).toHaveBeenCalledTimes(25);
         });
 
         it('should set font size for particles', () => {
@@ -159,9 +159,9 @@ describe('MenuParticleSystem Tests', () => {
         });
 
         it('should maintain particle count if set to same value', () => {
-            system.setParticleCount(20);
+            system.setParticleCount(25);
             
-            expect(system.getParticleCount()).toBe(20);
+            expect(system.getParticleCount()).toBe(25);
         });
     });
 
@@ -184,7 +184,7 @@ describe('MenuParticleSystem Tests', () => {
             system.setPaused(true);
             
             // Ingen error ska kastas
-            expect(system.getParticleCount()).toBe(20);
+            expect(system.getParticleCount()).toBe(25);
         });
     });
 
@@ -212,7 +212,7 @@ describe('MenuParticleSystem Tests', () => {
             expect(system.getParticleCount()).toBe(0);
             
             system.initialize();
-            expect(system.getParticleCount()).toBe(20);
+            expect(system.getParticleCount()).toBe(25);
         });
     });
 
@@ -223,7 +223,7 @@ describe('MenuParticleSystem Tests', () => {
                 system.render();
             }
             
-            expect(system.getParticleCount()).toBe(20);
+            expect(system.getParticleCount()).toBe(25);
         });
 
         it('should maintain stability during long animation', () => {
@@ -256,7 +256,7 @@ describe('MenuParticleSystem Tests', () => {
             
             system.initialize();
             
-            expect(system.getParticleCount()).toBe(20);
+            expect(system.getParticleCount()).toBe(25);
         });
     });
 
