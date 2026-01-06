@@ -35,8 +35,8 @@ export class MenuParticleSystem {
     public initialize(): void {
         this.particles = [];
         
-        // Skapa 20 löv-partiklar med slumpmässiga egenskaper
-        for (let i = 0; i < 20; i++) {
+        // Skapa 25 löv-partiklar med slumpmässiga egenskaper (mer atmosfär)
+        for (let i = 0; i < 25; i++) {
             this.particles.push(this.createRandomParticle());
         }
     }
@@ -49,12 +49,12 @@ export class MenuParticleSystem {
             x: Math.random() * this.canvas.width,
             y: Math.random() * this.canvas.height,
             velocity: {
-                x: (Math.random() - 0.5) * 0.5, // Lätt sidovind
-                y: Math.random() * 1 + 0.5      // Fallhastighet
+                x: (Math.random() - 0.5) * 0.8,  // Lätt sidovind (ökat från 0.5)
+                y: Math.random() * 1.2 + 0.6      // Fallhastighet (smidigare fall)
             },
-            size: Math.random() * 8 + 4,        // Storlek 4-12px
+            size: Math.random() * 10 + 6,         // Storlek 6-16px (något större)
             rotation: Math.random() * Math.PI * 2,
-            rotationSpeed: (Math.random() - 0.5) * 0.02, // Rotation per frame
+            rotationSpeed: (Math.random() - 0.5) * 0.03, // Rotation per frame (mer synlig)
             type: Math.random() > 0.5 ? '🍂' : '🍃'      // Brunt eller grönt löv
         };
     }
@@ -88,8 +88,8 @@ export class MenuParticleSystem {
         particle.y = -10;
         particle.x = Math.random() * this.canvas.width;
         // Ge partikeln lite slumpmässig variation när den återställs
-        particle.velocity.x = (Math.random() - 0.5) * 0.5;
-        particle.velocity.y = Math.random() * 1 + 0.5;
+        particle.velocity.x = (Math.random() - 0.5) * 0.8;
+        particle.velocity.y = Math.random() * 1.2 + 0.6;
     }
 
     /**
