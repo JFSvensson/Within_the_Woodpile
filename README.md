@@ -485,8 +485,15 @@ Alla tester använder **TypeScript strict mode** och **Vitest** för modern test
 - [ ] **Ljudfiler**: Lägg till faktiska ljudfiler för effekter och musik (infrastruktur klar med AudioManager)
 - [ ] **Instruktioner-skärm**: Implementera instruktioner-innehåll (knapp finns)
 - [ ] **Export/import**: Highscore-data backup och delning
-- [ ] **Mer polish**: Finjustera animationstiming och partikeleffekter
-- [ ] **Resterande test-coverage**: Nå 90%+ med I18n och WoodPileGenerator tester
+- [x] **Mer polish**: Finjustera animationstiming och partikeleffekter ✅
+  - Runda vedpinnar i kollaps-animationer (matchar speldesign)
+  - Realistiska träfärgade partiklar istället för grå damm
+  - Förlängd animation-duration (1200ms) för smooth fade-out
+  - Ökad skärmskakning (max 25px, 800ms) för mer dramatik
+  - Mer synliga löv-partiklar (25 st, större, smidigare fall)
+  - Fler och mer energiska kollaps-partiklar (20-60 st)
+  - Förbättrad fysik med justerad gravitation och luftmotstånd
+- [x] **Resterande test-coverage**: Nå 90%+ med I18n och WoodPileGenerator tester ✅
 
 ### Långsiktigt 🚀
 - [x] **Flera nivåer med olika svårighetsgrader** ✨ NYTT!
