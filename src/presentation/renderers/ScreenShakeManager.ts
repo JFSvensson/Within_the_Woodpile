@@ -9,11 +9,11 @@ export class ScreenShakeManager {
     private shakeOffsetX: number = 0;
     private shakeOffsetY: number = 0;
 
-    private static readonly BASE_INTENSITY = 5; // pixels
-    private static readonly INTENSITY_PER_PIECE = 2; // extra pixels per collapsing piece
-    private static readonly MAX_INTENSITY = 20; // max shake distance
-    private static readonly BASE_DURATION = 250; // ms
-    private static readonly DURATION_PER_PIECE = 50; // extra ms per piece
+    private static readonly BASE_INTENSITY = 6; // pixels (ökat från 5)
+    private static readonly INTENSITY_PER_PIECE = 2.5; // extra pixels per collapsing piece (ökat från 2)
+    private static readonly MAX_INTENSITY = 25; // max shake distance (ökat från 20)
+    private static readonly BASE_DURATION = 300; // ms (ökat från 250)
+    private static readonly DURATION_PER_PIECE = 60; // extra ms per piece (ökat från 50)
 
     /**
      * Startar screen shake baserat på kollaps-intensitet
@@ -28,7 +28,7 @@ export class ScreenShakeManager {
 
         // Beräkna duration baserat på intensitet
         this.shakeDuration = ScreenShakeManager.BASE_DURATION + (collapseCount * ScreenShakeManager.DURATION_PER_PIECE);
-        this.shakeDuration = Math.min(this.shakeDuration, 600); // Max 600ms
+        this.shakeDuration = Math.min(this.shakeDuration, 800); // Max 800ms (ökat från 600ms)
 
         this.shakeStartTime = performance.now();
         this.isShaking = true;
