@@ -20,8 +20,8 @@ interface CollapseParticle {
  */
 export class CollapseParticleSystem {
     private particles: CollapseParticle[] = [];
-    private static readonly GRAVITY = 0.3;
-    private static readonly AIR_RESISTANCE = 0.98;
+    private static readonly GRAVITY = 0.35; // Ökat från 0.3 för mer realistisk gravitation
+    private static readonly AIR_RESISTANCE = 0.97; // Minskat från 0.98 för mer bromsning
 
     /**
      * Skapar partiklar för en kollapsande vedpinne
@@ -30,26 +30,26 @@ export class CollapseParticleSystem {
      * @param intensity Intensitet (1-10, baserat på antal rasande pinnar)
      */
     public createCollapseParticles(x: number, y: number, intensity: number = 1): void {
-        // Antal partiklar baserat på intensitet
-        const particleCount = Math.min(15 + intensity * 3, 50);
+        // Antal partiklar baserat på intensitet (fler för bättre visuell effekt)
+        const particleCount = Math.min(20 + intensity * 4, 60);
         
         for (let i = 0; i < particleCount; i++) {
             const angle = (Math.random() * Math.PI * 2);
-            const speed = 2 + Math.random() * 4;
-            const isWoodChip = Math.random() > 0.7; // 30% chance för träflis
+            const speed = 2 + Math.random() * 5; // Ökat från 4 till 5 för mer energi
+            const isWoodChip = Math.random() > 0.65; // 35% chance för träflis (ökat från 30%)
             
             this.particles.push({
                 x,
                 y,
                 vx: Math.cos(angle) * speed,
-                vy: Math.sin(angle) * speed - 2, // Initial upward velocity
-                size: isWoodChip ? 3 + Math.random() * 4 : 2 + Math.random() * 3,
+                vy: Math.sin(angle) * speed - 2.5, // Initial upward velocity (ökat från 2)
+                size: isWoodChip ? 3 + Math.random() * 5 : 2 + Math.random() * 3,
                 opacity: 1,
                 rotation: Math.random() * Math.PI * 2,
-                rotationSpeed: (Math.random() - 0.5) * 0.3,
+                rotationSpeed: (Math.random() - 0.5) * 0.4, // Mer rotation (ökat från 0.3)
                 color: isWoodChip ? this.getWoodChipColor() : this.getDustColor(),
                 life: 0,
-                maxLife: 1000 + Math.random() * 1000 // 1-2 sekunder
+                maxLife: 1200 + Math.random() * 1200 // 1.2-2.4 sekunder (längre för smooth fade)
             });
         }
     }
@@ -69,14 +69,15 @@ export class CollapseParticleSystem {
     }
 
     /**
-     * Slumpmässig damm-färg
+     * Slumpmässig damm-färg (ljusbrun/beige för träbaserat damm)
      */
     private getDustColor(): string {
         const colors = [
-            '#D3D3D3', // Light gray
-            '#C0C0C0', // Silver
-            '#B8B8B8', // Gray
-            '#A8A8A8'  // Dark gray
+            '#D2B48C', // Tan
+            '#DEB887', // Burlywood
+            '#F5DEB3', // Wheat
+            '#FAEBD7', // Antique white
+            '#E6C9A8'  // Pale wood
         ];
         return colors[Math.floor(Math.random() * colors.length)];
     }
