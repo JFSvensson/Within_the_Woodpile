@@ -1,14 +1,15 @@
 import { WoodPiece } from '../../types/game.js';
+import { WoodType, WOOD_TYPE_CONFIG } from '../../types/wood.js';
 
 /**
  * Hanterar animationer för rasande ved med fysik-baserade effekter
  */
 export class WoodCollapseAnimator {
-    private static readonly GRAVITY = 0.5; // Pixels per frame squared
-    private static readonly MAX_FALL_SPEED = 15; // Max fall hastighet
-    private static readonly MIN_ROTATION_SPEED = -0.15;
-    private static readonly MAX_ROTATION_SPEED = 0.15;
-    private static readonly ANIMATION_DURATION = 1000; // ms
+    private static readonly GRAVITY = 0.6; // Pixels per frame squared (ökat från 0.5 för snabbare fall)
+    private static readonly MAX_FALL_SPEED = 18; // Max fall hastighet (ökat från 15)
+    private static readonly MIN_ROTATION_SPEED = -0.18; // Mer rotation för dramatik
+    private static readonly MAX_ROTATION_SPEED = 0.18;
+    private static readonly ANIMATION_DURATION = 1200; // ms (längre för smooth fade-out)
     
     private collapsingPieces: Map<string, WoodPiece> = new Map();
     private onCollapseComplete?: (piece: WoodPiece) => void;
@@ -91,7 +92,7 @@ export class WoodCollapseAnimator {
     }
 
     /**
-     * Renderar en kollapsande vedpinne med rotation och fade
+     * Renderar en kollapsande vedpinne med rotation och fade (rund ved)
      * @param ctx Canvas rendering context
      * @param piece Vedpinnen att rendera
      */
@@ -106,13 +107,14 @@ export class WoodCollapseAnimator {
         // Fade out effekt
         const opacity = 1 - progress;
         
+        const radius = Math.min(piece.size.width, piece.size.height) / 2;
+        const centerX = piece.position.x + piece.size.width / 2;
+        const centerY = piece.position.y + piece.size.height / 2;
+        
         ctx.save();
         
         // Flytta till centrum av vedpinnen
-        ctx.translate(
-            piece.position.x + piece.size.width / 2,
-            piece.position.y + piece.size.height / 2
-        );
+        ctx.translate(centerX, centerY);
         
         // Applicera rotation
         if (piece.collapseRotation) {
@@ -122,26 +124,48 @@ export class WoodCollapseAnimator {
         // Sätt opacity
         ctx.globalAlpha = opacity;
         
-        // Rita vedpinnen (centrerad)
-        ctx.fillStyle = '#8B4513';
-        ctx.fillRect(
-            -piece.size.width / 2,
-            -piece.size.height / 2,
-            piece.size.width,
-            piece.size.height
-        );
+        // Hämta färg baserat på wood type
+        const woodType = piece.woodType || WoodType.NORMAL;
+        const baseColor = this.getWoodColor(woodType);
+        
+        // Rita rund vedpinne
+        ctx.fillStyle = baseColor;
+        ctx.beginPath();
+        ctx.arc(0, 0, radius - 1, 0, 2 * Math.PI);
+        ctx.fill();
         
         // Rita outline
         ctx.strokeStyle = '#654321';
         ctx.lineWidth = 2;
-        ctx.strokeRect(
-            -piece.size.width / 2,
-            -piece.size.height / 2,
-            piece.size.width,
-            piece.size.height
-        );
+        ctx.beginPath();
+        ctx.arc(0, 0, radius - 1, 0, 2 * Math.PI);
+        ctx.stroke();
         
         ctx.restore();
+    }
+
+    /**
+     * Hämtar färg för wood type (matchar WoodPieceRenderer)
+     */
+    private getWoodColor(woodType: WoodType | string): string {
+        const type = typeof woodType === 'string' ? woodType.toLowerCase() : woodType;
+        
+        switch (type) {
+            case WoodType.GOLDEN:
+            case 'golden':
+                return '#DAA520'; // Guldbrun
+            case WoodType.CURSED:
+            case 'cursed':
+                return '#4A148C'; // Mörklila
+            case WoodType.FRAGILE:
+            case 'fragile':
+                return '#D84315'; // Rödaktig
+            case WoodType.BONUS:
+            case 'bonus':
+                return '#388E3C'; // Grön
+            default:
+                return '#8b4513'; // Normal brun
+        }
     }
 
     /**
